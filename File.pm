@@ -1,4 +1,5 @@
 package PostScript::File;
+our $VERSION = 0.12;
 use strict;
 use warnings;
 use File::Spec;
@@ -6,7 +7,6 @@ use Sys::Hostname;
 require Exporter;
 our @ISA = qw(Exporter);
 
-our $VERSION = 0.10;
 our @EXPORT_OK = qw(check_tilde check_file incpage_label incpage_roman array_as_string str);
 
 # Prototypes for functions only
@@ -252,9 +252,9 @@ sub new
     };
     bless $o, $class;
 
-    $o->{eps}	     = defined($opt->{eps})	  ? $opt->{eps}	     : 0;
-    $o->{file}	     = defined($opt->{file})	  ? $opt->{file}	     : "";
-    $o->{dir}	     = defined($opt->{dir})	  ? $opt->{dir}	     : "";
+    $o->{eps}	= defined($opt->{eps})	? $opt->{eps}  : 0;
+    $o->{file}	= defined($opt->{file})	? $opt->{file} : "";
+    $o->{dir}	= defined($opt->{dir})	? $opt->{dir}  : "";
     $o->set_paper( $opt->{paper} );
     $o->set_width( $opt->{width} );
     $o->set_height( $opt->{height} );
@@ -337,8 +337,6 @@ In addition, the following keys are recognized.
 
 There are four options which control how much gets put into the resulting file.
 
-=over 4
-
 =head3 debug
 
 =over 6
@@ -385,13 +383,9 @@ Requests that a font re-encode function be added and that the 13 standard PostSc
 specified encoding. The only recognized value so far is 'ISOLatin1Encoding' which selects the iso8859-1 encoding and fits most of
 western Europe, including the Scandinavia.
 
-=back
-
 =head2 Initialization
 
 There are a few initialization settings that are only relevant when the file object is constructed.
-
-=over 4
 
 =head3 bottom
 
@@ -478,14 +472,10 @@ margin at the top of the page.  Remember to specify C<clipping> if that is what 
 
 Set the page width, the shortest edge of the paper.  (Default taken from C<paper>)
 
-=back
-
 =head2 Debugging support 
 
 This makes most sense in the postscript code rather than perl.  However, it is convenient to be able to set
 defaults for the output position and so on.  See L</"POSTSCRIPT DEBUGGING SUPPORT"> for further details.
-
-=over 4
 
 =head3 db_active
 
@@ -529,15 +519,11 @@ The amount indented by C<db_indent>.  (Default: 10)
 
 The top line of debugging output.  Defaults to 6 below the top of the page.
 
-=back
-
 =head2 Error handling
 
 If C<errors> is set, the position of any fatal error message can be controlled with the following options.  Each
 value is placed into a postscript variable of the same name, so they can be overridden from within the code if
 necessary.
-
-=over 4
 
 =head3 errfont
 
@@ -560,14 +546,10 @@ X position of the error message on the page.  (Default: (72))
 
 Y position of the error message on the page.  (Default: (72))
 
-=back
-
 =head2 Document structure
 
 There are options which only affect the DSC comments.  They all have B<get_> functions which return the
 values set here, e.g. B<get_title> returns the value given to the title option.
-
-=over 4
 
 =head3 extensions
 
@@ -591,13 +573,9 @@ Set the document's title as recorded in PostScript's Document Structuring Conven
 Set the document's version as recorded in PostScript's Document Structuring Conventions.  This should be a string
 with a major, minor and revision numbers.  For example "1.5 8" signifies revision 8 of version 1.5.  (No default)
 
-=back
-
 =head2 Miscellaneous
 
 A few options that may be changed between pages or set here for the first page.
-
-=over 4
 
 =head3 incpage_handler
 
@@ -611,8 +589,6 @@ Set the label (text or number) for the initial page.  See L</set_page_label>.  (
 
 Set whether the postscript code is filtered.  C<space> strips leading spaces so the user can indent freely
 without increasing the file size.  C<comments> remove lines beginning with '%' as well.  (Default: "space")
-
-=back
 
 =cut
 
@@ -1080,19 +1056,6 @@ END_TRAILER
 }
 # Internal method, used by output()
 
-sub print_file ($$) {
-    my($filename, $contents) = @_;
-    if ($filename) {
-	open(OUTFILE, ">", $filename) or die "Unable to write to \'$filename\' : $!\nStopped";
-	print OUTFILE $contents;
-	close OUTFILE;
-    } else {
-	print $contents, "\n";
-    }
-}
-# Internal function, used by output()
-# Expects file name and contents
-
 sub output {
     my ($o, $filename, $dir) = @_;
     $o->set_filename($filename, $dir) if (defined $filename);
@@ -1190,14 +1153,14 @@ END_PAGE_SETUP
 END_PAGE_TRAILER
 	}
 	$postscript .= $o->post_pages();
-	print_file( $psfile, $postscript );
+	return print_file( $psfile, $postscript );
     }
 }
 
 =head2 output( [filename [, dir]] )
 
-Writes the current PostScript out to file.  It is printed to STDOUT if no filename has been given either here, to
-B<new> or B<set_filename>.
+Writes the current PostScript out to the named file provided a filename has been given either here, to
+B<new> or B<set_filename>.  If no filename is given, the text is returned by the function.
 
 Use this option whenever output is required to disk. The current PostScript document in memory is not cleared, and
 can still be extended.
@@ -2027,8 +1990,6 @@ Judicious use of C<db_active> can help there.
 
 =head3 x0 y0 x1 y1 B<cliptobox>
 
-=over 4
-
 This function is only available if 'clipping' is set.  By calling the perl method B<draw_bounding_box> (and
 resetting with B<clip_bounding_box>) it is possible to use this to identify areas on the page.
 
@@ -2045,14 +2006,10 @@ resetting with B<clip_bounding_box>) it is possible to use this to identify area
 If 'errors' is enabled, this call allows you to report a fatal error from within your postscript code.  It expects
 a string on the stack and it does not return.
 
-=back
-
 All the C<db_> variables (including function names) are defined within their own dictionary (C<debugdict>).  But
 this can be ignored by all calls originating from within code passed to B<add_to_page> (usually including
 B<add_function> code) as the dictionary is automatically put on the stack before each page and taken off as each
 finishes.
-
-=over 4
 
 =head3 any B<db_show>
 
@@ -2147,8 +2104,6 @@ Moves output right by C<db_xtab>.  No stack requirements.  Useful for indenting 
 
 Moves output left by C<db_xtab>.  No stack requirements.
 
-=back
-
 =cut
 
 sub draw_bounding_box { 
@@ -2160,6 +2115,21 @@ sub clip_bounding_box {
     my $o = shift; 
     $o->{clipcmd} = "clip"; 
 }
+
+### PRIVATE FUNCTIONS
+
+sub print_file ($$) {
+    my($filename, $contents) = @_;
+    if ($filename) {
+	open(OUTFILE, ">", $filename) or die "Unable to write to \'$filename\' : $!\nStopped";
+	print OUTFILE $contents;
+	close OUTFILE;
+    } else {
+	return "$contents\n";
+    }
+}
+# Internal function, used by output()
+# Expects file name and contents
 
 =head1 EXPORTED FUNCTIONS
 
