@@ -1,7 +1,7 @@
 use Test;
 use charnames qw(:full);
 BEGIN { plan tests => 4 };
-use PostScript::File qw(check_file incpage_label incpage_roman);
+use PostScript::Graph::File qw(check_file incpage_label incpage_roman);
 
 my $hash = { headings => 1,
 	     errors => 1,
@@ -11,7 +11,7 @@ my $hash = { headings => 1,
 	     reencode => "ISOLatin1Encoding",
 	     fontsuffix => "-latin1",
 	     };
-my $ps = new PostScript::File( $hash );
+my $ps = new PostScript::Graph::File( $hash );
 ok($ps); # object created
 
 my $label = $ps->get_page_label();
@@ -38,7 +38,7 @@ $ps->add_to_page( <<END_PAGE2 );
     ($msg) show
 END_PAGE2
 
-my $name = "04pages";
+my $name = "fi04pages";
 $ps->output( $name, "test-results" );
 my $file = check_file( "$name.ps", "test-results" );
 ok(-e $file);

@@ -1,9 +1,9 @@
 use Test;
 BEGIN { plan tests => 7 };
-use PostScript::File qw(check_file);
+use PostScript::Graph::File qw(check_file);
 ok(1); # module found
 
-my $ps = new PostScript::File(
+my $ps = new PostScript::Graph::File(
     eps => 1,
     headings => 1,
     width => 160,
@@ -22,7 +22,7 @@ my $page = $ps->get_page_label();
 ok($page, "1");
 ok($ps->get_page());
 
-my $name = "02eps";
+my $name = "fi02eps";
 $ps->output( $name, "test-results" );
 ok(1); # survived so far
 my $file = check_file( "$name.epsf", "test-results" );

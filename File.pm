@@ -1,4 +1,4 @@
-package PostScript::File;
+package PostScript::Graph::File;
 use strict;
 use warnings;
 use File::Spec;
@@ -6,8 +6,8 @@ use Sys::Hostname;
 require Exporter;
 our @ISA = qw(Exporter);
 
-our $VERSION = "0.04";
-our @EXPORT_OK = qw(check_tilde check_file incpage_label incpage_roman);
+our $VERSION = '0.06';
+our @EXPORT_OK = qw(check_tilde check_file incpage_label incpage_roman array_as_string str);
 
 # Prototypes for functions only
 sub incpage_label ($);
@@ -22,18 +22,20 @@ my $rmcomment = qr(^\s+\(% .*\)?);  # remove single line comments
 
 =head1 NAME
 
-PostScript::File - Base class for creating Adobe PostScript files
+PostScript::Graph::File - Base class for creating Adobe PostScript files
 
 =head1 SYNOPSIS
 
-    use PostScript::File qw(check_tilde check_file
+    use PostScript::Graph::File qw(check_tilde check_file
 		    incpage_label incpage_roman);
 
-At its simplest, an 'hello world' program:
+=head2 Simplest
+		    
+An 'hello world' program:
 
-    use PostScript::File;
+    use PostScript::Graph::File;
 
-    my $ps = new PostScript::File();
+    my $ps = new PostScript::Graph::File();
     
     $ps->add_to_page( <<END_PAGE );
 	/Helvetica findfont 
@@ -44,10 +46,57 @@ At its simplest, an 'hello world' program:
     END_PAGE
     
     $ps->output( "~/test" );
-    
+
+=head2 All options
+
+    my $ps = new PostScript::Graph::File(
+	paper => 'Letter',
+	height => 500,
+	width => 400,
+	bottom => 30,
+	top => 30,
+	left => 30,
+	right => 30,
+	clip_command => 'stroke',
+	clipping => 1,
+	eps => 1,
+	dir => '~/foo',
+	file => "bar",
+	landscape => 0,
+
+	headings => 1,
+	reencode => 'ISOLatin1Encoding',
+	font_suffix => '-iso',
+
+	errors => 1,
+	errmsg => 'Failed:',
+	errfont => 'Helvetica',
+	errsize => 12,
+	errx => 72,
+	erry => 300,
+	
+	debug => 2,
+	db_active => 1,
+	db_xgap => 120,
+	db_xtab => 8,
+	db_base => 300,
+	db_ytop => 500,
+	db_color => '1 0 0 setrgbcolor',
+	db_font => 'Times-Roman',
+	db_fontsize => 11,
+	db_bufsize => 256,
+    );
+
 =head1 DESCRIPTION
 
-This module provides the outline for an Adobe PostScript file.  Functions allow access to each of Adobe's Document
+This module is designed as a supporting part of the PostScript::Graph suite.  For top level modules that output
+something useful, see
+
+    PostScript::Graph::Bar
+    PostScript::Graph::Stock
+    PostScript::Graph::XY
+
+An outline Adobe PostScript file is constructed.  Functions allow access to each of Adobe's Document
 Structuring Convention (DSC) sections and control how the pages are constructed.  It is possible to
 construct and output files in either normal PostScript (*.ps files) or as Encapsulated Postscript (*.epsf or
 *.epsi files).  By default a minimal file is output, but support for font encoding, postscript error reporting and
@@ -163,277 +212,6 @@ our @fonts = qw(
 
 =head1 CONSTRUCTOR
 
-=head2 new( options )
-
-Create a new PostScript::File object, either a set of pages or an Encapsulated PostScript (EPS) file. Options are
-hash keys and values.  All values should be in the native postscript units of 1/72 inch.
-
-Example
-
-    $ref = new PostScript::File ( 
-		eps => 1,
-		landscape => 1,
-                width => 216,
-                height => 288,
-		left => 36,
-		right => 44,
-		clipping => 1 );
-
-This creates an encapsulated postscript document, 4 by 3 inch pages printing landscape with left and right margins of
-around half an inch.  The width is always the shortest side, even in landscape mode.  3*72=216 and 4*72=288.
-Being in landscape mode, these would be swapped.  The bounding box used for clipping would then be from
-(50,0) to (244,216).
-
-C<options> may be a single hash reference instead of an options list.  This is more convenient when used as a base
-class.
-
-In addition, the following keys are recognized.  First, four options which control how much gets put into the
-resulting file.
-
-=over 4
-
-=head3 headings
-
-Enable PostScript comments such as the date of creation and user's name.
-
-=head3 errors
-
-By default postscript fails silently. Setting this to 1 prints fatal error messages on the bottom left of
-the paper.  For user functions, a postscript function B<report_error> is defined.  This expects a message string
-on the stack, which it prints before stopping.
-
-=head3 debug
-
-=over 6
-
-=item undef
-
-No debug code is added to the file.  Of course there must be no calls to debug functions in the postscript code.
-
-=item 0
-
-B<db_> functions are replaced by dummy functions which do nothing.
-
-=item 1
-
-A range of functions are added to the file to support debugging postscript.  This switch is similar to the 'C'
-C<NDEBUG> macro in that debugging statements may be left in the postscript code but their effect is removed.
-
-Of course, being an interpreted language, it is not quite the same as the calls still takes up space - they just
-do nothing.  See L</"POSTSCRIPT DEBUGGING SUPPORT"> for details of the functions.
-
-=item 2
-
-Loads the debug functions and gives some reassuring output at the start and a stack dump at the end of each page.
-
-A mark is placed on the stack at the beginning of each page and 'cleartomark' is given at the end, avoiding
-potential C<invalidrestore> errors.  Note, however, that if the page does not end with a clean stack, it will fail
-when debugging is turned off.
-
-=back
-
-=head3 reencode
-
-Requests that a font re-encode function be added and that the 13 standard PostScript fonts get re-encoded in the
-specified encoding. The only recognized value so far is 'ISOLatin1Encoding' which selects the iso8859-1 encoding and fits most of
-western Europe, including the Scandinavia.
-
-=back
-
-Next, there are a few initialization settings that are only relevant when the file object is constructed.
-
-=over 4
-
-=head3 eps
-
-Set to 1 to produce Encapsulated PostScript.  B<get_eps> returns the value set here.  (Default: 0)
-
-=head3 paper
-
-Set the paper size of each page.  A document can be created using a standard paper size without
-having to remember the size of paper using PostScript points. Valid choices are currently A0, A1, A2, A3, A4, A5,
-A6, A7, A8, A9, B0, B1, B2, B3, B4, B5, B6, B7, B8, B9, B10, Executive, Folio, 'Half-Letter', Letter, 'US-Letter',
-Legal, 'US-Legal', Tabloid, 'SuperB', Ledger, 'Comm #10 Envelope', 'Envelope-Monarch', 'Envelope-DL',
-'Envelope-C5', 'EuroPostcard'.  (Default: "A4")
-
-This also sets C<width> and C<height>.  B<get_paper> returns the value set here.
-
-=head3 width
-
-=head3 height
-
-Set the page width and height. The height is the longest edge of the paper.  (Default taken from C<paper>)
-
-The paper size is set to "Custom".  B<get_width> and B<get_height> return the values set here.
-
-=head3 left
-
-=head3 bottom
-
-=head3 right
-
-=head3 top
-
-These are margins in from the paper edges to specify non-printable areas on the paper.  They are all positive
-offsets, so C<left=36> and C<right=36> will leave a half inch no-go margin on each side of the page.
-Remember to specify C<clipping> if that is what is wanted.
-
-=head3 landscape
-
-Set whether the page is oriented horizontally (C<1>) or vertically (C<0>).  (Default: 0)
-
-In landscape mode the coordinates are rotated 90 degrees and the origin moved to the bottom left corner.  Thus the
-coordinate system appears the same to the user, with the origin at the bottom left.
-
-=head3 clipping
-
-Set whether printing will be clipped to the file's bounding box. (Default: 0)
-
-=head3 clipcmd
-
-The bounding box is used for clipping if this is set to "clip" or is drawn with "stroke".  This also makes the
-whole page area available for debugging output.  (Default: "clip").
-
-=head3 fontsuffix
-
-This string is appended to each font name as it is reencoded.  (Default: "-iso")
-
-The standard fonts are named Courier, Courier-Bold, Courier-BoldOblique, Courier-Oblique, Helvetica,
-Helvetica-Bold, Helvetica-BoldOblique, Helvetica-Oblique, Times-Roman, Times-Bold, Times-BoldItalic, Times-Italic,
-and Symbol.  The string value is appended to these to make the new names.
-
-Example
-
-    $ps = new PostScript::File( 
-		fontsuffix => "-iso",
-		reencode => "ISOLatin1Encoding"
-	    );
-	    
-"Courier" still has the standard mapping while "Courier-iso" includes the additional European characters.
-
-=back
-
-Debugging support makes most sense in the postscript code rather than perl.  However, it is convenient to be able
-to set defaults for the output position and so on.  See L</"POSTSCRIPT DEBUGGING SUPPORT"> for further details.
-
-=over 4
-
-=head3 db_ytop
-
-The top line of debugging output.  Defaults to 6 below the top of the page.
-
-=head3 db_base
-
-Debug printing will not occur below this point.  (Default: 6)
-
-=head3 db_xpos
-
-The left edge, where debug output starts.  (Default: 6)
-
-=head3 db_xtab
-
-The amount indented by C<db_indent>.  (Default: 10)
-
-=head3 db_xgap
-
-Typically, the output comprises single values such as a column showing the stack contents.  C<db_xgap> specifies
-the width of each column.  By default, this is calculated to allow 4 columns across the page.
-
-=head3 db_color
-
-This is the whole postscript command (with any parameters) to specify the colour of the text printed by the debug
-routines.  (Default: "0 setgray")
-
-=head3 db_font
-
-The name of the font to use.  (Default: "Courier")
-
-=head3 db_fontsize
-
-The size of the font.  Postscript uses its own units, but they are almost points.  (Default: 10)
-
-=head3 db_bufsize
-
-The size of string buffers used.  Output must be no longer than this.  (Default: 256)
-
-=head3 db_active
-
-Set to 0 to temporarily suppress the debug output.  (Default: 1)
-
-=back
-
-If C<errors> is set, the position of any fatal error message can be controlled with the following options.  Each
-value is placed into a postscript variable of the same name, so they can be overridden from within the code if
-necessary.
-
-=over 4
-
-=head3 errx
-=head3 erry
-
-Position of the error message on the page.  (Default: (72, 72))
-
-=head3 errmsg
-
-The error message comprises two lines.  The second is the name of the postscript error.  This sets the first line.
-(Default: "ERROR:")
-
-=head3 errfont
-
-=head3 errsize
-
-Font name and font size of the error message.  (Default: "Courier-Bold", 12)
-
-=back
-
-There are options which only affect the DSC comments.  They all have B<get_> functions which return the
-values set here, e.g. B<get_title> returns the value given to the title option.
-
-=over 4
-
-=head3 title
-
-Set the document's title as recorded in PostScript's Document Structuring Conventions.  (No default)
-
-=head3 version
-
-Set the document's version as recorded in PostScript's Document Structuring Conventions.  This should be a string
-with a major, minor and revision numbers.  For example "1.5 8" signifies revision 8 of version 1.5.  (No default)
-
-=head3 langlevel
-
-Set the PostScript language level.  (No default)
-
-=head3 extensions
-
-Declare and PostScript language extensions that need to be available.  (No default)
-
-=head3 order
-
-Set the order the pages have been defined.  It should one of "ascend", "descend" or "special" if a document
-manager must not reorder the pages.  (No default)
-
-=back
-
-Finally, a few that may be changed between pages.
-
-=over 4
-
-=head3 page
-
-Set the label (text or number) for the initial page.  See L</set_page_label>.  (Default: "1")
-
-=head3 incpage_handler
-
-Set the initial value for the function which increments page labels.  See L</set_incpage_handler>.
-
-=head3 strip
-
-Set whether the postscript code is filtered.  C<space> strips leading spaces so the user can indent freely
-without increasing the file size.  C<comments> remove lines beginning with '%' as well.  (Default: "space")
-
-=back
-
 =cut
 
 sub new
@@ -500,25 +278,25 @@ sub new
     $o->set_bounding_box( $x0, $y0, $x1, $y1 );
     $o->set_clipping( $opt->{clipping} || 0 );
     
-    $o->{title}	     = defined($opt->{title})	   ? $opt->{title}	: undef;
-    $o->{version}    = defined($opt->{version})	   ? $opt->{version}    : undef;
-    $o->{langlevel}  = defined($opt->{langlevel})  ? $opt->{langlevel}  : undef;
-    $o->{extensions} = defined($opt->{extensions}) ? $opt->{extensions} : undef;
-    $o->{order}	     = defined($opt->{order})	   ? $opt->{order}	: undef;
+    $o->{title}	     = defined($opt->{title})	     ? $opt->{title}	    : undef;
+    $o->{version}    = defined($opt->{version})	     ? $opt->{version}      : undef;
+    $o->{langlevel}  = defined($opt->{langlevel})    ? $opt->{langlevel}    : undef;
+    $o->{extensions} = defined($opt->{extensions})   ? $opt->{extensions}   : undef;
+    $o->{order}	     = defined($opt->{order})	     ? $opt->{order}	    : undef;
     $o->set_page_label( $opt->{page} );
     $o->set_incpage_handler( $opt->{incpage_handler} );
    
-    $o->{errx}	     = defined($opt->{errx})	   ? $opt->{erry}	: 72;
-    $o->{erry}	     = defined($opt->{erry})	   ? $opt->{erry}	: 72;
-    $o->{errmsg}     = defined($opt->{errmsg})	   ? $opt->{errmsg}     : "ERROR:";
-    $o->{errfont}    = defined($opt->{errfont})	   ? $opt->{errfont}    : "Courier-Bold";
-    $o->{errsize}    = defined($opt->{errsize})	   ? $opt->{errsize}    : 12;
+    $o->{errx}	     = defined($opt->{errx})	     ? $opt->{erry}	    : 72;
+    $o->{erry}	     = defined($opt->{erry})	     ? $opt->{erry}	    : 72;
+    $o->{errmsg}     = defined($opt->{errmsg})	     ? $opt->{errmsg}       : "ERROR:";
+    $o->{errfont}    = defined($opt->{errfont})	     ? $opt->{errfont}      : "Courier-Bold";
+    $o->{errsize}    = defined($opt->{errsize})	     ? $opt->{errsize}      : 12;
     
-    $o->{reencode}   = defined($opt->{reencode})   ? $opt->{reencode}   : "";
-    $o->{fontsuffix} = defined($opt->{fontsuffix}) ? $opt->{fontsuffix} : "-iso";
-    $o->{clipcmd}    = defined($opt->{clipcmd})    ? $opt->{clipcmd}    : "clip";
-    $o->{errors}     = defined($opt->{errors})	   ? $opt->{errors}     : "";
-    $o->{headings}   = defined($opt->{headings})   ? $opt->{headings}   : 0;
+    $o->{reencode}   = defined($opt->{reencode})     ? $opt->{reencode}     : "";
+    $o->{font_suffix} = defined($opt->{font_suffix})  ? $opt->{font_suffix}  : "-iso";
+    $o->{clipcmd}    = defined($opt->{clip_command}) ? $opt->{clip_command} : "clip";
+    $o->{errors}     = defined($opt->{errors})	     ? $opt->{errors}       : "";
+    $o->{headings}   = defined($opt->{headings})     ? $opt->{headings}     : 0;
     $o->set_strip( $opt->{strip} );
    
     $o->newpage( $o->get_page_label() );
@@ -526,17 +304,316 @@ sub new
     return $o;
 }
 
+=head2 new( options )
+
+Create a new PostScript::Graph::File object, either a set of pages or an Encapsulated PostScript (EPS) file. Options are
+hash keys and values.  All values should be in the native postscript units of 1/72 inch.
+
+Example
+
+    $ref = new PostScript::Graph::File ( 
+		eps => 1,
+		landscape => 1,
+                width => 216,
+                height => 288,
+		left => 36,
+		right => 44,
+		clipping => 1 );
+
+This creates an encapsulated postscript document, 4 by 3 inch pages printing landscape with left and right margins of
+around half an inch.  The width is always the shortest side, even in landscape mode.  3*72=216 and 4*72=288.
+Being in landscape mode, these would be swapped.  The bounding box used for clipping would then be from
+(50,0) to (244,216).
+
+C<options> may be a single hash reference instead of an options list, but the hash must have the same structure.
+This is more convenient when used as a base class.
+
+In addition, the following keys are recognized.  
+
+=head2 File size
+
+There are four options which control how much gets put into the resulting file.
+
+=over 4
+
+=head3 debug
+
+=over 6
+
+=item undef
+
+No debug code is added to the file.  Of course there must be no calls to debug functions in the postscript code.
+
+=item 0
+
+B<db_> functions are replaced by dummy functions which do nothing.
+
+=item 1
+
+A range of functions are added to the file to support debugging postscript.  This switch is similar to the 'C'
+C<NDEBUG> macro in that debugging statements may be left in the postscript code but their effect is removed.
+
+Of course, being an interpreted language, it is not quite the same as the calls still takes up space - they just
+do nothing.  See L</"POSTSCRIPT DEBUGGING SUPPORT"> for details of the functions.
+
+=item 2
+
+Loads the debug functions and gives some reassuring output at the start and a stack dump at the end of each page.
+
+A mark is placed on the stack at the beginning of each page and 'cleartomark' is given at the end, avoiding
+potential C<invalidrestore> errors.  Note, however, that if the page does not end with a clean stack, it will fail
+when debugging is turned off.
+
+=back
+
+=head3 errors
+
+By default postscript fails silently. Setting this to 1 prints fatal error messages on the bottom left of
+the paper.  For user functions, a postscript function B<report_error> is defined.  This expects a message string
+on the stack, which it prints before stopping.
+
+=head3 headings
+
+Enable PostScript comments such as the date of creation and user's name.
+
+=head3 reencode
+
+Requests that a font re-encode function be added and that the 13 standard PostScript fonts get re-encoded in the
+specified encoding. The only recognized value so far is 'ISOLatin1Encoding' which selects the iso8859-1 encoding and fits most of
+western Europe, including the Scandinavia.
+
+=back
+
+=head2 Initialization
+
+There are a few initialization settings that are only relevant when the file object is constructed.
+
+=over 4
+
+=head3 bottom
+
+The margin in from the paper's bottom edge, specifying the non-printable area.
+Remember to specify C<clipping> if that is what is wanted.
+
+=head3 clip_command
+
+The bounding box is used for clipping if this is set to "clip" or is drawn with "stroke".  This also makes the
+whole page area available for debugging output.  (Default: "clip").
+
+=head3 clipping
+
+Set whether printing will be clipped to the file's bounding box. (Default: 0)
+
+=head3 dir
+
+An optional directory for the output file.  See </set_filename>.
+
+=head3 eps
+
+Set to 1 to produce Encapsulated PostScript.  B<get_eps> returns the value set here.  (Default: 0)
+
+=head3 file
+
+The name of the output file.  See </set_filename>.
+
+=head3 font_suffix
+
+This string is appended to each font name as it is reencoded.  (Default: "-iso")
+
+The standard fonts are named Courier, Courier-Bold, Courier-BoldOblique, Courier-Oblique, Helvetica,
+Helvetica-Bold, Helvetica-BoldOblique, Helvetica-Oblique, Times-Roman, Times-Bold, Times-BoldItalic, Times-Italic,
+and Symbol.  The string value is appended to these to make the new names.
+
+Example
+
+    $ps = new PostScript::Graph::File( 
+		font_suffix => "-iso",
+		reencode => "ISOLatin1Encoding"
+	    );
+	    
+"Courier" still has the standard mapping while "Courier-iso" includes the additional European characters.
+
+=head3 height
+
+Set the page height, the longest edge of the paper.  (Default taken from C<paper>)
+
+The paper size is set to "Custom".  B<get_width> and B<get_height> return the values set here.
+
+=head3 landscape
+
+Set whether the page is oriented horizontally (C<1>) or vertically (C<0>).  (Default: 0)
+
+In landscape mode the coordinates are rotated 90 degrees and the origin moved to the bottom left corner.  Thus the
+coordinate system appears the same to the user, with the origin at the bottom left.
+
+=head3 left
+
+The margin in from the paper's left edge, specifying the non-printable area.
+Remember to specify C<clipping> if that is what is wanted.
+
+=head3 paper
+
+Set the paper size of each page.  A document can be created using a standard paper size without
+having to remember the size of paper using PostScript points. Valid choices are currently A0, A1, A2, A3, A4, A5,
+A6, A7, A8, A9, B0, B1, B2, B3, B4, B5, B6, B7, B8, B9, B10, Executive, Folio, 'Half-Letter', Letter, 'US-Letter',
+Legal, 'US-Legal', Tabloid, 'SuperB', Ledger, 'Comm #10 Envelope', 'Envelope-Monarch', 'Envelope-DL',
+'Envelope-C5', 'EuroPostcard'.  (Default: "A4")
+
+This also sets C<width> and C<height>.  B<get_paper> returns the value set here.
+
+=head3 right
+
+The margin in from the paper's right edge.  It is a positive offset, so C<right=36> will leave a half inch no-go
+margin on the right hand side of the page.  Remember to specify C<clipping> if that is what is wanted.
+
+=head3 top
+
+The margin in from the paper's top edge.  It is a positive offset, so C<top=36> will leave a half inch no-go
+margin at the top of the page.  Remember to specify C<clipping> if that is what is wanted.
+
+=head3 width
+
+Set the page width, the shortest edge of the paper.  (Default taken from C<paper>)
+
+=back
+
+=head2 Debugging support 
+
+This makes most sense in the postscript code rather than perl.  However, it is convenient to be able to set
+defaults for the output position and so on.  See L</"POSTSCRIPT DEBUGGING SUPPORT"> for further details.
+
+=over 4
+
+=head3 db_active
+
+Set to 0 to temporarily suppress the debug output.  (Default: 1)
+
+=head3 db_base
+
+Debug printing will not occur below this point.  (Default: 6)
+
+=head3 db_bufsize
+
+The size of string buffers used.  Output must be no longer than this.  (Default: 256)
+
+=head3 db_color
+
+This is the whole postscript command (with any parameters) to specify the colour of the text printed by the debug
+routines.  (Default: "0 setgray")
+
+=head3 db_font
+
+The name of the font to use.  (Default: "Courier")
+
+=head3 db_fontsize
+
+The size of the font.  Postscript uses its own units, but they are almost points.  (Default: 10)
+
+=head3 db_xgap
+
+Typically, the output comprises single values such as a column showing the stack contents.  C<db_xgap> specifies
+the width of each column.  By default, this is calculated to allow 4 columns across the page.
+
+=head3 db_xpos
+
+The left edge, where debug output starts.  (Default: 6)
+
+=head3 db_xtab
+
+The amount indented by C<db_indent>.  (Default: 10)
+
+=head3 db_ytop
+
+The top line of debugging output.  Defaults to 6 below the top of the page.
+
+=back
+
+=head2 Error handling
+
+If C<errors> is set, the position of any fatal error message can be controlled with the following options.  Each
+value is placed into a postscript variable of the same name, so they can be overridden from within the code if
+necessary.
+
+=over 4
+
+=head3 errfont
+
+The name of the font used to show the error message.  (Default: "Courier-Bold")
+
+=head3 errmsg
+
+The error message comprises two lines.  The second is the name of the postscript error.  This sets the first line.
+(Default: "ERROR:")
+
+=head3 errsize
+
+Size of the error message font.  (Default: 12)
+
+=head3 errx
+
+X position of the error message on the page.  (Default: (72))
+
+=head3 erry
+
+Y position of the error message on the page.  (Default: (72))
+
+=back
+
+=head2 Document structure
+
+There are options which only affect the DSC comments.  They all have B<get_> functions which return the
+values set here, e.g. B<get_title> returns the value given to the title option.
+
+=over 4
+
+=head3 extensions
+
+Declare and PostScript language extensions that need to be available.  (No default)
+
+=head3 langlevel
+
+Set the PostScript language level.  (No default)
+
+=head3 order
+
+Set the order the pages have been defined.  It should one of "ascend", "descend" or "special" if a document
+manager must not reorder the pages.  (No default)
+
+=head3 title
+
+Set the document's title as recorded in PostScript's Document Structuring Conventions.  (No default)
+
+=head3 version
+
+Set the document's version as recorded in PostScript's Document Structuring Conventions.  This should be a string
+with a major, minor and revision numbers.  For example "1.5 8" signifies revision 8 of version 1.5.  (No default)
+
+=back
+
+=head2 Miscellaneous
+
+A few options that may be changed between pages or set here for the first page.
+
+=over 4
+
+=head3 incpage_handler
+
+Set the initial value for the function which increments page labels.  See L</set_incpage_handler>.
+
+=head3 page
+
+Set the label (text or number) for the initial page.  See L</set_page_label>.  (Default: "1")
+
+=head3 strip
+
+Set whether the postscript code is filtered.  C<space> strips leading spaces so the user can indent freely
+without increasing the file size.  C<comments> remove lines beginning with '%' as well.  (Default: "space")
+
+=back
+
+=cut
+
 =head1 MAIN METHODS
-
-=head2 newpage( [page] )
-
-Generate a new PostScript page, unless in a EPS file when it is ignored.  
-
-If C<page> is not specified the page number is increased each time a new page is requested.
-
-C<page> can be a string or a number.  If anything other than a simple integer, you probably should register
-your own counting function with B<set_incpage_handler>.  Of course there is no need to do this if a page string is
-given to every B<newpage> call.
 
 =cut
 
@@ -552,9 +629,18 @@ sub newpage {
     $o->{Pages}->[$p] = "";
 }
 
-# Internal method, used by output()
-# Expects $landscape
-#
+=head2 newpage( [page] )
+
+Generate a new PostScript page, unless in a EPS file when it is ignored.  
+
+If C<page> is not specified the page number is increased each time a new page is requested.
+
+C<page> can be a string or a number.  If anything other than a simple integer, you probably should register
+your own counting function with B<set_incpage_handler>.  Of course there is no need to do this if a page string is
+given to every B<newpage> call.
+
+=cut
+
 sub pre_pages {
     my ($o, $landscape, $clipping, $filename) = @_;
     # Font encoding 
@@ -563,7 +649,7 @@ sub pre_pages {
     if ($o->{reencode}) {
 	$o->{DocSupplied} .= "\%\%+ Encoded_Fonts\n";
 	my $encoding = $o->{reencode};
-	my $ext = $o->{fontsuffix};
+	my $ext = $o->{font_suffix};
 	($fonts .= <<END_FONTS) =~ s/$o->{strip}//gm; 
 	\%\%BeginResource: Encoded_Fonts
 	    /STARTDIFFENC { mark } bind def
@@ -674,7 +760,7 @@ END_EPS
     if ($o->{headings}) {
 	($postscript .= <<END_TITLES) =~ s/$o->{strip}//gm;
 	\%\%For: $user\@$hostname
-	\%\%Creator: Perl module ${\( ref $o )} v$VERSION
+	\%\%Creator: Perl module ${\( ref $o )} v$PostScript::Graph::File::VERSION
 	\%\%CreationDate: ${\( scalar localtime )}
 END_TITLES
 	($postscript .= <<END_PS_ONLY) =~ s/$o->{strip}//gm if (not $o->{eps});
@@ -951,9 +1037,8 @@ END_PROLOG
 END_SETUP
     return $postscript;
 }
-
 # Internal method, used by output()
-#
+
 sub post_pages {
     my $o = shift;
     my $postscript = "";
@@ -967,10 +1052,8 @@ END_TRAILER
 
     return $postscript;
 }
+# Internal method, used by output()
 
-# Internal function, used by output()
-# Expects file name and contents
-# 
 sub print_file ($$) {
     my($filename, $contents) = @_;
     if ($filename) {
@@ -981,16 +1064,8 @@ sub print_file ($$) {
 	print $contents, "\n";
     }
 }
-
-=head2 output( [filename [, dir]] )
-
-Writes the current PostScript out to file.  It is printed to STDOUT if no filename has been given either here, to
-B<new> or B<set_filename>.
-
-Use this option whenever output is required to disk. The current PostScript document in memory is not cleared, and
-can still be extended.
-
-=cut
+# Internal function, used by output()
+# Expects file name and contents
 
 sub output {
     my ($o, $filename, $dir) = @_;
@@ -1059,11 +1134,18 @@ END_DEBUG_END
 	for (my $p = 0; $p < $o->{pagecount}; $p++) {
 	    my $page = $o->{page}->[$p];
 	    my @pbox = $o->get_page_bounding_box($page);
-	    my $landscape = $o->{pagelandsc}[$p] ? "landscape" : "";
+	    my ($landscape, $pagebb);
+	    if ($o->{pagelandsc}[$p]) {
+		$landscape = "landscape";
+		$pagebb = "\%\%PageBoundingBox: $pbox[1] $pbox[0] $pbox[3] $pbox[2]";
+	    } else {
+		$landscape = "";
+		$pagebb = "\%\%PageBoundingBox: $pbox[0] $pbox[1] $pbox[2] $pbox[3]";
+	    }
 	    my $cliptobox = $o->{pageclip}[$p] ? "$pbox[0] $pbox[1] $pbox[2] $pbox[3] cliptobox" : "";
 	    ($postscript .= <<END_PAGE_SETUP) =~ s/$o->{strip}//gm;
 		\%\%Page: $o->{page}->[$p] ${\($p+1)}
-		\%\%PageBoundingBox: $pbox[0] $pbox[1] $pbox[2] $pbox[3]
+		$pagebb
 		\%\%BeginPageSetup
 		    /pagelevel save def
 		    $landscape
@@ -1086,9 +1168,31 @@ END_PAGE_TRAILER
     }
 }
 
+=head2 output( [filename [, dir]] )
+
+Writes the current PostScript out to file.  It is printed to STDOUT if no filename has been given either here, to
+B<new> or B<set_filename>.
+
+Use this option whenever output is required to disk. The current PostScript document in memory is not cleared, and
+can still be extended.
+
+=cut
+
 =head1 ACCESS METHODS
 
-Use these B<get_> and B<set_> methods to access a PostScript::File object's data. 
+Use these B<get_> and B<set_> methods to access a PostScript::Graph::File object's data. 
+
+=cut
+
+sub get_filename { 
+    my $o = shift; 
+    return $o->{filename}; 
+}
+
+sub set_filename { 
+    my ($o, $filename, $dir) = @_;
+    $o->{filename} = $filename ? check_file($filename, $dir) : "";
+}
 
 =head2 get_filename()
 
@@ -1116,7 +1220,7 @@ If C<eps> has been set, multiple pages will have the page label appendend to the
 
 Example
 
-    $ps->new PostScript::File( eps => 1 );
+    $ps->new PostScript::Graph::File( eps => 1 );
     $ps->set_filename( "pics", "~/book" );
     $ps->newpage("vi");
 	... draw page
@@ -1136,15 +1240,13 @@ It would be wise to use B<set_page_bounding_box> explicitly for each page if usi
 
 =cut
 
-sub get_filename { my $o = shift; return $o->{filename}; }
-sub set_filename { 
-    my ($o, $filename, $dir) = @_;
-    $o->{filename} = $filename ? check_file($filename, $dir) : "";
-}
-
 sub get_eps { my $o = shift; return $o->{eps}; }
 
-sub get_paper { my $o = shift; return $o->{paper}; }
+sub get_paper { 
+    my $o = shift; 
+    return $o->{paper}; 
+}
+
 sub set_paper { 
     my $o = shift;
     my $paper = shift || "A4"; 
@@ -1167,7 +1269,11 @@ sub set_paper {
     }
 }
 
-sub get_width { my $o = shift; return $o->{width}; }
+sub get_width { 
+    my $o = shift; 
+    return $o->{width}; 
+}
+
 sub set_width { 
     my ($o, $width) = @_;
     if (defined($width) and ($width+0)) {
@@ -1183,7 +1289,10 @@ sub set_width {
     }
 }
 
-sub get_height { my $o = shift; return $o->{height}; }
+sub get_height { 
+    my $o = shift; 
+    return $o->{height}; 
+}
 sub set_height { 
     my ($o, $height) = @_; 
     if (defined($height) and ($height+0)) {
@@ -1199,7 +1308,11 @@ sub set_height {
     }
 }
 
-sub get_landscape { my $o = shift; return $o->{landscape}; }
+sub get_landscape { 
+    my $o = shift; 
+    return $o->{landscape}; 
+}
+
 sub set_landscape {
     my $o = shift;
     my $landscape = shift || 0;
@@ -1211,22 +1324,21 @@ sub set_landscape {
     }
 }
 
-sub get_clipping { my $o = shift; return $o->{clipping}; }
+sub get_clipping { 
+    my $o = shift; 
+    return $o->{clipping}; 
+}
+
 sub set_clipping {
     my $o = shift;
     $o->{clipping} = shift || 0;
 }
 
-=head2 get_strip
+sub get_strip { 
+    my $o = shift; 
+    return $o->{strip}; 
+}
 
-=head2 set_strip( "none" | "space" | "comments" )
-
-Determine whether the postscript code is filtered.  C<space> strips leading spaces so the user can indent freely
-without increasing the file size.  C<comments> remove lines beginning with '%' as well.
-
-=cut
-
-sub get_strip { my $o = shift; return $o->{strip}; }
 sub set_strip {
     my ($o, $strip) = @_;
     $o->{strip} = $rmspace unless (defined $o->{strip});
@@ -1235,12 +1347,12 @@ sub set_strip {
     $o->{strip} = $rmcomment if (lc($strip) eq "comments");
 }
 
-=head2 get_page_landscape( [page] )
+=head2 get_strip
 
-=head2 set_page_landscape( [[page,] landscape] )
+=head2 set_strip( "none" | "space" | "comments" )
 
-Inspect and change whether the page specified is oriented horizontally (C<1>) or vertically (C<0>).  The default
-is the global setting as returned by B<get_landscape>.  If C<page> is omitted, the current page is assumed.
+Determine whether the postscript code is filtered.  C<space> strips leading spaces so the user can indent freely
+without increasing the file size.  C<comments> remove lines beginning with '%' as well.
 
 =cut
 
@@ -1262,11 +1374,12 @@ sub set_page_landscape {
     $o->{pagelandsc}[$p] = $landscape;
 }
 
-=head2 get_page_clipping( [page] )
+=head2 get_page_landscape( [page] )
 
-=head2 set_page_clipping( [[page,] clipping] )
+=head2 set_page_landscape( [[page,] landscape] )
 
-Inspect and change whether printing will be clipped to the page's bounding box. (Default: 0)
+Inspect and change whether the page specified is oriented horizontally (C<1>) or vertically (C<0>).  The default
+is the global setting as returned by B<get_landscape>.  If C<page> is omitted, the current page is assumed.
 
 =cut
 
@@ -1282,13 +1395,11 @@ sub set_page_clipping {
     $o->{pageclip}[$p] = shift || 0;
 }
 
-=head2 get_page_label()
+=head2 get_page_clipping( [page] )
 
-=head2 set_page_label( [page] )
+=head2 set_page_clipping( [[page,] clipping] )
 
-Inspect and change the number or label for the current page.  (Default: "1")
-
-This will be automatically incremented using the function set by B<set_incpage_hander>.
+Inspect and change whether printing will be clipped to the page's bounding box. (Default: 0)
 
 =cut
 
@@ -1303,6 +1414,26 @@ sub set_page_label {
     $o->{page}[$o->{p}] = $page;
 }
 
+=head2 get_page_label()
+
+=head2 set_page_label( [page] )
+
+Inspect and change the number or label for the current page.  (Default: "1")
+
+This will be automatically incremented using the function set by B<set_incpage_hander>.
+
+=cut
+
+sub get_incpage_handler { 
+    my $o = shift; 
+    return $o->{incpage}; 
+}
+
+sub set_incpage_handler { 
+    my $o = shift;
+    $o->{incpage} = shift || \&incpage_label;
+}
+
 =head2 get_incpage_handler()
 
 =head2 set_incpage_handler( [handler] )
@@ -1310,8 +1441,8 @@ sub set_page_label {
 Inspect and change the function used to increment the page number or label.  The following suitable values for
 C<handler> refer to functions defined in the module:
 
-    \&PostScript::File::incpage_label
-    \&PostScript::File::incpage_roman
+    \&PostScript::Graph::File::incpage_label
+    \&PostScript::Graph::File::incpage_roman
 
 The default (B<incpage_label>) increments numbers and letters, the other one handles roman numerals up to
 39.  C<handler> should be a reference to a subroutine that takes the current page label as its only argument and
@@ -1319,17 +1450,41 @@ returns the new one.  Use this to increment pages using roman numerals or custom
 
 =cut
 
-sub get_incpage_handler { my $o = shift; return $o->{incpage}; }
-sub set_incpage_handler { 
-    my $o = shift;
-    $o->{incpage} = shift || \&incpage_label;
+sub get_order { 
+    my $o = shift; 
+    return $o->{order}; 
 }
 
-sub get_order { my $o = shift; return $o->{order}; }
-sub get_title { my $o = shift; return $o->{title}; }
-sub get_version { my $o = shift; return $o->{version}; }
-sub get_langlevel { my $o = shift; return $o->{langlevel}; }
-sub get_extensions { my $o = shift; return $o->{extensions}; }
+sub get_title { 
+    my $o = shift; 
+    return $o->{title}; 
+}
+
+sub get_version { 
+    my $o = shift; 
+    return $o->{version}; 
+}
+
+sub get_langlevel { 
+    my $o = shift; 
+    return $o->{langlevel}; 
+}
+
+sub get_extensions { 
+    my $o = shift; 
+    return $o->{extensions}; 
+}
+
+sub get_bounding_box { 
+    my $o = shift; 
+    return @{$o->{bbox}}; 
+}
+
+sub set_bounding_box {
+    my ($o, $x0, $y0, $x1, $y1) = @_;
+    $o->{bbox} = [ $x0, $y0, $x1, $y1 ] if (defined $y1);
+    $o->set_clipping(1);
+}
 
 =head2 get_bounding_box()
 
@@ -1338,26 +1493,6 @@ sub get_extensions { my $o = shift; return $o->{extensions}; }
 Inspect or change the bounding box for the whole document, showing only the area inside.
 
 Clipping is enabled.  Call with B<set_clipping> with 0 to stop clipping.
-
-=cut
-
-sub get_bounding_box { my $o = shift; return @{$o->{bbox}}; }
-sub set_bounding_box {
-    my ($o, $x0, $y0, $x1, $y1) = @_;
-    $o->{bbox} = [ $x0, $y0, $x1, $y1 ] if (defined $y1);
-    $o->set_clipping(1);
-}
-
-=head2 get_page_bounding_box( [page] )
-
-=head2 set_page_bounding_box( [page], x0, y0, x1, y1 )
-
-Inspect or change the bounding box for a specified page.  If C<page> is not specified, the current page is
-assumed, otherwise it should be a page label already given to B<newpage> or B<set_page_label>.  The page bounding
-box defaults to the paper area.
-
-Note that this automatically enables clipping for the page.  If this isn't what you want, call
-B<set_page_clipping> with 0.
 
 =cut
 
@@ -1377,11 +1512,13 @@ sub set_page_bounding_box {
     }
 }
 
-=head2 set_page_margins( [page], left, bottom, right, top )
+=head2 get_page_bounding_box( [page] )
 
-An alternative way of changing a single page's bounding box.  Unlike the options given to B<new>, the parameters here
-are the gaps around the image, not the paper.  So C<left=36> will set the left side in by half an inch, this might
-be a short side if C<landscape> is set.
+=head2 set_page_bounding_box( [page], x0, y0, x1, y1 )
+
+Inspect or change the bounding box for a specified page.  If C<page> is not specified, the current page is
+assumed, otherwise it should be a page label already given to B<newpage> or B<set_page_label>.  The page bounding
+box defaults to the paper area.
 
 Note that this automatically enables clipping for the page.  If this isn't what you want, call
 B<set_page_clipping> with 0.
@@ -1403,17 +1540,14 @@ sub set_page_margins {
     }
 }
 
-=head2 get_ordinal( [page] )
+=head2 set_page_margins( [page], left, bottom, right, top )
 
-Return the internal number for the page label specified.  (Default: current page)
+An alternative way of changing a single page's bounding box.  Unlike the options given to B<new>, the parameters here
+are the gaps around the image, not the paper.  So C<left=36> will set the left side in by half an inch, this might
+be a short side if C<landscape> is set.
 
-Example
-
-Say pages are numbered "i", "ii", "iii, "iv", "1", "2", "3".
-
-    get_ordinal("i") == 0
-    get_ordinal("iv") == 3
-    get_ordinal("1") == 4
+Note that this automatically enables clipping for the page.  If this isn't what you want, call
+B<set_page_clipping> with 0.
 
 =cut
 
@@ -1428,16 +1562,42 @@ sub get_ordinal {
     return $o->{p};
 }
     
+=head2 get_ordinal( [page] )
+
+Return the internal number for the page label specified.  (Default: current page)
+
+Example
+
+Say pages are numbered "i", "ii", "iii, "iv", "1", "2", "3".
+
+    get_ordinal("i") == 0
+    get_ordinal("iv") == 3
+    get_ordinal("1") == 4
+
+=cut
+
+sub get_pagecount { 
+    my $o = shift; 
+    return $o->{pagecount}; 
+}
+
 =head2 get_pagecount()
 
 Return the number of pages currently known.
 
+=head1 CONTENT METHODS
+
 =cut
 
-sub get_pagecount { my $o = shift; return $o->{pagecount}; }
+sub get_comments { 
+    my $o = shift; 
+    return $o->{Comments}; 
+}
 
-
-=head1 CONTENT METHODS
+sub add_comment { 
+    my ($o, $entry) = @_; 
+    $o->{Comments} = "\%\%$entry\n" if defined($entry); 
+}
 
 =head2 get_comments()
 
@@ -1457,22 +1617,11 @@ Example
 
 =cut
 
-sub get_comments { my $o = shift; return $o->{Comments}; }
-sub add_comment { 
-    my ($o, $entry) = @_; 
-    $o->{Comments} = "\%\%$entry\n" if defined($entry); 
+sub get_preview { 
+    my $o = shift; 
+    return $o->{Preview}; 
 }
 
-=head2 get_preview()
-
-=head2 add_preview( width, height, depth, lines, preview )
-
-Use this to add a Preview in EPSI format - an ASCII representation of a bitmap.  If an EPS file has a preview it
-becomes an EPSI file rather than EPSF.
-
-=cut
-
-sub get_preview { my $o = shift; return $o->{Preview}; }
 sub add_preview { 
     my ($o, $width, $height, $depth, $lines, $entry) = @_; 
     if (defined $entry) { 
@@ -1485,6 +1634,25 @@ END_PREVIEW
     }
 }
 
+=head2 get_preview()
+
+=head2 add_preview( width, height, depth, lines, preview )
+
+Use this to add a Preview in EPSI format - an ASCII representation of a bitmap.  If an EPS file has a preview it
+becomes an EPSI file rather than EPSF.
+
+=cut
+
+sub get_defaults { 
+    my $o = shift; 
+    return $o->{Defaults}; 
+}
+
+sub add_default { 
+    my ($o, $entry) = @_; 
+    $o->{Defaults} = "\%\%$entry\n" if defined($entry); 
+}
+
 =head2 get_defaults()
 
 =head2 add_default( default )
@@ -1494,10 +1662,22 @@ PageCustomColors: or PageRequirements:.
 
 =cut
 
-sub get_defaults { my $o = shift; return $o->{Defaults}; }
-sub add_default { 
-    my ($o, $entry) = @_; 
-    $o->{Defaults} = "\%\%$entry\n" if defined($entry); 
+sub get_resources { 
+    my $o = shift; 
+    return $o->{Resources}; 
+}
+
+sub add_resource { 
+    my ($o, $type, $name, $params, $resource) = @_;
+    if (defined($resource)) {
+	$resource =~ s/$o->{strip}//gm;  
+	$o->{DocSupplied} .= "\%\%+ $name\n";
+	($o->{Resources} = <<END_USER_RESOURCE) =~ s/$o->{strip}//gm;
+	    \%\%Begin${type}: $name $params
+	    $resource
+	    \%\%End$type
+END_USER_RESOURCE
+    }
 }
 
 =head2 get_resources()
@@ -1538,17 +1718,21 @@ Note that B<get_resources> returns I<all> resources added, including those added
 
 =cut
 
-sub get_resources { my $o = shift; return $o->{Resources}; }
-sub add_resource { 
-    my ($o, $type, $name, $params, $resource) = @_;
-    if (defined($resource)) {
-	$resource =~ s/$o->{strip}//gm;  
+sub get_functions { 
+    my $o = shift; 
+    return $o->{Functions}; 
+}
+
+sub add_function { 
+    my ($o, $name, $entry) = @_; 
+    if (defined($name) and defined($entry)) {
+	$entry =~ s/$o->{strip}//gm;
 	$o->{DocSupplied} .= "\%\%+ $name\n";
-	($o->{Resources} = <<END_USER_RESOURCE) =~ s/$o->{strip}//gm;
-	    \%\%Begin${type}: $name $params
-	    $resource
-	    \%\%End$type
-END_USER_RESOURCE
+	($o->{Functions} .= <<END_USER_FUNCTIONS) =~ s/$o->{strip}//gm;
+	    \%\%BeginProcSet: $name
+	    $entry
+	    \%\%EndProcSet
+END_USER_FUNCTIONS
     }
 }
 
@@ -1582,18 +1766,9 @@ including those added by other classes.
     
 =cut
 
-sub get_functions { my $o = shift; return $o->{Functions}; }
-sub add_function { 
-    my ($o, $name, $entry) = @_; 
-    if (defined($name) and defined($entry)) {
-	$entry =~ s/$o->{strip}//gm;
-	$o->{DocSupplied} .= "\%\%+ $name\n";
-	($o->{Functions} .= <<END_USER_FUNCTIONS) =~ s/$o->{strip}//gm;
-	    \%\%BeginProcSet: $name
-	    $entry
-	    \%\%EndProcSet
-END_USER_FUNCTIONS
-    }
+sub has_function {
+    my ($o, $name) = @_;
+    return ($o->{DocSupplied} =~ /$name/);
 }
 
 =head2 has_function( name )
@@ -1603,9 +1778,15 @@ should identical to that given to L</"add_function">.
 
 =cut
 
-sub has_function {
-    my ($o, $name) = @_;
-    return ($o->{DocSupplied} =~ /$name/);
+sub get_setup { 
+    my $o = shift; 
+    return $o->{Setup}; 
+}
+
+sub add_setup { 
+    my ($o, $entry) = @_; 
+    $entry =~ s/$o->{strip}//gm;
+    $o->{Setup} = $entry if (defined $entry); 
 }
 
 =head2 get_setup()
@@ -1617,11 +1798,15 @@ that initialize the device or document.
 
 =cut
 
-sub get_setup { my $o = shift; return $o->{Setup}; }
-sub add_setup { 
+sub get_page_setup { 
+    my $o = shift; 
+    return $o->{PageSetup}; 
+}
+
+sub add_page_setup { 
     my ($o, $entry) = @_; 
     $entry =~ s/$o->{strip}//gm;
-    $o->{Setup} = $entry if (defined $entry); 
+    $o->{PageSetup} = $entry if (defined $entry);
 }
 
 =head2 get_page_setup()
@@ -1636,11 +1821,27 @@ carry settings from one page to another.
 
 =cut
 
-sub get_page_setup { my $o = shift; return $o->{PageSetup}; }
-sub add_page_setup { 
-    my ($o, $entry) = @_; 
+sub get_page { 
+    my $o = shift;
+    my $page = shift || $o->get_page_label();
+    my $ord = $o->get_ordinal($page);
+    return $o->{Pages}->[$ord]; 
+}
+
+sub add_to_page { 
+    my $o = shift;
+    my $page = (@_ == 2) ? shift : "";
+    my $entry = shift || "";
+    if ($page) {
+	my $ord = $o->get_ordinal($page);
+	if (($ord == $o->{p}) and ($page ne $o->{page}[$ord])) {
+	    $o->newpage($page);
+	} else {
+	    $o->{p} = $ord;
+	}
+    }
     $entry =~ s/$o->{strip}//gm;
-    $o->{PageSetup} = $entry if (defined $entry);
+    $o->{Pages}[$o->{p}] .= $entry || "";
 }
 
 =head2 get_page( [page] )
@@ -1669,27 +1870,15 @@ The first example adds code onto the end of the current page.  The second one ei
     
 =cut
 
-sub get_page { 
-    my $o = shift;
-    my $page = shift || $o->get_page_label();
-    my $ord = $o->get_ordinal($page);
-    return $o->{Pages}->[$ord]; 
+sub get_page_trailer { 
+    my $o = shift; 
+    return $o->{PageTrailer}; 
 }
 
-sub add_to_page { 
-    my $o = shift;
-    my $page = (@_ == 2) ? shift : "";
-    my $entry = shift || "";
-    if ($page) {
-	my $ord = $o->get_ordinal($page);
-	if (($ord == $o->{p}) and ($page ne $o->{page}[$ord])) {
-	    $o->newpage($page);
-	} else {
-	    $o->{p} = $ord;
-	}
-    }
+sub add_page_trailer { 
+    my ($o, $entry) = @_; 
     $entry =~ s/$o->{strip}//gm;
-    $o->{Pages}[$o->{p}] .= $entry || "";
+    $o->{PageTrailer} = $entry if (defined $entry);
 }
 
 =head2 get_page_trailer()
@@ -1701,11 +1890,15 @@ B<add_to_page>.
 
 =cut
 
-sub get_page_trailer { my $o = shift; return $o->{PageTrailer}; }
-sub add_page_trailer { 
+sub get_trailer { 
+    my $o = shift; 
+    return $o->{Trailer}; 
+}
+
+sub add_trailer { 
     my ($o, $entry) = @_; 
     $entry =~ s/$o->{strip}//gm;
-    $o->{PageTrailer} = $entry if (defined $entry);
+    $o->{Trailer} = $entry if (defined $entry); 
 }
 
 =head2 get_trailer()
@@ -1716,13 +1909,6 @@ Add code to the PostScript C<%%Trailer> section.  Use this for any tidying up af
 
 =cut
 
-sub get_trailer { my $o = shift; return $o->{Trailer}; }
-sub add_trailer { 
-    my ($o, $entry) = @_; 
-    $entry =~ s/$o->{strip}//gm;
-    $o->{Trailer} = $entry if (defined $entry); 
-}
-
 #=============================================================================
 
 =head1 POSTSCRIPT DEBUGGING SUPPORT
@@ -1731,7 +1917,7 @@ This section documents the postscript functions which provide debugging output. 
 bounding boxes will also hide the debugging output which by default starts at the top left of the page.  Typical
 B<new> options required for debugging would include the following.
 
-    $ps = PostScript::File->new ( 
+    $ps = PostScript::Graph::File->new ( 
 	    errors => "page",
 	    debug => 2,
 	    clipcmd => "stroke" );
@@ -1771,11 +1957,6 @@ resetting with B<clip_bounding_box>) it is possible to use this to identify area
 	...
     END_CODE
     $ps->clip_bounding_box();
-
-=cut
-
-sub draw_bounding_box { my $o = shift; $o->{clipcmd} = "stroke"; };
-sub clip_bounding_box { my $o = shift; $o->{clipcmd} = "clip"; };
 
 =head3 msg B<report_error>
 
@@ -1872,12 +2053,27 @@ Moves output left by C<db_xtab>.  No stack requirements.
 
 =back
 
+=cut
+
+sub draw_bounding_box { 
+    my $o = shift; 
+    $o->{clipcmd} = "stroke"; 
+}
+
+sub clip_bounding_box { 
+    my $o = shift; 
+    $o->{clipcmd} = "clip"; 
+}
+
 =head1 EXPORTED FUNCTIONS
 
-=head2 incpage_label( label )
+No functions are exported by default, they must be named as required.
 
-The default function for B<set_incpage_handler> which just increases the number passed to it.  A useful side
-effect is that letters are also incremented.
+    use PostScript::Graph::File qw(
+	    check_tilde check_file 
+	    incpage_label incpage_roman 
+	    array_as_string str
+	);
 
 =cut
 
@@ -1885,6 +2081,13 @@ sub incpage_label ($) {
     my $page = shift;
     return ++$page;
 }
+
+=head2 incpage_label( label )
+
+The default function for B<set_incpage_handler> which just increases the number passed to it.  A useful side
+effect is that letters are also incremented.
+
+=cut
 
 our $roman_max = 40;
 our @roman = qw(0 i ii iii iv v vi vii viii ix x xi xii xiii xiv xv xvi xvii xviii xix 
@@ -1895,46 +2098,16 @@ for (my $i = 1; $i <= $roman_max; $i++) {
     $roman{$roman[$i]} = $i;
 }
 
-=head2 incpage_roman( label )
-
-An alternative function for B<set_incpage_handler> which increments lower case roman numerals.  It only handles
-values from "i" to "xxxix", but that should be quite enough for numbering the odd preface.
-
-=cut
-
 sub incpage_roman ($) {
     my $page = shift;
     my $pos = $roman{$page};
     return $roman[++$pos];
 }
 
-=head2 check_file( file, [dir, [create]] )
+=head2 incpage_roman( label )
 
-=over 4
-
-=item C<file>
-
-An optional fully qualified path-and-file or a simple file name. If omitted, the special file
-File::Spec->devnull() is returned.
-
-=item C<dir>
-
-An optional directory C<dir>.  If present (and C<file> is not already an absolute path), it is prepended to
-C<file>.
-
-=item C<create>
-
-If non-zero, ensure the file exists.  It may be necessary to set C<dir> to "" or undef.
-
-=back
-
-This ensures the filename returned is valid and in a directory tree which is created if it doesn't exist.
-
-Any leading '~' is expanded to the users home directory.  If no absolute directory is given either as part of
-C<file>, it is placed within the current directory.  Intervening directories are always created.  If C<create> is
-set, C<file> is created as an empty file, possible erasing any previous file of the same name. 
-
-B<File::Spec|File::Spec> is used throughout so file access should be portable.  
+An alternative function for B<set_incpage_handler> which increments lower case roman numerals.  It only handles
+values from "i" to "xxxix", but that should be quite enough for numbering the odd preface.
 
 =cut
 
@@ -1981,9 +2154,33 @@ sub check_file ($;$$) {
     return $filename;
 }
 
-=head2 check_tilde( dir )
+=head2 check_file( file, [dir, [create]] )
 
-Expands any leading '~' to the home directory.
+=over 4
+
+=item C<file>
+
+An optional fully qualified path-and-file or a simple file name. If omitted, the special file
+File::Spec->devnull() is returned.
+
+=item C<dir>
+
+An optional directory C<dir>.  If present (and C<file> is not already an absolute path), it is prepended to
+C<file>.
+
+=item C<create>
+
+If non-zero, ensure the file exists.  It may be necessary to set C<dir> to "" or undef.
+
+=back
+
+This ensures the filename returned is valid and in a directory tree which is created if it doesn't exist.
+
+Any leading '~' is expanded to the users home directory.  If no absolute directory is given either as part of
+C<file>, it is placed within the current directory.  Intervening directories are always created.  If C<create> is
+set, C<file> is created as an empty file, possible erasing any previous file of the same name. 
+
+B<File::Spec|File::Spec> is used throughout so file access should be portable.  
 
 =cut
 
@@ -1993,6 +2190,43 @@ sub check_tilde ($) {
     $dir =~ s{^~([^/]*)}{$1 ? (getpwnam($1))[7] : ($ENV{HOME} || $ENV{LOGDIR} || (getpwuid($>))[7]) }ex;
     return $dir;
 }
+
+=head2 check_tilde( dir )
+
+Expands any leading '~' to the home directory.
+
+=cut
+
+sub array_as_string (@) {
+    my $array = "[ ";
+    foreach my $f (@_) { $array .= "$f "; }
+    $array .= "]";
+    return $array;
+}
+
+=head2 array_as_string( array )
+
+Converts a perl array to its postscript representation.
+
+=cut
+
+sub str ($) {
+    my $arg = shift;
+    if (ref($arg) eq "ARRAY") {
+	return array_as_string( @$arg );
+    } else {
+	return $arg;
+    }
+}
+
+=head2 str( arrayref )
+
+Converts the referenced array to a string representation suitable for postscript code.  If C<arrayref> is not an
+array reference, it is passed through unchanged.  This function was designed to simplify passing colours for the
+postscript function b<gpapercolor> which expects either an RGB array or a greyscale decimal.  See
+L<PostScript::Graph::Paper/gpapercolor>.
+
+=cut
 
 #=============================================================================
 		    
@@ -2017,6 +2251,14 @@ L<PostScript Language Document Structuring Conventions Specification Version
 L<Encapsulated PostScript File Format Specification Version
 3.0|http://partners.adobe.com/asn/developer/technotes/postscript.html> published by Adobe, 1992.
 
+L<PostScript::Graph::Paper>,
+L<PostScript::Graph::Style>,
+L<PostScript::Graph::Key>,
+L<PostScript::Graph::XY>,
+L<PostScript::Graph::Bar>.
+L<PostScript::Graph::Stock>.
+
 =cut
 
+#=============================================================================
 1;

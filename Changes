@@ -1,4 +1,10 @@
-Revision history for Perl extension PostScript::File.
+Revision history for Perl extension PostScript::Graph::File.
+
+0.06    Fri Oct 11 11:56:06 GMT 2002
+	Namespace changed from PostScript::File
+
+0.05    Sun Oct  6 11:23:20 GMT 2002
+	bugfix: page orientation with gv
 
 0.04	Fri Sep 27 07:35:48 GMT 2002
 	tidied up v0.03 pod changes
