@@ -1,10 +1,11 @@
 PostScript::File version 0.07
 =============================
 
-This module provides the outline for an Adobe PostScript file and provides
-convenient routines for writing postscript directly.  These include reporting
-postscript errors and debugging support.  It is not expected to be used
-independently.  See one of these modules for a top-level object.
+This module produces the outline for an Adobe PostScript file. It provides
+convenient routines for writing postscript directly, including reporting
+postscript errors and debugging support.  Although it may be used independently,
+the functions provided are also suitable for use in other modules.  See one of
+these modules for a top-level object.
 
     PostScript::Graph::XY
     PostScript::Graph::Bar

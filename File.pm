@@ -6,15 +6,15 @@ use Sys::Hostname;
 require Exporter;
 our @ISA = qw(Exporter);
 
-our $VERSION = '0.07';
+our $VERSION = 0.08;
 our @EXPORT_OK = qw(check_tilde check_file incpage_label incpage_roman array_as_string str);
 
 # Prototypes for functions only
-sub incpage_label ($);
-sub incpage_roman ($);
-sub print_file ($$);
-sub check_tilde ($); 
-sub check_file ($;$$);
+ sub incpage_label ($);
+ sub incpage_roman ($);
+ sub print_file ($$);
+ sub check_tilde ($); 
+ sub check_file ($;$$);
 
 # global constants
 my $rmspace = qr(^\s+);		    # remove leading spaces
@@ -643,8 +643,7 @@ given to every B<newpage> call.
 
 sub pre_pages {
     my ($o, $landscape, $clipping, $filename) = @_;
-    # Font encoding 
-    # from Matthew Newton's PostScript::Simple
+    # Thanks to Johan Vromans for the ISOLatin1Encoding.
     my $fonts = "";
     if ($o->{reencode}) {
 	$o->{DocSupplied} .= "\%\%+ Encoded_Fonts\n";
