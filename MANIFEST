@@ -1,0 +1,7 @@
+Artistic
+Changes
+lib/PostScript/File.pm
+Makefile.PL
+MANIFEST
+README
+test.pl

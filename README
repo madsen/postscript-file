@@ -1,0 +1,48 @@
+PostScript::File version 0.01
+=============================
+
+This module provides the outline for an Adobe PostScript file and provides
+convenient routines for writing postscript directly.  These include reporting
+postscript errors and debugging support.  Here is the ubiquetous 'hello world'
+program, written in PostScript using this module.
+
+    use PostScript::File;
+    my $ps = new PostScript::File( errors => "page",
+				   debug => 2 );
+    
+    my ($x, $y) = (72, 300);
+    my $message = "hello world";
+    
+    $ps->add_to_page( <<END_PAGE );
+	/Helvetica findfont 
+	12 scalefont 
+	setfont
+	$x $y moveto
+	($message) show
+    END_PAGE
+    
+    $ps->output( "~/hello" );
+
+INSTALLATION
+
+To install this module type the following:
+
+   perl Makefile.PL
+   make
+   make test
+   make install
+
+DEPENDENCIES
+
+This module requires these other modules and libraries, although they are both
+part of the standard distribution:
+
+  File::Spec
+  Sys::Hostname
+
+COPYRIGHT AND LICENCE
+
+Copyright (C) 2002 C P Willmot.  All rights reserved.
+This module is published under the Perl Artistic licence.  See file 'Artistic'
+for details.
+
