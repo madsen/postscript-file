@@ -1,5 +1,8 @@
 Revision history for Perl extension PostScript::File.
 
+0.09	Mon Nov 11 20:05:59 UTC 2002
+	corrected version number in test
+
 0.08	Sun Nov 10 10:22:10 GMT 2002
 	minor changes
 	Correct attribution to Latin1Encoding

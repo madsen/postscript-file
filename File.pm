@@ -6,7 +6,7 @@ use Sys::Hostname;
 require Exporter;
 our @ISA = qw(Exporter);
 
-our $VERSION = 0.08;
+our $VERSION = 0.09;
 our @EXPORT_OK = qw(check_tilde check_file incpage_label incpage_roman array_as_string str);
 
 # Prototypes for functions only

@@ -1,6 +1,6 @@
 use Test;
 BEGIN { plan tests => 5 };
-use PostScript::File qw(check_file);
+use PostScript::File 0.08 qw(check_file);
 ok(1); # module found
 
 my $ps = new PostScript::File();
