@@ -1,5 +1,12 @@
 Revision history for Perl extension PostScript::File.
 
+0.02  Sun Sep 22 18:18:32 GMT 2002
+	debug => (not 2) wasn't working. fixed.
+	restored many functions to new-option only
+	page_number renamed to page_label
+	added comment stripping
+	streamlined packaging
+
 0.01  Sat Sep 21 15:41:55 2002
 	- original version; created by h2xs 1.21 with options
 		-X -n PostScript::File

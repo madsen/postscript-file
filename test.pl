@@ -13,7 +13,7 @@ $ps->add_to_page( <<END_PAGE );
     72 300 moveto
     (hello world) show
 END_PAGE
-my $page = $ps->get_page_number();
+my $page = $ps->get_page_label();
 ok($page, "1");
 ok($ps->get_page());
 

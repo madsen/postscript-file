@@ -1,7 +1,6 @@
-Artistic
 Changes
-lib/PostScript/File.pm
-Makefile.PL
+File.pm
 MANIFEST
+Makefile.PL
 README
 test.pl
