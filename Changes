@@ -1,5 +1,13 @@
 Revision history for Perl extension PostScript::File.
 
+0.10	Wed Nov 20 11:14:30 GMT 2002
+	1cm borders by default
+	support for user variables
+	support for by-page user variables
+	errors now on by default
+	db_where, db_on and db_off added to postscript code
+	corrected usage of db_active
+
 0.09	Mon Nov 11 20:05:59 UTC 2002
 	corrected version number in test
 

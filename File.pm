@@ -6,7 +6,7 @@ use Sys::Hostname;
 require Exporter;
 our @ISA = qw(Exporter);
 
-our $VERSION = 0.09;
+our $VERSION = 0.10;
 our @EXPORT_OK = qw(check_tilde check_file incpage_label incpage_roman array_as_string str);
 
 # Prototypes for functions only
@@ -246,6 +246,9 @@ sub new
 	pageclip    => [],  # clip to pagebbox
 	pagebbox    => [],  # array of bbox, indexed by $o->{p}
 	bbox	    => [],  # [ x0, y0, x1, y1 ]
+
+	vars	    => {},  # permanent user variables
+	pagevars    => {},  # user variables reset with each new page
     };
     bless $o, $class;
 
@@ -271,10 +274,10 @@ sub new
 	$o->{db_color}    = $opt->{db_color}    || "0 setgray";
     }
    
-    my $x0 = $o->{bbox}[0] + ($opt->{left} || 0); 
-    my $y0 = $o->{bbox}[1] + ($opt->{bottom} || 0); 
-    my $x1 = $o->{bbox}[2] - ($opt->{right} || 0);
-    my $y1 = $o->{bbox}[3] - ($opt->{top} || 0);
+    my $x0 = $o->{bbox}[0] + ($opt->{left} || 28); 
+    my $y0 = $o->{bbox}[1] + ($opt->{bottom} || 28); 
+    my $x1 = $o->{bbox}[2] - ($opt->{right} || 28);
+    my $y1 = $o->{bbox}[3] - ($opt->{top} || 28);
     $o->set_bounding_box( $x0, $y0, $x1, $y1 );
     $o->set_clipping( $opt->{clipping} || 0 );
     
@@ -295,7 +298,7 @@ sub new
     $o->{reencode}   = defined($opt->{reencode})     ? $opt->{reencode}     : "";
     $o->{font_suffix} = defined($opt->{font_suffix})  ? $opt->{font_suffix}  : "-iso";
     $o->{clipcmd}    = defined($opt->{clip_command}) ? $opt->{clip_command} : "clip";
-    $o->{errors}     = defined($opt->{errors})	     ? $opt->{errors}       : "";
+    $o->{errors}     = defined($opt->{errors})	     ? $opt->{errors}       : 1;
     $o->{headings}   = defined($opt->{headings})     ? $opt->{headings}     : 0;
     $o->set_strip( $opt->{strip} );
    
@@ -368,9 +371,9 @@ when debugging is turned off.
 
 =head3 errors
 
-By default postscript fails silently. Setting this to 1 prints fatal error messages on the bottom left of
-the paper.  For user functions, a postscript function B<report_error> is defined.  This expects a message string
-on the stack, which it prints before stopping.
+PostScript has a nasty habit of failing silently. Setting this to 1 prints fatal error messages on the bottom left
+of the paper.  For user functions, a postscript function B<report_error> is defined.  This expects a message
+string on the stack, which it prints before stopping.  (Default: 1)
 
 =head3 headings
 
@@ -392,8 +395,8 @@ There are a few initialization settings that are only relevant when the file obj
 
 =head3 bottom
 
-The margin in from the paper's bottom edge, specifying the non-printable area.
-Remember to specify C<clipping> if that is what is wanted.
+The margin in from the paper's bottom edge, specifying the non-printable area.  Remember to specify C<clipping> if
+that is what is wanted.  (Default: 28)
 
 =head3 clip_command
 
@@ -449,7 +452,7 @@ coordinate system appears the same to the user, with the origin at the bottom le
 =head3 left
 
 The margin in from the paper's left edge, specifying the non-printable area.
-Remember to specify C<clipping> if that is what is wanted.
+Remember to specify C<clipping> if that is what is wanted.  (Default: 28)
 
 =head3 paper
 
@@ -464,12 +467,12 @@ This also sets C<width> and C<height>.  B<get_paper> returns the value set here.
 =head3 right
 
 The margin in from the paper's right edge.  It is a positive offset, so C<right=36> will leave a half inch no-go
-margin on the right hand side of the page.  Remember to specify C<clipping> if that is what is wanted.
+margin on the right hand side of the page.  Remember to specify C<clipping> if that is what is wanted.  (Default: 28) 
 
 =head3 top
 
 The margin in from the paper's top edge.  It is a positive offset, so C<top=36> will leave a half inch no-go
-margin at the top of the page.  Remember to specify C<clipping> if that is what is wanted.
+margin at the top of the page.  Remember to specify C<clipping> if that is what is wanted.  (Default: 28)
 
 =head3 width
 
@@ -627,6 +630,7 @@ sub newpage {
     $o->{pageclip}[$p] = $o->{clipping};
     $o->{pagelandsc}[$p] = $o->{landscape};
     $o->{Pages}->[$p] = "";
+    $o->{pagevars} = {};
 }
 
 =head2 newpage( [page] )
@@ -643,7 +647,7 @@ given to every B<newpage> call.
 
 sub pre_pages {
     my ($o, $landscape, $clipping, $filename) = @_;
-    # Thanks to Johan Vromans for the ISOLatin1Encoding.
+    ## Thanks to Johan Vromans for the ISOLatin1Encoding.
     my $fonts = "";
     if ($o->{reencode}) {
 	$o->{DocSupplied} .= "\%\%+ Encoded_Fonts\n";
@@ -854,15 +858,14 @@ END_ERRORS
 	/debugdict 25 dict def
 	debugdict begin
 	
-	% _ db_newcol => _
 	/db_newcol {
 	    debugdict begin
 		/db_ypos db_ytop def 
 		/db_xpos db_xpos db_xgap add def 
 	    end
 	} bind def
+	% _ db_newcol => _
 
-	% _ db_down => _
 	/db_down {
 	    debugdict begin
 		db_ypos db_ybase gt {
@@ -872,22 +875,22 @@ END_ERRORS
 		} ifelse
 	    end
 	} bind def
+	% _ db_down => _
 
-	% _ db_indent => _
 	/db_indent {
 	    debug_dict begin
 		/db_xpos db_xpos db_xtab add def
 	    end
 	} bind def
+	% _ db_indent => _
 
-	% _ db_unindent => _
 	/db_unindent {
 	    debugdict begin
 		/db_xpos db_xpos db_xtab sub def
 	    end
 	} bind def
+	% _ db_unindent => _
 
-	% _ (msg) db_show => _
 	/db_show {
 	    debugdict begin
 		db_active 0 ne {
@@ -912,8 +915,8 @@ END_ERRORS
 		}{ pop } ifelse
 	    end
 	} bind def
+	% _ (msg) db_show => _
 	
-	% _ n (str) db_nshow => _
 	/db_nshow {
 	    debugdict begin
 		db_show
@@ -929,8 +932,8 @@ END_ERRORS
 		} ifelse
 	    end
 	} bind def
+	% _ n (str) db_nshow => _
 
-	% _ db_stack => _
 	/db_stack {
 	    count 0 gt {
 		count
@@ -942,8 +945,8 @@ END_ERRORS
 		(Empty stack) db_show
 	    } ifelse
 	} bind def
+	% _ db_stack => _
       
-	% _ any db_one => _
 	/db_one {
 	    debugdict begin
 		db_temp cvs
@@ -952,8 +955,8 @@ END_ERRORS
 		/db_bpos exch db_bpos add def
 	    end
 	} bind def
+	% _ any db_one => _
 	
-	% _ [array] db_print => _
 	/db_print {
 	    debugdict begin
 		/db_temp $o->{db_bufsize} string def
@@ -967,17 +970,41 @@ END_ERRORS
 		db_buf db_show
 	    end
 	} bind def
+	% _ [array] db_print => _
 
-	% _ [array] db_array => _
 	/db_array {
 	    mark ([) 2 index aload pop (]) ] db_print pop
 	} bind def
+	% _ [array] db_array => _
 	
-	% _ x y (str) db_point => _ x y
 	/db_point {
 	    [ 1 index (\\() 5 index (,) 6 index (\\)) ] db_print
 	    pop
 	} bind def
+	% _ x y (str) db_point => _ x y
+
+	/db_where {
+	    where {
+		pop (found) db_show
+	    }{
+		(not found) db_show
+	    } ifelse
+	} bind def
+	% _ var db_where => _
+
+	/db_on {
+	    debugdict begin
+	    /db_active 1 def
+	    end
+	} bind def
+	% _ db_on => _
+	
+	/db_off {
+	    debugdict begin
+	    /db_active 0 def
+	    end
+	} bind def
+	% _ db_on => _
 	
 	/db_active $o->{db_active} def
 	/db_ytop  $o->{db_ytop} def
@@ -1584,6 +1611,58 @@ sub get_pagecount {
 
 Return the number of pages currently known.
 
+=cut
+
+sub set_variable {
+    my ($o, $key, $value) = @_;
+    $o->{vars}{$key} = $value;
+}
+
+=head2 set_variable( key, value )
+
+Assign a user defined hash key and value.  Provided to keep track of states within the PostScript code, such as
+which dictionaries are currently open.  PostScript::File does not use this - it is provided for client programs.
+It is recommended that C<key> is the module name to avoid clashes.  This entry could then be a hash holding any
+number of user variables.
+
+=cut
+
+sub get_variable {
+    my ($o, $key) = @_;
+    return $o->{vars}{$key};
+}
+
+=head2 get_variable
+
+Retrieve a user defined value.
+
+=cut
+
+sub set_page_variable {
+    my ($o, $key, $value) = @_;
+    $o->{pagevars}{$key} = $value;
+}
+
+=head2 set_page_variable( key, value )
+
+Assign a user defined hash key and value only valid on the current page.  Provided to keep track of states within
+the PostScript code, such as which styles are currently active.  PostScript::File does not use this (except to
+clear it at the start of each page).  It is recommended that C<key> is the module name to avoid clashes.  This entry
+could then be a hash holding any number of user variables.
+
+=cut
+
+sub get_page_variable {
+    my ($o, $key) = @_;
+    return $o->{pagevars}{$key};
+}
+
+=head2 get_page_variable
+
+Retrieve a user defined value.
+
+=cut
+
 =head1 CONTENT METHODS
 
 =cut
@@ -1926,9 +2005,13 @@ possible to move the output around.  Where the text appears is controlled by a n
 most of which may also be given as options to B<new>.
 
 The main controller is C<db_active> which needs to be non-zero for any output to be seen.  It might be useful to
-set this to 0 in B<new>, then at some point in your code enable it.
+set this to 0 in B<new>, then at some point in your code enable it.  Remember that the C<debugdict> dictionary
+needs to be selected in order for any of its variables to be changed.  This is better done with C<db_on> but it
+illustrates the point.
 
-    /db_active 1 def
+    /debugdict begin
+	/db_active 1 def
+    end
     (this will now show) db_show
 
 At any time, the next output will appear at C<db_xpos> and C<db_ypos>.  These can of course be set directly.
@@ -2004,7 +2087,7 @@ will print something like the following.
     myvar= 23.4 str2= abc
 
 When printing something from the stack you need to take into account the array-building items, too.  In the next
-example, at the point '2 index' is given, the stack holds '222 111 [ (top=)' but '5 index' is required to get at
+example, at the point '2 index' fetches 111, the stack holds '222 111 [ (top=)' but 'index' requires 5 to get at
 222 because the stack now holds '222 111 [ (top=) 111 (next=)'.
 
     222 111
@@ -2034,9 +2117,23 @@ would produce:
 
 Like L</db_print> but the array is printed enclosed within square brackets.
 
+=head3 var B<db_where>
+
+A 'where' search is made to find the dictionary containing C<var>.  The messages 'found' or 'not found' are output
+accordingly.  Of course, C<var> should be quoted with '/' to put the name on the stack, otherwise it will either
+be executed or force an error.
+
 =head3 B<db_newcol>
 
 Starts the next debugging column.  No stack requirements.
+
+=head3 B<db_on>
+
+Enable debug output
+
+=head3 B<db_off>
+
+Disable debug output
 
 =head3 B<db_down>
 
@@ -2238,7 +2335,7 @@ Most of these functions have only had a couple of tests, so please feel free to 
 
 =head1 AUTHOR
 
-Chris Willmot, chris@willmot.org.uk
+Chris Willmot, chris@willmot.co.uk
 
 Thanks to Johan Vromans for the ISOLatin1Encoding.
 
