@@ -11,6 +11,10 @@ these modules for a top-level object.
     PostScript::Graph::Bar
     Finance::Shares::Chart
 
+It is considered beta code as the interface has remained stable over many months
+of use.  However, not all the features have been tested properly so experiment
+with caution.
+
 INSTALLATION
 
 To install this module type the following:
@@ -34,11 +38,10 @@ SEE ALSO
 
 COPYRIGHT AND LICENCE
 
-Copyright (C) 2002 Christopher P Willmot.  All rights reserved.
+Copyright (C) 2002, 2003 Christopher P Willmot.  All rights reserved.
 
-This work is published under the Artistic licence accompanying the Perl
-distribution which may be found at http://www.perl.org.  The existance of this
-work does not imply that it is fit for any purpose implied by the code or
-accompanying documentation.  There is no warranty whatsoever.  Use at your own
-risk.
+This work is published under the same licensing terms as Perl itself, which may
+be found at http://www.perl.org.  The existance of this work does not imply that
+it is fit for any purpose implied by the code or accompanying documentation.
+There is no warranty whatsoever.  Use at your own risk.
 

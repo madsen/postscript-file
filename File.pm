@@ -1,5 +1,5 @@
 package PostScript::File;
-our $VERSION = 0.13;
+our $VERSION = 1.00;
 use strict;
 use warnings;
 use File::Spec;
@@ -214,8 +214,7 @@ our @fonts = qw(
 
 =cut
 
-sub new
-{
+sub new {
     my ($class, @options) = @_;
     my $opt = {};
     if (@options == 1) {
@@ -224,6 +223,7 @@ sub new
 	%$opt = @options;
     }
     
+    ## Initialization
     my $o = {
 	# postscript DSC sections
 	Comments    => "",  # must include leading '%%' and end with '\n'
@@ -252,6 +252,7 @@ sub new
     };
     bless $o, $class;
 
+    ## Paper layout
     $o->{eps}	= defined($opt->{eps})	? $opt->{eps}  : 0;
     $o->{file}	= defined($opt->{file})	? $opt->{file} : "";
     $o->{dir}	= defined($opt->{dir})	? $opt->{dir}  : "";
@@ -260,6 +261,7 @@ sub new
     $o->set_height( $opt->{height} );
     $o->set_landscape( $opt->{landscape} );
     
+    ## Debug options
     $o->{debug} = $opt->{debug};	# undefined is an option
     if ($o->{debug}) {
 	$o->{db_active}   = $opt->{db_active}   || 1;
@@ -274,6 +276,7 @@ sub new
 	$o->{db_color}    = $opt->{db_color}    || "0 setgray";
     }
    
+    ## Bounding box
     my $x0 = $o->{bbox}[0] + ($opt->{left} || 28); 
     my $y0 = $o->{bbox}[1] + ($opt->{bottom} || 28); 
     my $x1 = $o->{bbox}[2] - ($opt->{right} || 28);
@@ -281,6 +284,7 @@ sub new
     $o->set_bounding_box( $x0, $y0, $x1, $y1 );
     $o->set_clipping( $opt->{clipping} || 0 );
     
+    ## Other options
     $o->{title}	     = defined($opt->{title})	     ? $opt->{title}	    : undef;
     $o->{version}    = defined($opt->{version})	     ? $opt->{version}      : undef;
     $o->{langlevel}  = defined($opt->{langlevel})    ? $opt->{langlevel}    : undef;
@@ -304,6 +308,7 @@ sub new
    
     $o->newpage( $o->get_page_label() );
     
+    ## Finish
     return $o;
 }
 
