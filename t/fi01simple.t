@@ -1,3 +1,7 @@
+#!/usr/bin/perl
+use strict;
+use warnings;
+
 use Test;
 BEGIN { plan tests => 5 };
 use PostScript::File 0.08 qw(check_file);

@@ -1,5 +1,7 @@
 Revision history for Perl extension PostScript::File.
 
+0.13	fix paper size bug
+
 0.10	Wed Nov 20 11:14:30 GMT 2002
 	1cm borders by default
 	support for user variables

@@ -9,7 +9,7 @@ these modules for a top-level object.
 
     PostScript::Graph::XY
     PostScript::Graph::Bar
-    PostScript::Graph::Stock
+    Finance::Shares::Chart
 
 INSTALLATION
 

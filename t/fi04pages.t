@@ -1,9 +1,14 @@
+#!/usr/bin/perl
+use strict;
+use warnings;
+
 use Test;
 use charnames qw(:full);
 BEGIN { plan tests => 4 };
 use PostScript::File qw(check_file incpage_label incpage_roman);
 
 my $hash = { headings => 1,
+	     paper => 'US-Letter',
 	     errors => 1,
 	     debug => 2,
 	     page => "viii",

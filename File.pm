@@ -1,5 +1,5 @@
 package PostScript::File;
-our $VERSION = 0.12;
+our $VERSION = 0.13;
 use strict;
 use warnings;
 use File::Spec;
@@ -150,46 +150,46 @@ Finally, there are a few stand-alone functions.  These are not methods and are a
 # define page sizes here (a4, letter, etc)
 # should be Properly Cased
 our %size = (
-    A0                    => '2384 3370',
-    A1                    => '1684 2384',
-    A2                    => '1191 1684',
-    A3                    => "841.88976 1190.5512",
-    A4                    => "595.27559 841.88976",
-    A5                    => "420.94488 595.27559",
-    A6                    => '297 420',
-    A7                    => '210 297',
-    A8                    => '148 210',
-    A9                    => '105 148',
+    a0                    => '2384 3370',
+    a1                    => '1684 2384',
+    a2                    => '1191 1684',
+    a3                    => "841.88976 1190.5512",
+    a4                    => "595.27559 841.88976",
+    a5                    => "420.94488 595.27559",
+    a6                    => '297 420',
+    a7                    => '210 297',
+    a8                    => '148 210',
+    a9                    => '105 148',
 
-    B0                    => '2920 4127',
-    B1                    => '2064 2920',
-    B2                    => '1460 2064',
-    B3                    => '1032 1460',
-    B4                    => '729 1032',
-    B5                    => '516 729',
-    B6                    => '363 516',
-    B7                    => '258 363',
-    B8                    => '181 258',
-    B9                    => '127 181 ',
-    B10                   => '91 127',
+    b0                    => '2920 4127',
+    b1                    => '2064 2920',
+    b2                    => '1460 2064',
+    b3                    => '1032 1460',
+    b4                    => '729 1032',
+    b5                    => '516 729',
+    b6                    => '363 516',
+    b7                    => '258 363',
+    b8                    => '181 258',
+    b9                    => '127 181 ',
+    b10                   => '91 127',
 
-    Executive             => '522 756',
-    Folio                 => '595 935',
-    'Half-Letter'         => '612 397',
-    Letter                => "612 792",
-    'US-Letter'           => '612 792',
-    Legal                 => '612 1008',
-    'US-Legal'            => '612 1008',
-    Tabloid               => '792 1224',
-    'SuperB'              => '843 1227',
-    Ledger                => '1224 792',
+    executive             => '522 756',
+    folio                 => '595 935',
+    'half-letter'         => '612 397',
+    letter                => "612 792",
+    'us-letter'           => '612 792',
+    legal                 => '612 1008',
+    'us-legal'            => '612 1008',
+    tabloid               => '792 1224',
+    'superb'              => '843 1227',
+    ledger                => '1224 792',
 
-    'Comm #10 Envelope'   => '297 684',
-    'Envelope-Monarch'    => '280 542',
-    'Envelope-DL'         => '312 624',
-    'Envelope-C5'         => '461 648',
+    'comm #10 envelope'   => '297 684',
+    'envelope-monarch'    => '280 542',
+    'envelope-dl'         => '312 624',
+    'envelope-c5'         => '461 648',
 
-    'EuroPostcard'        => '298 420',
+    'europostcard'        => '298 420',
 );
 
 
@@ -333,7 +333,7 @@ This is more convenient when used as a base class.
 
 In addition, the following keys are recognized.  
 
-=head2 File size
+=head2 File size keys
 
 There are four options which control how much gets put into the resulting file.
 
@@ -383,7 +383,7 @@ Requests that a font re-encode function be added and that the 13 standard PostSc
 specified encoding. The only recognized value so far is 'ISOLatin1Encoding' which selects the iso8859-1 encoding and fits most of
 western Europe, including the Scandinavia.
 
-=head2 Initialization
+=head2 Initialization keys
 
 There are a few initialization settings that are only relevant when the file object is constructed.
 
@@ -472,7 +472,7 @@ margin at the top of the page.  Remember to specify C<clipping> if that is what 
 
 Set the page width, the shortest edge of the paper.  (Default taken from C<paper>)
 
-=head2 Debugging support 
+=head2 Debugging support keys
 
 This makes most sense in the postscript code rather than perl.  However, it is convenient to be able to set
 defaults for the output position and so on.  See L</"POSTSCRIPT DEBUGGING SUPPORT"> for further details.
@@ -498,6 +498,20 @@ routines.  (Default: "0 setgray")
 
 The name of the font to use.  (Default: "Courier")
 
+    Courier
+    Courier-Bold
+    Courier-BoldOblique
+    Courier-Oblique
+    Helvetica
+    Helvetica-Bold
+    Helvetica-BoldOblique
+    Helvetica-Oblique
+    Times-Roman
+    Times-Bold
+    Times-BoldItalic
+    Times-Italic
+    Symbol
+
 =head3 db_fontsize
 
 The size of the font.  Postscript uses its own units, but they are almost points.  (Default: 10)
@@ -519,7 +533,7 @@ The amount indented by C<db_indent>.  (Default: 10)
 
 The top line of debugging output.  Defaults to 6 below the top of the page.
 
-=head2 Error handling
+=head2 Error handling keys
 
 If C<errors> is set, the position of any fatal error message can be controlled with the following options.  Each
 value is placed into a postscript variable of the same name, so they can be overridden from within the code if
@@ -1239,7 +1253,7 @@ sub get_paper {
 sub set_paper { 
     my $o = shift;
     my $paper = shift || "A4"; 
-    my ($width, $height) = split(/\s+/, $size{ucfirst(lc $paper)});
+    my ($width, $height) = split(/\s+/, $size{lc($paper)});
     if ($height) {
 	$o->{paper} = $paper;
 	$o->{width} = $width;
