@@ -1,4 +1,4 @@
-package PostScript::Graph::File;
+package PostScript::File;
 use strict;
 use warnings;
 use File::Spec;
@@ -6,7 +6,7 @@ use Sys::Hostname;
 require Exporter;
 our @ISA = qw(Exporter);
 
-our $VERSION = '0.06';
+our $VERSION = '0.07';
 our @EXPORT_OK = qw(check_tilde check_file incpage_label incpage_roman array_as_string str);
 
 # Prototypes for functions only
@@ -22,20 +22,20 @@ my $rmcomment = qr(^\s+\(% .*\)?);  # remove single line comments
 
 =head1 NAME
 
-PostScript::Graph::File - Base class for creating Adobe PostScript files
+PostScript::File - Base class for creating Adobe PostScript files
 
 =head1 SYNOPSIS
 
-    use PostScript::Graph::File qw(check_tilde check_file
+    use PostScript::File qw(check_tilde check_file
 		    incpage_label incpage_roman);
 
 =head2 Simplest
 		    
 An 'hello world' program:
 
-    use PostScript::Graph::File;
+    use PostScript::File;
 
-    my $ps = new PostScript::Graph::File();
+    my $ps = new PostScript::File();
     
     $ps->add_to_page( <<END_PAGE );
 	/Helvetica findfont 
@@ -49,7 +49,7 @@ An 'hello world' program:
 
 =head2 All options
 
-    my $ps = new PostScript::Graph::File(
+    my $ps = new PostScript::File(
 	paper => 'Letter',
 	height => 500,
 	width => 400,
@@ -306,12 +306,12 @@ sub new
 
 =head2 new( options )
 
-Create a new PostScript::Graph::File object, either a set of pages or an Encapsulated PostScript (EPS) file. Options are
+Create a new PostScript::File object, either a set of pages or an Encapsulated PostScript (EPS) file. Options are
 hash keys and values.  All values should be in the native postscript units of 1/72 inch.
 
 Example
 
-    $ref = new PostScript::Graph::File ( 
+    $ref = new PostScript::File ( 
 		eps => 1,
 		landscape => 1,
                 width => 216,
@@ -426,7 +426,7 @@ and Symbol.  The string value is appended to these to make the new names.
 
 Example
 
-    $ps = new PostScript::Graph::File( 
+    $ps = new PostScript::File( 
 		font_suffix => "-iso",
 		reencode => "ISOLatin1Encoding"
 	    );
@@ -760,7 +760,7 @@ END_EPS
     if ($o->{headings}) {
 	($postscript .= <<END_TITLES) =~ s/$o->{strip}//gm;
 	\%\%For: $user\@$hostname
-	\%\%Creator: Perl module ${\( ref $o )} v$PostScript::Graph::File::VERSION
+	\%\%Creator: Perl module ${\( ref $o )} v$PostScript::File::VERSION
 	\%\%CreationDate: ${\( scalar localtime )}
 END_TITLES
 	($postscript .= <<END_PS_ONLY) =~ s/$o->{strip}//gm if (not $o->{eps});
@@ -1180,7 +1180,7 @@ can still be extended.
 
 =head1 ACCESS METHODS
 
-Use these B<get_> and B<set_> methods to access a PostScript::Graph::File object's data. 
+Use these B<get_> and B<set_> methods to access a PostScript::File object's data. 
 
 =cut
 
@@ -1220,7 +1220,7 @@ If C<eps> has been set, multiple pages will have the page label appendend to the
 
 Example
 
-    $ps->new PostScript::Graph::File( eps => 1 );
+    $ps->new PostScript::File( eps => 1 );
     $ps->set_filename( "pics", "~/book" );
     $ps->newpage("vi");
 	... draw page
@@ -1441,8 +1441,8 @@ sub set_incpage_handler {
 Inspect and change the function used to increment the page number or label.  The following suitable values for
 C<handler> refer to functions defined in the module:
 
-    \&PostScript::Graph::File::incpage_label
-    \&PostScript::Graph::File::incpage_roman
+    \&PostScript::File::incpage_label
+    \&PostScript::File::incpage_roman
 
 The default (B<incpage_label>) increments numbers and letters, the other one handles roman numerals up to
 39.  C<handler> should be a reference to a subroutine that takes the current page label as its only argument and
@@ -1917,7 +1917,7 @@ This section documents the postscript functions which provide debugging output. 
 bounding boxes will also hide the debugging output which by default starts at the top left of the page.  Typical
 B<new> options required for debugging would include the following.
 
-    $ps = PostScript::Graph::File->new ( 
+    $ps = PostScript::File->new ( 
 	    errors => "page",
 	    debug => 2,
 	    clipcmd => "stroke" );
@@ -2069,7 +2069,7 @@ sub clip_bounding_box {
 
 No functions are exported by default, they must be named as required.
 
-    use PostScript::Graph::File qw(
+    use PostScript::File qw(
 	    check_tilde check_file 
 	    incpage_label incpage_roman 
 	    array_as_string str

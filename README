@@ -1,29 +1,14 @@
-PostScript::Graph::File version 0.06
-====================================
+PostScript::File version 0.07
+=============================
 
 This module provides the outline for an Adobe PostScript file and provides
 convenient routines for writing postscript directly.  These include reporting
-postscript errors and debugging support.  Here is the ubiquetous 'hello world'
-program, written in PostScript using this module.
+postscript errors and debugging support.  It is not expected to be used
+independently.  See one of these modules for a top-level object.
 
-    use PostScript::Graph::File;
-    my $ps = new PostScript::Graph::File( 
-	    errors => 1,
-	    debug => 2 
-	);
-    
-    my ($x, $y) = (72, 300);
-    my $message = "hello world";
-    
-    $ps->add_to_page( <<END_PAGE );
-	/Helvetica findfont 
-	12 scalefont 
-	setfont
-	$x $y moveto
-	($message) show
-    END_PAGE
-    
-    $ps->output( "~/hello" );
+    PostScript::Graph::XY
+    PostScript::Graph::Bar
+    PostScript::Graph::Stock
 
 INSTALLATION
 
@@ -42,8 +27,17 @@ part of the standard distribution:
   File::Spec
   Sys::Hostname
 
+SEE ALSO
+
+  PostScript::Graph::Paper
+
 COPYRIGHT AND LICENCE
 
-Copyright (C) 2002 C P Willmot.  All rights reserved.
-This module is published under the Perl Artistic licence as distributed with perl.
+Copyright (C) 2002 Christopher P Willmot.  All rights reserved.
+
+This work is published under the Artistic licence accompanying the Perl
+distribution which may be found at http://www.perl.org.  The existance of this
+work does not imply that it is fit for any purpose implied by the code or
+accompanying documentation.  There is no warranty whatsoever.  Use at your own
+risk.
 

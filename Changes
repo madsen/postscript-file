@@ -1,4 +1,7 @@
-Revision history for Perl extension PostScript::Graph::File.
+Revision history for Perl extension PostScript::File.
+
+0.07    Sun Oct 20 10:56:05 GMT 2002
+	Namespace changed from PostScript::Graph::File
 
 0.06    Fri Oct 11 11:56:06 GMT 2002
 	Namespace changed from PostScript::File

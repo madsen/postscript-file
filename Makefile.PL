@@ -1,7 +1,7 @@
 use ExtUtils::MakeMaker;
 
 WriteMakefile(
-    NAME		=> 'PostScript::Graph::File',
+    NAME		=> 'PostScript::File',
     ABSTRACT_FROM	=> 'File.pm',
     AUTHOR		=> 'Christopher Willmot <chris@willmot.org.uk>',
     VERSION_FROM	=> 'File.pm',
