@@ -7,7 +7,7 @@ postscript errors and debugging support.  Here is the ubiquetous 'hello world'
 program, written in PostScript using this module.
 
     use PostScript::File;
-    my $ps = new PostScript::File( errors => "page",
+    my $ps = new PostScript::File( errors => 1,
 				   debug => 2 );
     
     my ($x, $y) = (72, 300);

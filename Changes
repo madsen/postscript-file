@@ -1,5 +1,13 @@
 Revision history for Perl extension PostScript::File.
 
+0.03  Tue Sep 24 12:06:21 GMT 2002
+	bugfix: interaction between debug 2 and custom dicts
+	added tests
+	'new' now accepts hash ref as well as hash keys/values
+	bugfix: only add 1 function set
+	bugfix: %%Orientation now always shown
+	pod now makes use of html indexing
+
 0.02  Sun Sep 22 18:18:32 GMT 2002
 	debug => (not 2) wasn't working. fixed.
 	restored many functions to new-option only

@@ -3,4 +3,7 @@ File.pm
 MANIFEST
 Makefile.PL
 README
-test.pl
+t/01simple.t
+t/02eps.t
+t/03debug.t
+t/04pages.t
