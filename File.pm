@@ -1,5 +1,5 @@
 package PostScript::File;
-our $VERSION = 1.00;
+our $VERSION = 1.01;
 use strict;
 use warnings;
 use File::Spec;
@@ -12,7 +12,6 @@ our @EXPORT_OK = qw(check_tilde check_file incpage_label incpage_roman array_as_
 # Prototypes for functions only
  sub incpage_label ($);
  sub incpage_roman ($);
- sub print_file ($$);
  sub check_tilde ($); 
  sub check_file ($;$$);
 
@@ -253,6 +252,8 @@ sub new {
     bless $o, $class;
 
     ## Paper layout
+    $o->{png}	= defined($opt->{png})	? $opt->{png}  : 0;
+    $o->{gs}	= defined($opt->{gs})	? $opt->{gs}   : 'gs';
     $o->{eps}	= defined($opt->{eps})	? $opt->{eps}  : 0;
     $o->{file}	= defined($opt->{file})	? $opt->{file} : "";
     $o->{dir}	= defined($opt->{dir})	? $opt->{dir}  : "";
@@ -1124,7 +1125,7 @@ END_DEBUG_END
 	    $postscript .= "$debugend\n";
 	    $postscript .= $o->post_pages(); 
 
-	    print_file( $epsfile, $postscript );
+	    $o->print_file( $epsfile, $postscript );
 	    
 	    $p++;
 	} while ($p < $o->{pagecount});
@@ -1172,7 +1173,7 @@ END_PAGE_SETUP
 END_PAGE_TRAILER
 	}
 	$postscript .= $o->post_pages();
-	return print_file( $psfile, $postscript );
+	return $o->print_file( $psfile, $postscript );
     }
 }
 
@@ -1185,6 +1186,29 @@ Use this option whenever output is required to disk. The current PostScript docu
 can still be extended.
 
 =cut
+
+
+sub print_file {
+    my ($o, $filename, $contents) = @_;
+    if ($filename) {
+	open(OUTFILE, ">", $filename) or die "Unable to write to \'$filename\' : $!\nStopped";
+	print OUTFILE $contents;
+	close OUTFILE;
+
+	if ($o->{png}) {
+	    my $psfile  = "$filename.ps";
+	    my $gs      = $o->get_ghostscript();
+	    my $pngfile = check_file("$o->{filename}.png", $o->{directory});
+	    my @cmd = qq(cat $filename | $gs -q -dBATCH -sDEVICE=png16m -sOutputFile=$pngfile -);
+	    system @cmd;
+	    unlink $filename;
+	}
+    } else {
+	return "$contents\n";
+    }
+}
+# Internal method, used by output()
+# Expects file name and contents
 
 =head1 ACCESS METHODS
 
@@ -1642,6 +1666,18 @@ sub get_page_variable {
 =head2 get_page_variable
 
 Retrieve a user defined value.
+
+=cut
+
+
+sub get_ghostscript {
+    my $o = shift;
+    return defined($o->{ghostscript}) ? $o->{ghostscript} : 'gs'; 
+}
+
+=head2 get_ghostscript
+
+Return the ghostscript interpreter that would be used to output a Portable Network Graphics file.
 
 =cut
 
@@ -2134,21 +2170,6 @@ sub clip_bounding_box {
     my $o = shift; 
     $o->{clipcmd} = "clip"; 
 }
-
-### PRIVATE FUNCTIONS
-
-sub print_file ($$) {
-    my($filename, $contents) = @_;
-    if ($filename) {
-	open(OUTFILE, ">", $filename) or die "Unable to write to \'$filename\' : $!\nStopped";
-	print OUTFILE $contents;
-	close OUTFILE;
-    } else {
-	return "$contents\n";
-    }
-}
-# Internal function, used by output()
-# Expects file name and contents
 
 =head1 EXPORTED FUNCTIONS
 
