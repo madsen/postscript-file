@@ -6,7 +6,7 @@ use Sys::Hostname;
 require Exporter;
 our @ISA = qw(Exporter);
 
-our $VERSION = "0.03";
+our $VERSION = "0.04";
 our @EXPORT_OK = qw(check_tilde check_file incpage_label incpage_roman);
 
 # Prototypes for functions only
@@ -184,6 +184,9 @@ around half an inch.  The width is always the shortest side, even in landscape m
 Being in landscape mode, these would be swapped.  The bounding box used for clipping would then be from
 (50,0) to (244,216).
 
+C<options> may be a single hash reference instead of an options list.  This is more convenient when used as a base
+class.
+
 In addition, the following keys are recognized.  First, four options which control how much gets put into the
 resulting file.
 
@@ -205,7 +208,7 @@ on the stack, which it prints before stopping.
 
 =item undef
 
-No debug code is added to the file.
+No debug code is added to the file.  Of course there must be no calls to debug functions in the postscript code.
 
 =item 0
 
@@ -979,7 +982,7 @@ sub print_file ($$) {
     }
 }
 
-=head2 output( [filename] )
+=head2 output( [filename [, dir]] )
 
 Writes the current PostScript out to file.  It is printed to STDOUT if no filename has been given either here, to
 B<new> or B<set_filename>.
@@ -1404,7 +1407,7 @@ sub set_page_margins {
 
 Return the internal number for the page label specified.  (Default: current page)
 
-=head3 Example
+Example
 
 Say pages are numbered "i", "ii", "iii, "iv", "1", "2", "3".
 
@@ -1591,6 +1594,18 @@ sub add_function {
 	    \%\%EndProcSet
 END_USER_FUNCTIONS
     }
+}
+
+=head2 has_function( name )
+
+This returns true if C<name> has already been included in the file.  The name
+should identical to that given to L</"add_function">.
+
+=cut
+
+sub has_function {
+    my ($o, $name) = @_;
+    return ($o->{DocSupplied} =~ /$name/);
 }
 
 =head2 get_setup()
@@ -1822,7 +1837,7 @@ willl output this.
 It is important that the output does not exceed the string buffer size.  The default is 256, but it can be changed
 by giving B<new> the option C<bufsize>.
 
-=item x y msg B<db_point>
+=head3 x y msg B<db_point>
 
 It is common to have coordinates as the top two items on the stack.  This call inspects them.  It pops the message
 off the stack, leaving x and y in place, then prints all three.
@@ -1834,11 +1849,11 @@ off the stack, leaving x and y in place, then prints all three.
 would produce:
 
     starting point= ( 450 , 666 )
-    
+
 =head3 array B<db_array>
 
 Like L</db_print> but the array is printed enclosed within square brackets.
-    
+
 =head3 B<db_newcol>
 
 Starts the next debugging column.  No stack requirements.

@@ -1,6 +1,10 @@
 Revision history for Perl extension PostScript::File.
 
-0.03  Tue Sep 24 12:06:21 GMT 2002
+0.04	Fri Sep 27 07:35:48 GMT 2002
+	tidied up v0.03 pod changes
+	added 'has_function()'
+
+0.03	Tue Sep 24 12:06:21 GMT 2002
 	bugfix: interaction between debug 2 and custom dicts
 	added tests
 	'new' now accepts hash ref as well as hash keys/values
@@ -8,14 +12,14 @@ Revision history for Perl extension PostScript::File.
 	bugfix: %%Orientation now always shown
 	pod now makes use of html indexing
 
-0.02  Sun Sep 22 18:18:32 GMT 2002
+0.02	Sun Sep 22 18:18:32 GMT 2002
 	debug => (not 2) wasn't working. fixed.
 	restored many functions to new-option only
 	page_number renamed to page_label
 	added comment stripping
 	streamlined packaging
 
-0.01  Sat Sep 21 15:41:55 2002
+0.01	Sat Sep 21 15:41:55 2002
 	- original version; created by h2xs 1.21 with options
 		-X -n PostScript::File
 
