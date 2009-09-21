@@ -2358,6 +2358,8 @@ S<< C<< <bug-PostScript-File AT rt.cpan.org> >> >>,
 or through the web interface at
 L<http://rt.cpan.org/Public/Bug/Report.html?Queue=PostScript-File>
 
+You can follow or contribute to PostScript::File's development at
+L<http://github.com/madsen/postscript-file>.
 
 =head1 LICENSE AND COPYRIGHT
 
