@@ -11,6 +11,7 @@
 \bcjm_
 ^pm_to_blib$
 ^PostScript-File-\d
+^test-results/
 ^_build\b
 ^Build$
 ^Build.bat$
