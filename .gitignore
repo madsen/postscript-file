@@ -1,2 +1,6 @@
+/blib/
 Makefile
+/pm_to_blib
 PostScript-File-*.tar.gz
+PostScript-File-*/
+/test-results/
