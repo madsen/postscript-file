@@ -1,8 +1,11 @@
 Revision history for Perl extension PostScript::File.
 
+1.02   September 21, 2009
+	- Now maintained by Christopher J. Madsen
+	- Stripping leading whitespace now works with Perl 5.10 (RT#49838)
+
 1.01	Wed Aug 27 19:23:26 GMT 2003
 	support for PNG format from GhostScript
-
 
 1.00	Wed May 14 12:05:50 GMT 2003
 	minor alterations
