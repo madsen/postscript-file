@@ -12,11 +12,11 @@ our @EXPORT_OK = qw(check_tilde check_file incpage_label incpage_roman array_as_
 # Prototypes for functions only
  sub incpage_label ($);
  sub incpage_roman ($);
- sub check_tilde ($); 
+ sub check_tilde ($);
  sub check_file ($;$$);
 
 # global constants
-my $rmspace = qr(^\s+);		    # remove leading spaces
+my $rmspace = qr(^\s+);             # remove leading spaces
 my $rmcomment = qr(^\s+\(% .*\)?);  # remove single line comments
 
 =head1 NAME
@@ -26,64 +26,64 @@ PostScript::File - Base class for creating Adobe PostScript files
 =head1 SYNOPSIS
 
     use PostScript::File qw(check_tilde check_file
-		    incpage_label incpage_roman);
+                    incpage_label incpage_roman);
 
 =head2 Simplest
-		    
+
 An 'hello world' program:
 
     use PostScript::File;
 
     my $ps = new PostScript::File();
-    
+
     $ps->add_to_page( <<END_PAGE );
-	/Helvetica findfont 
-	12 scalefont 
-	setfont
-	72 300 moveto
-	(hello world) show
+        /Helvetica findfont
+        12 scalefont
+        setfont
+        72 300 moveto
+        (hello world) show
     END_PAGE
-    
+
     $ps->output( "~/test" );
 
 =head2 All options
 
     my $ps = new PostScript::File(
-	paper => 'Letter',
-	height => 500,
-	width => 400,
-	bottom => 30,
-	top => 30,
-	left => 30,
-	right => 30,
-	clip_command => 'stroke',
-	clipping => 1,
-	eps => 1,
-	dir => '~/foo',
-	file => "bar",
-	landscape => 0,
+        paper => 'Letter',
+        height => 500,
+        width => 400,
+        bottom => 30,
+        top => 30,
+        left => 30,
+        right => 30,
+        clip_command => 'stroke',
+        clipping => 1,
+        eps => 1,
+        dir => '~/foo',
+        file => "bar",
+        landscape => 0,
 
-	headings => 1,
-	reencode => 'ISOLatin1Encoding',
-	font_suffix => '-iso',
+        headings => 1,
+        reencode => 'ISOLatin1Encoding',
+        font_suffix => '-iso',
 
-	errors => 1,
-	errmsg => 'Failed:',
-	errfont => 'Helvetica',
-	errsize => 12,
-	errx => 72,
-	erry => 300,
-	
-	debug => 2,
-	db_active => 1,
-	db_xgap => 120,
-	db_xtab => 8,
-	db_base => 300,
-	db_ytop => 500,
-	db_color => '1 0 0 setrgbcolor',
-	db_font => 'Times-Roman',
-	db_fontsize => 11,
-	db_bufsize => 256,
+        errors => 1,
+        errmsg => 'Failed:',
+        errfont => 'Helvetica',
+        errsize => 12,
+        errx => 72,
+        erry => 300,
+
+        debug => 2,
+        db_active => 1,
+        db_xgap => 120,
+        db_xtab => 8,
+        db_base => 300,
+        db_ytop => 500,
+        db_color => '1 0 0 setrgbcolor',
+        db_font => 'Times-Roman',
+        db_fontsize => 11,
+        db_bufsize => 256,
     );
 
 =head1 DESCRIPTION
@@ -99,15 +99,15 @@ An outline Adobe PostScript file is constructed.  Functions allow access to each
 Structuring Convention (DSC) sections and control how the pages are constructed.  It is possible to
 construct and output files in either normal PostScript (*.ps files) or as Encapsulated Postscript (*.epsf or
 *.epsi files).  By default a minimal file is output, but support for font encoding, postscript error reporting and
-debugging can be built in if required. 
+debugging can be built in if required.
 
 Documents can typically be built using only these functions:
 
-    new		  The constructor, with many options
+    new           The constructor, with many options
     add_function  Add postscript functions to the prolog
-    add_to_page	  Add postscript to construct each page 
-    newpage	  Begins a new page in the document
-    output	  Construct the file and saves it
+    add_to_page   Add postscript to construct each page
+    newpage       Begins a new page in the document
+    output        Construct the file and saves it
 
 The rest of the module involves fine-tuning this.  Some settings only really make sense when given once, while
 others can control each page independently.  See B<new> for the functions that duplicate option settings, they all
@@ -125,7 +125,7 @@ have B<get_> counterparts.  The following provide additional support.
 
 The functions which insert entries into each of the DSC sections all begin with 'add_'.  They also have B<get_>
 counterparts.
-    
+
     add_comment
     add_preview
     add_default
@@ -138,10 +138,10 @@ counterparts.
     add_trailer
 
 Finally, there are a few stand-alone functions.  These are not methods and are available for export if requested.
-    
-    check_tilde 
-    check_file 
-    incpage_label 
+
+    check_tilde
+    check_file
+    incpage_label
     incpage_roman
 
 =cut
@@ -217,98 +217,98 @@ sub new {
     my ($class, @options) = @_;
     my $opt = {};
     if (@options == 1) {
-	$opt = $options[0];
+        $opt = $options[0];
     } else {
-	%$opt = @options;
+        %$opt = @options;
     }
-    
+
     ## Initialization
     my $o = {
-	# postscript DSC sections
-	Comments    => "",  # must include leading '%%' and end with '\n'
-	DocSupplied => "",
-	Preview	    => "",
-	Defaults    => "",
-	Resources   => "",
-	Functions   => "",
-	Setup	    => "",
-	PageSetup   => "",
-	Pages	    => [],  # indexed by $o->{p}, 0 based
-	PageTrailer => "",
-	Trailer     => "",
-	
-	# internal
-	p	    => 0,   # current page (0 based)
-	pagecount   => 0,   # number of pages
-	page	    => [],  # array of labels, indexed by $o->{p}
-	pagelandsc  => [],  # orientation of each page individually
-	pageclip    => [],  # clip to pagebbox
-	pagebbox    => [],  # array of bbox, indexed by $o->{p}
-	bbox	    => [],  # [ x0, y0, x1, y1 ]
+        # postscript DSC sections
+        Comments    => "",  # must include leading '%%' and end with '\n'
+        DocSupplied => "",
+        Preview     => "",
+        Defaults    => "",
+        Resources   => "",
+        Functions   => "",
+        Setup       => "",
+        PageSetup   => "",
+        Pages       => [],  # indexed by $o->{p}, 0 based
+        PageTrailer => "",
+        Trailer     => "",
 
-	vars	    => {},  # permanent user variables
-	pagevars    => {},  # user variables reset with each new page
+        # internal
+        p           => 0,   # current page (0 based)
+        pagecount   => 0,   # number of pages
+        page        => [],  # array of labels, indexed by $o->{p}
+        pagelandsc  => [],  # orientation of each page individually
+        pageclip    => [],  # clip to pagebbox
+        pagebbox    => [],  # array of bbox, indexed by $o->{p}
+        bbox        => [],  # [ x0, y0, x1, y1 ]
+
+        vars        => {},  # permanent user variables
+        pagevars    => {},  # user variables reset with each new page
     };
     bless $o, $class;
 
     ## Paper layout
-    $o->{png}	= defined($opt->{png})	? $opt->{png}  : 0;
-    $o->{gs}	= defined($opt->{gs})	? $opt->{gs}   : 'gs';
-    $o->{eps}	= defined($opt->{eps})	? $opt->{eps}  : 0;
-    $o->{file}	= defined($opt->{file})	? $opt->{file} : "";
-    $o->{dir}	= defined($opt->{dir})	? $opt->{dir}  : "";
+    $o->{png}   = defined($opt->{png})  ? $opt->{png}  : 0;
+    $o->{gs}    = defined($opt->{gs})   ? $opt->{gs}   : 'gs';
+    $o->{eps}   = defined($opt->{eps})  ? $opt->{eps}  : 0;
+    $o->{file}  = defined($opt->{file}) ? $opt->{file} : "";
+    $o->{dir}   = defined($opt->{dir})  ? $opt->{dir}  : "";
     $o->set_paper( $opt->{paper} );
     $o->set_width( $opt->{width} );
     $o->set_height( $opt->{height} );
     $o->set_landscape( $opt->{landscape} );
-    
+
     ## Debug options
-    $o->{debug} = $opt->{debug};	# undefined is an option
+    $o->{debug} = $opt->{debug};        # undefined is an option
     if ($o->{debug}) {
-	$o->{db_active}   = $opt->{db_active}   || 1;
-	$o->{db_bufsize}  = $opt->{db_bufsize}  || 256;
-	$o->{db_font}     = $opt->{db_font}     || "Courier";
-	$o->{db_fontsize} = $opt->{db_fontsize} || 10;
-	$o->{db_ytop}     = $opt->{db_ytop}     || ($o->{bbox}[3] - $o->{db_fontsize} - 6);
-	$o->{db_ybase}    = $opt->{db_ybase}    || 6;
-	$o->{db_xpos}     = $opt->{db_xpos}     || 6;
-	$o->{db_xtab}     = $opt->{db_xtab}     || 10;
-	$o->{db_xgap}     = $opt->{db_xgap}     || ($o->{bbox}[2] - $o->{bbox}[0] - $o->{db_xpos})/4;
-	$o->{db_color}    = $opt->{db_color}    || "0 setgray";
+        $o->{db_active}   = $opt->{db_active}   || 1;
+        $o->{db_bufsize}  = $opt->{db_bufsize}  || 256;
+        $o->{db_font}     = $opt->{db_font}     || "Courier";
+        $o->{db_fontsize} = $opt->{db_fontsize} || 10;
+        $o->{db_ytop}     = $opt->{db_ytop}     || ($o->{bbox}[3] - $o->{db_fontsize} - 6);
+        $o->{db_ybase}    = $opt->{db_ybase}    || 6;
+        $o->{db_xpos}     = $opt->{db_xpos}     || 6;
+        $o->{db_xtab}     = $opt->{db_xtab}     || 10;
+        $o->{db_xgap}     = $opt->{db_xgap}     || ($o->{bbox}[2] - $o->{bbox}[0] - $o->{db_xpos})/4;
+        $o->{db_color}    = $opt->{db_color}    || "0 setgray";
     }
-   
+
     ## Bounding box
-    my $x0 = $o->{bbox}[0] + ($opt->{left} || 28); 
-    my $y0 = $o->{bbox}[1] + ($opt->{bottom} || 28); 
+    my $x0 = $o->{bbox}[0] + ($opt->{left} || 28);
+    my $y0 = $o->{bbox}[1] + ($opt->{bottom} || 28);
     my $x1 = $o->{bbox}[2] - ($opt->{right} || 28);
     my $y1 = $o->{bbox}[3] - ($opt->{top} || 28);
     $o->set_bounding_box( $x0, $y0, $x1, $y1 );
     $o->set_clipping( $opt->{clipping} || 0 );
-    
+
     ## Other options
-    $o->{title}	     = defined($opt->{title})	     ? $opt->{title}	    : undef;
-    $o->{version}    = defined($opt->{version})	     ? $opt->{version}      : undef;
+    $o->{title}      = defined($opt->{title})        ? $opt->{title}        : undef;
+    $o->{version}    = defined($opt->{version})      ? $opt->{version}      : undef;
     $o->{langlevel}  = defined($opt->{langlevel})    ? $opt->{langlevel}    : undef;
     $o->{extensions} = defined($opt->{extensions})   ? $opt->{extensions}   : undef;
-    $o->{order}	     = defined($opt->{order})	     ? $opt->{order}	    : undef;
+    $o->{order}      = defined($opt->{order})        ? $opt->{order}        : undef;
     $o->set_page_label( $opt->{page} );
     $o->set_incpage_handler( $opt->{incpage_handler} );
-   
-    $o->{errx}	     = defined($opt->{errx})	     ? $opt->{erry}	    : 72;
-    $o->{erry}	     = defined($opt->{erry})	     ? $opt->{erry}	    : 72;
-    $o->{errmsg}     = defined($opt->{errmsg})	     ? $opt->{errmsg}       : "ERROR:";
-    $o->{errfont}    = defined($opt->{errfont})	     ? $opt->{errfont}      : "Courier-Bold";
-    $o->{errsize}    = defined($opt->{errsize})	     ? $opt->{errsize}      : 12;
-    
+
+    $o->{errx}       = defined($opt->{errx})         ? $opt->{erry}         : 72;
+    $o->{erry}       = defined($opt->{erry})         ? $opt->{erry}         : 72;
+    $o->{errmsg}     = defined($opt->{errmsg})       ? $opt->{errmsg}       : "ERROR:";
+    $o->{errfont}    = defined($opt->{errfont})      ? $opt->{errfont}      : "Courier-Bold";
+    $o->{errsize}    = defined($opt->{errsize})      ? $opt->{errsize}      : 12;
+
     $o->{reencode}   = defined($opt->{reencode})     ? $opt->{reencode}     : "";
     $o->{font_suffix} = defined($opt->{font_suffix})  ? $opt->{font_suffix}  : "-iso";
     $o->{clipcmd}    = defined($opt->{clip_command}) ? $opt->{clip_command} : "clip";
-    $o->{errors}     = defined($opt->{errors})	     ? $opt->{errors}       : 1;
+    $o->{errors}     = defined($opt->{errors})       ? $opt->{errors}       : 1;
     $o->{headings}   = defined($opt->{headings})     ? $opt->{headings}     : 0;
     $o->set_strip( $opt->{strip} );
-   
+
     $o->newpage( $o->get_page_label() );
-    
+
     ## Finish
     return $o;
 }
@@ -320,14 +320,14 @@ hash keys and values.  All values should be in the native postscript units of 1/
 
 Example
 
-    $ref = new PostScript::File ( 
-		eps => 1,
-		landscape => 1,
+    $ref = new PostScript::File (
+                eps => 1,
+                landscape => 1,
                 width => 216,
                 height => 288,
-		left => 36,
-		right => 44,
-		clipping => 1 );
+                left => 36,
+                right => 44,
+                clipping => 1 );
 
 This creates an encapsulated postscript document, 4 by 3 inch pages printing landscape with left and right margins of
 around half an inch.  The width is always the shortest side, even in landscape mode.  3*72=216 and 4*72=288.
@@ -337,7 +337,7 @@ Being in landscape mode, these would be swapped.  The bounding box used for clip
 C<options> may be a single hash reference instead of an options list, but the hash must have the same structure.
 This is more convenient when used as a base class.
 
-In addition, the following keys are recognized.  
+In addition, the following keys are recognized.
 
 =head2 File size keys
 
@@ -429,11 +429,11 @@ and Symbol.  The string value is appended to these to make the new names.
 
 Example
 
-    $ps = new PostScript::File( 
-		font_suffix => "-iso",
-		reencode => "ISOLatin1Encoding"
-	    );
-	    
+    $ps = new PostScript::File(
+                font_suffix => "-iso",
+                reencode => "ISOLatin1Encoding"
+            );
+
 "Courier" still has the standard mapping while "Courier-iso" includes the additional European characters.
 
 =head3 height
@@ -467,7 +467,7 @@ This also sets C<width> and C<height>.  B<get_paper> returns the value set here.
 =head3 right
 
 The margin in from the paper's right edge.  It is a positive offset, so C<right=36> will leave a half inch no-go
-margin on the right hand side of the page.  Remember to specify C<clipping> if that is what is wanted.  (Default: 28) 
+margin on the right hand side of the page.  Remember to specify C<clipping> if that is what is wanted.  (Default: 28)
 
 =head3 top
 
@@ -631,7 +631,7 @@ sub newpage {
 
 =head2 newpage( [page] )
 
-Generate a new PostScript page, unless in a EPS file when it is ignored.  
+Generate a new PostScript page, unless in a EPS file when it is ignored.
 
 If C<page> is not specified the page number is increased each time a new page is requested.
 
@@ -646,124 +646,124 @@ sub pre_pages {
     ## Thanks to Johan Vromans for the ISOLatin1Encoding.
     my $fonts = "";
     if ($o->{reencode}) {
-	$o->{DocSupplied} .= "\%\%+ Encoded_Fonts\n";
-	my $encoding = $o->{reencode};
-	my $ext = $o->{font_suffix};
-	($fonts .= <<END_FONTS) =~ s/$o->{strip}//gm; 
-	\%\%BeginResource: Encoded_Fonts
-	    /STARTDIFFENC { mark } bind def
-	    /ENDDIFFENC { 
+        $o->{DocSupplied} .= "\%\%+ Encoded_Fonts\n";
+        my $encoding = $o->{reencode};
+        my $ext = $o->{font_suffix};
+        ($fonts .= <<END_FONTS) =~ s/$o->{strip}//gm;
+        \%\%BeginResource: Encoded_Fonts
+            /STARTDIFFENC { mark } bind def
+            /ENDDIFFENC {
 
-	    % /NewEnc BaseEnc STARTDIFFENC number or glyphname ... ENDDIFFENC -
-		counttomark 2 add -1 roll 256 array copy
-		/TempEncode exch def
-		
-		% pointer for sequential encodings
-		/EncodePointer 0 def
-		{
-		    % Get the bottom object
-		    counttomark -1 roll
-		    % Is it a mark?
-		    dup type dup /marktype eq {
-			% End of encoding
-			pop pop exit
-		    } {
-			/nametype eq {
-			% Insert the name at EncodePointer 
+            % /NewEnc BaseEnc STARTDIFFENC number or glyphname ... ENDDIFFENC -
+                counttomark 2 add -1 roll 256 array copy
+                /TempEncode exch def
 
-			% and increment the pointer.
-			TempEncode EncodePointer 3 -1 roll put
-			/EncodePointer EncodePointer 1 add def
-			} {
-			% Set the EncodePointer to the number
-			/EncodePointer exch def
-			} ifelse
-		    } ifelse
-		} loop	
+                % pointer for sequential encodings
+                /EncodePointer 0 def
+                {
+                    % Get the bottom object
+                    counttomark -1 roll
+                    % Is it a mark?
+                    dup type dup /marktype eq {
+                        % End of encoding
+                        pop pop exit
+                    } {
+                        /nametype eq {
+                        % Insert the name at EncodePointer
 
-		TempEncode def
-	    } bind def
+                        % and increment the pointer.
+                        TempEncode EncodePointer 3 -1 roll put
+                        /EncodePointer EncodePointer 1 add def
+                        } {
+                        % Set the EncodePointer to the number
+                        /EncodePointer exch def
+                        } ifelse
+                    } ifelse
+                } loop
 
-	    % Define ISO Latin1 encoding if it doesnt exist
-	    /ISOLatin1Encoding where {
-	    %	(ISOLatin1 exists!) =
-		pop
-	    } {
-		(ISOLatin1 does not exist, creating...) =
-		/ISOLatin1Encoding StandardEncoding STARTDIFFENC
-		    144 /dotlessi /grave /acute /circumflex /tilde 
-		    /macron /breve /dotaccent /dieresis /.notdef /ring 
-		    /cedilla /.notdef /hungarumlaut /ogonek /caron /space 
-		    /exclamdown /cent /sterling /currency /yen /brokenbar 
-		    /section /dieresis /copyright /ordfeminine 
-		    /guillemotleft /logicalnot /hyphen /registered 
-		    /macron /degree /plusminus /twosuperior 
-		    /threesuperior /acute /mu /paragraph /periodcentered 
-		    /cedilla /onesuperior /ordmasculine /guillemotright 
-		    /onequarter /onehalf /threequarters /questiondown 
-		    /Agrave /Aacute /Acircumflex /Atilde /Adieresis 
-		    /Aring /AE /Ccedilla /Egrave /Eacute /Ecircumflex 
-		    /Edieresis /Igrave /Iacute /Icircumflex /Idieresis 
-		    /Eth /Ntilde /Ograve /Oacute /Ocircumflex /Otilde 
-		    /Odieresis /multiply /Oslash /Ugrave /Uacute 
-		    /Ucircumflex /Udieresis /Yacute /Thorn /germandbls 
-		    /agrave /aacute /acircumflex /atilde /adieresis 
-		    /aring /ae /ccedilla /egrave /eacute /ecircumflex 
-		    /edieresis /igrave /iacute /icircumflex /idieresis 
-		    /eth /ntilde /ograve /oacute /ocircumflex /otilde 
-		    /odieresis /divide /oslash /ugrave /uacute 
-		    /ucircumflex /udieresis /yacute /thorn /ydieresis
-		ENDDIFFENC
-	    } ifelse
+                TempEncode def
+            } bind def
 
-	    % Name: Re-encode Font
-	    % Description: Creates a new font using the named encoding. 
+            % Define ISO Latin1 encoding if it doesnt exist
+            /ISOLatin1Encoding where {
+            %   (ISOLatin1 exists!) =
+                pop
+            } {
+                (ISOLatin1 does not exist, creating...) =
+                /ISOLatin1Encoding StandardEncoding STARTDIFFENC
+                    144 /dotlessi /grave /acute /circumflex /tilde
+                    /macron /breve /dotaccent /dieresis /.notdef /ring
+                    /cedilla /.notdef /hungarumlaut /ogonek /caron /space
+                    /exclamdown /cent /sterling /currency /yen /brokenbar
+                    /section /dieresis /copyright /ordfeminine
+                    /guillemotleft /logicalnot /hyphen /registered
+                    /macron /degree /plusminus /twosuperior
+                    /threesuperior /acute /mu /paragraph /periodcentered
+                    /cedilla /onesuperior /ordmasculine /guillemotright
+                    /onequarter /onehalf /threequarters /questiondown
+                    /Agrave /Aacute /Acircumflex /Atilde /Adieresis
+                    /Aring /AE /Ccedilla /Egrave /Eacute /Ecircumflex
+                    /Edieresis /Igrave /Iacute /Icircumflex /Idieresis
+                    /Eth /Ntilde /Ograve /Oacute /Ocircumflex /Otilde
+                    /Odieresis /multiply /Oslash /Ugrave /Uacute
+                    /Ucircumflex /Udieresis /Yacute /Thorn /germandbls
+                    /agrave /aacute /acircumflex /atilde /adieresis
+                    /aring /ae /ccedilla /egrave /eacute /ecircumflex
+                    /edieresis /igrave /iacute /icircumflex /idieresis
+                    /eth /ntilde /ograve /oacute /ocircumflex /otilde
+                    /odieresis /divide /oslash /ugrave /uacute
+                    /ucircumflex /udieresis /yacute /thorn /ydieresis
+                ENDDIFFENC
+            } ifelse
 
-	    /REENCODEFONT { % /Newfont NewEncoding /Oldfont
-		findfont dup length 4 add dict
-		begin
-		    { % forall
-			1 index /FID ne 
-			2 index /UniqueID ne and
-			2 index /XUID ne and
-			{ def } { pop pop } ifelse
-		    } forall
-		    /Encoding exch def
-		    % defs for DPS
-		    /BitmapWidths false def
-		    /ExactSize 0 def
-		    /InBetweenSize 0 def
-		    /TransformedChar 0 def
-		    currentdict
-		end
-		definefont pop
-	    } bind def
+            % Name: Re-encode Font
+            % Description: Creates a new font using the named encoding.
 
-	    % Reencode the std fonts: 
+            /REENCODEFONT { % /Newfont NewEncoding /Oldfont
+                findfont dup length 4 add dict
+                begin
+                    { % forall
+                        1 index /FID ne
+                        2 index /UniqueID ne and
+                        2 index /XUID ne and
+                        { def } { pop pop } ifelse
+                    } forall
+                    /Encoding exch def
+                    % defs for DPS
+                    /BitmapWidths false def
+                    /ExactSize 0 def
+                    /InBetweenSize 0 def
+                    /TransformedChar 0 def
+                    currentdict
+                end
+                definefont pop
+            } bind def
+
+            % Reencode the std fonts:
 END_FONTS
-	for my $font (@fonts) {
-	    $fonts .= "/${font}$ext $encoding /$font REENCODEFONT\n";
-	}
-	$fonts .= "\%\%EndResource";
+        for my $font (@fonts) {
+            $fonts .= "/${font}$ext $encoding /$font REENCODEFONT\n";
+        }
+        $fonts .= "\%\%EndResource";
     }
- 
+
     # Prepare the postscript file
     my $user = getlogin() || (getpwuid($<))[0] || "Unknown";
     my $hostname = hostname();
     my $postscript = $o->{eps} ? "\%!PS-Adobe-3.0 EPSF-3.0\n" : "\%!PS-Adobe-3.0\n";
     if ($o->{eps}) {
-	($postscript .= <<END_EPS) =~ s/$o->{strip}//gm;
-	\%\%BoundingBox: $o->{bbox}[0] $o->{bbox}[1] $o->{bbox}[2] $o->{bbox}[3] 
+        ($postscript .= <<END_EPS) =~ s/$o->{strip}//gm;
+        \%\%BoundingBox: $o->{bbox}[0] $o->{bbox}[1] $o->{bbox}[2] $o->{bbox}[3]
 END_EPS
     }
     if ($o->{headings}) {
-	($postscript .= <<END_TITLES) =~ s/$o->{strip}//gm;
-	\%\%For: $user\@$hostname
-	\%\%Creator: Perl module ${\( ref $o )} v$PostScript::File::VERSION
-	\%\%CreationDate: ${\( scalar localtime )}
+        ($postscript .= <<END_TITLES) =~ s/$o->{strip}//gm;
+        \%\%For: $user\@$hostname
+        \%\%Creator: Perl module ${\( ref $o )} v$PostScript::File::VERSION
+        \%\%CreationDate: ${\( scalar localtime )}
 END_TITLES
-	($postscript .= <<END_PS_ONLY) =~ s/$o->{strip}//gm if (not $o->{eps});
-	\%\%DocumentMedia: $o->{paper} $o->{width} $o->{height} 80 ( ) ( )
+        ($postscript .= <<END_PS_ONLY) =~ s/$o->{strip}//gm if (not $o->{eps});
+        \%\%DocumentMedia: $o->{paper} $o->{width} $o->{height} 80 ( ) ( )
 END_PS_ONLY
     }
 
@@ -780,282 +780,282 @@ END_PS_ONLY
     $postscript .= "\%\%EndComments\n";
 
     $postscript .= $o->{Preview} if ($o->{Preview});
-    
+
     ($postscript .= <<END_DEFAULTS) =~ s/$o->{strip}//gm if ($o->{Defaults});
-	\%\%BeginDefaults
-	    $o->{Defaults}
-	\%\%EndDefaults
+        \%\%BeginDefaults
+            $o->{Defaults}
+        \%\%EndDefaults
 END_DEFAULTS
-   
+
     my $landscapefn = "";
     ($landscapefn .= <<END_LANDSCAPE) =~ s/$o->{strip}//gm if ($landscape);
-    		% Rotate page 90 degrees
-		% _ => _
-		/landscape {
-		    $o->{width} 0 translate
-		    90 rotate
-		} bind def
+                % Rotate page 90 degrees
+                % _ => _
+                /landscape {
+                    $o->{width} 0 translate
+                    90 rotate
+                } bind def
 END_LANDSCAPE
 
     my $clipfn = "";
     ($clipfn .= <<END_CLIPPING) =~ s/$o->{strip}//gm if ($clipping);
-    		% Draw box as clipping path
-		% x0 y0 x1 y1 => _
-		/cliptobox {
-		    4 dict begin
-		    gsave
-		    0 setgray
-		    0.5 setlinewidth
-		    /y1 exch def /x1 exch def /y0 exch def /x0 exch def
-		    newpath
-		    x0 y0 moveto x0 y1 lineto x1 y1 lineto x1 y0 lineto
-		    closepath $o->{clipcmd}
-		    grestore
-		    end
-		} bind def
+                % Draw box as clipping path
+                % x0 y0 x1 y1 => _
+                /cliptobox {
+                    4 dict begin
+                    gsave
+                    0 setgray
+                    0.5 setlinewidth
+                    /y1 exch def /x1 exch def /y0 exch def /x0 exch def
+                    newpath
+                    x0 y0 moveto x0 y1 lineto x1 y1 lineto x1 y0 lineto
+                    closepath $o->{clipcmd}
+                    grestore
+                    end
+                } bind def
 END_CLIPPING
-	
+
     my $errorfn = "";
     ($errorfn .= <<END_ERRORS) =~ s/$o->{strip}//gm if ($o->{errors});
-	/errx $o->{errx} def
-	/erry $o->{erry} def
-	/errmsg ($o->{errmsg}) def
-	/errfont /$o->{errfont} def
-	/errsize $o->{errsize} def
-	% Report fatal error on page
-	% _ str => _
-	/report_error {
-	    0 setgray
-	    errfont findfont errsize scalefont setfont
-	    errmsg errx erry moveto show
-	    80 string cvs errx erry errsize sub moveto show
-	    stop
-	} bind def
+        /errx $o->{errx} def
+        /erry $o->{erry} def
+        /errmsg ($o->{errmsg}) def
+        /errfont /$o->{errfont} def
+        /errsize $o->{errsize} def
+        % Report fatal error on page
+        % _ str => _
+        /report_error {
+            0 setgray
+            errfont findfont errsize scalefont setfont
+            errmsg errx erry moveto show
+            80 string cvs errx erry errsize sub moveto show
+            stop
+        } bind def
 
-	% postscript errors printed on page
-	% not called directly
-	errordict begin
-	    /handleerror {
-		\$error begin
-		false binary
-		0 setgray
-		errfont findfont errsize scalefont setfont
-		errx erry moveto
-		errmsg show
-		errx erry errsize sub moveto
-		errorname 80 string cvs show
-		stop
-	    } def
-	end
+        % postscript errors printed on page
+        % not called directly
+        errordict begin
+            /handleerror {
+                \$error begin
+                false binary
+                0 setgray
+                errfont findfont errsize scalefont setfont
+                errx erry moveto
+                errmsg show
+                errx erry errsize sub moveto
+                errorname 80 string cvs show
+                stop
+            } def
+        end
 END_ERRORS
 
     my $debugfn = "";
     ($debugfn .= <<END_DEBUG_ON) =~ s/$o->{strip}//gm if ($o->{debug});
-	/debugdict 25 dict def
-	debugdict begin
-	
-	/db_newcol {
-	    debugdict begin
-		/db_ypos db_ytop def 
-		/db_xpos db_xpos db_xgap add def 
-	    end
-	} bind def
-	% _ db_newcol => _
+        /debugdict 25 dict def
+        debugdict begin
 
-	/db_down {
-	    debugdict begin
-		db_ypos db_ybase gt {
-		    /db_ypos db_ypos db_ygap sub def 
-		}{ 
-		    db_newcol
-		} ifelse
-	    end
-	} bind def
-	% _ db_down => _
+        /db_newcol {
+            debugdict begin
+                /db_ypos db_ytop def
+                /db_xpos db_xpos db_xgap add def
+            end
+        } bind def
+        % _ db_newcol => _
 
-	/db_indent {
-	    debug_dict begin
-		/db_xpos db_xpos db_xtab add def
-	    end
-	} bind def
-	% _ db_indent => _
+        /db_down {
+            debugdict begin
+                db_ypos db_ybase gt {
+                    /db_ypos db_ypos db_ygap sub def
+                }{
+                    db_newcol
+                } ifelse
+            end
+        } bind def
+        % _ db_down => _
 
-	/db_unindent {
-	    debugdict begin
-		/db_xpos db_xpos db_xtab sub def
-	    end
-	} bind def
-	% _ db_unindent => _
+        /db_indent {
+            debug_dict begin
+                /db_xpos db_xpos db_xtab add def
+            end
+        } bind def
+        % _ db_indent => _
 
-	/db_show {
-	    debugdict begin
-		db_active 0 ne {
-		    gsave
-		    newpath
-		    $o->{db_color}
-		    /$o->{db_font} findfont $o->{db_fontsize} scalefont setfont
-		    db_xpos db_ypos moveto
-		    dup type 
-		    dup (arraytype) eq {
-			pop db_array
-		    }{
-			dup (marktype) eq {
-			    pop pop (--mark--) $o->{db_bufsize} string cvs show 
-			}{
-			    pop $o->{db_bufsize} string cvs show 
-			} ifelse
-			db_down
-		    } ifelse
-		    stroke
-		    grestore
-		}{ pop } ifelse
-	    end
-	} bind def
-	% _ (msg) db_show => _
-	
-	/db_nshow {
-	    debugdict begin
-		db_show
-		/db_num exch def
-		db_num count gt {
-		    (Not enough on stack) db_show
-		}{
-		    db_num { 
-			dup db_show
-			db_num 1 roll    
-		    } repeat
-		    (----------) db_show
-		} ifelse
-	    end
-	} bind def
-	% _ n (str) db_nshow => _
+        /db_unindent {
+            debugdict begin
+                /db_xpos db_xpos db_xtab sub def
+            end
+        } bind def
+        % _ db_unindent => _
 
-	/db_stack {
-	    count 0 gt {
-		count
-		$o->{debug} 2 ge {
-		    1 sub
-		} if
-		(The stack holds...) db_nshow
-	    } {
-		(Empty stack) db_show
-	    } ifelse
-	} bind def
-	% _ db_stack => _
-      
-	/db_one {
-	    debugdict begin
-		db_temp cvs
-		dup length exch
-		db_buf exch db_bpos exch putinterval
-		/db_bpos exch db_bpos add def
-	    end
-	} bind def
-	% _ any db_one => _
-	
-	/db_print {
-	    debugdict begin
-		/db_temp $o->{db_bufsize} string def
-		/db_buf $o->{db_bufsize} string def
-		0 1 $o->{db_bufsize} sub 1 { db_buf exch 32 put } for
-		/db_bpos 0 def
-		{   
-		    db_one
-		    ( ) db_one
-		} forall
-		db_buf db_show
-	    end
-	} bind def
-	% _ [array] db_print => _
+        /db_show {
+            debugdict begin
+                db_active 0 ne {
+                    gsave
+                    newpath
+                    $o->{db_color}
+                    /$o->{db_font} findfont $o->{db_fontsize} scalefont setfont
+                    db_xpos db_ypos moveto
+                    dup type
+                    dup (arraytype) eq {
+                        pop db_array
+                    }{
+                        dup (marktype) eq {
+                            pop pop (--mark--) $o->{db_bufsize} string cvs show
+                        }{
+                            pop $o->{db_bufsize} string cvs show
+                        } ifelse
+                        db_down
+                    } ifelse
+                    stroke
+                    grestore
+                }{ pop } ifelse
+            end
+        } bind def
+        % _ (msg) db_show => _
 
-	/db_array {
-	    mark ([) 2 index aload pop (]) ] db_print pop
-	} bind def
-	% _ [array] db_array => _
-	
-	/db_point {
-	    [ 1 index (\\() 5 index (,) 6 index (\\)) ] db_print
-	    pop
-	} bind def
-	% _ x y (str) db_point => _ x y
+        /db_nshow {
+            debugdict begin
+                db_show
+                /db_num exch def
+                db_num count gt {
+                    (Not enough on stack) db_show
+                }{
+                    db_num {
+                        dup db_show
+                        db_num 1 roll
+                    } repeat
+                    (----------) db_show
+                } ifelse
+            end
+        } bind def
+        % _ n (str) db_nshow => _
 
-	/db_where {
-	    where {
-		pop (found) db_show
-	    }{
-		(not found) db_show
-	    } ifelse
-	} bind def
-	% _ var db_where => _
+        /db_stack {
+            count 0 gt {
+                count
+                $o->{debug} 2 ge {
+                    1 sub
+                } if
+                (The stack holds...) db_nshow
+            } {
+                (Empty stack) db_show
+            } ifelse
+        } bind def
+        % _ db_stack => _
 
-	/db_on {
-	    debugdict begin
-	    /db_active 1 def
-	    end
-	} bind def
-	% _ db_on => _
-	
-	/db_off {
-	    debugdict begin
-	    /db_active 0 def
-	    end
-	} bind def
-	% _ db_on => _
-	
-	/db_active $o->{db_active} def
-	/db_ytop  $o->{db_ytop} def
-	/db_ybase $o->{db_ybase} def
-	/db_xpos  $o->{db_xpos} def
-	/db_xtab  $o->{db_xtab} def
-	/db_xgap  $o->{db_xgap} def
-	/db_ygap  $o->{db_fontsize} def
-	/db_ypos  $o->{db_ytop} def
-	end
+        /db_one {
+            debugdict begin
+                db_temp cvs
+                dup length exch
+                db_buf exch db_bpos exch putinterval
+                /db_bpos exch db_bpos add def
+            end
+        } bind def
+        % _ any db_one => _
+
+        /db_print {
+            debugdict begin
+                /db_temp $o->{db_bufsize} string def
+                /db_buf $o->{db_bufsize} string def
+                0 1 $o->{db_bufsize} sub 1 { db_buf exch 32 put } for
+                /db_bpos 0 def
+                {
+                    db_one
+                    ( ) db_one
+                } forall
+                db_buf db_show
+            end
+        } bind def
+        % _ [array] db_print => _
+
+        /db_array {
+            mark ([) 2 index aload pop (]) ] db_print pop
+        } bind def
+        % _ [array] db_array => _
+
+        /db_point {
+            [ 1 index (\\() 5 index (,) 6 index (\\)) ] db_print
+            pop
+        } bind def
+        % _ x y (str) db_point => _ x y
+
+        /db_where {
+            where {
+                pop (found) db_show
+            }{
+                (not found) db_show
+            } ifelse
+        } bind def
+        % _ var db_where => _
+
+        /db_on {
+            debugdict begin
+            /db_active 1 def
+            end
+        } bind def
+        % _ db_on => _
+
+        /db_off {
+            debugdict begin
+            /db_active 0 def
+            end
+        } bind def
+        % _ db_on => _
+
+        /db_active $o->{db_active} def
+        /db_ytop  $o->{db_ytop} def
+        /db_ybase $o->{db_ybase} def
+        /db_xpos  $o->{db_xpos} def
+        /db_xtab  $o->{db_xtab} def
+        /db_xgap  $o->{db_xgap} def
+        /db_ygap  $o->{db_fontsize} def
+        /db_ypos  $o->{db_ytop} def
+        end
 END_DEBUG_ON
 
     ($debugfn .= <<END_DEBUG_OFF) =~ s/$o->{strip}//gm if (defined($o->{debug}) and not $o->{debug});
-	% Define out the db_ functions
-	/debugdict 25 dict def
-	debugdict begin
-	/db_newcol { } bind def
-	/db_down { } bind def
-	/db_indent { } bind def
-	/db_unindent { } bind def
-	/db_show { pop } bind def
-	/db_nshow { pop pop } bind def
-	/db_stack { } bind def
-	/db_print { pop } bind def
-	/db_array { pop } bind def
-	/db_point { pop pop pop } bind def
-	end
+        % Define out the db_ functions
+        /debugdict 25 dict def
+        debugdict begin
+        /db_newcol { } bind def
+        /db_down { } bind def
+        /db_indent { } bind def
+        /db_unindent { } bind def
+        /db_show { pop } bind def
+        /db_nshow { pop pop } bind def
+        /db_stack { } bind def
+        /db_print { pop } bind def
+        /db_array { pop } bind def
+        /db_point { pop pop pop } bind def
+        end
 END_DEBUG_OFF
 
     my $supplied = "";
     if ($landscapefn or $clipfn or $errorfn or $debugfn) {
-	$o->{DocSupplied} .= "\%\%+ PostScript_File\n";
-	($supplied .= <<END_DOC_SUPPLIED) =~ s/$o->{strip}//gm;
-	    \%\%BeginProcSet: PostScript_File
-		$landscapefn
-		$clipfn
-		$errorfn
-		$debugfn
-	    \%\%EndProcSet
+        $o->{DocSupplied} .= "\%\%+ PostScript_File\n";
+        ($supplied .= <<END_DOC_SUPPLIED) =~ s/$o->{strip}//gm;
+            \%\%BeginProcSet: PostScript_File
+                $landscapefn
+                $clipfn
+                $errorfn
+                $debugfn
+            \%\%EndProcSet
 END_DOC_SUPPLIED
     }
 
     ($postscript .= <<END_PROLOG) =~ s/$o->{strip}//gm;
-	\%\%BeginProlog
-	    $supplied
-	    $fonts
-	    $o->{Resources}
-	    $o->{Functions}
-	\%\%EndProlog
+        \%\%BeginProlog
+            $supplied
+            $fonts
+            $o->{Resources}
+            $o->{Functions}
+        \%\%EndProlog
 END_PROLOG
 
     ($postscript .= <<END_SETUP) =~ s/$o->{strip}//gm if ($o->{Setup});
-	\%\%BeginSetup
-	    $o->{Setup}
-	\%\%EndSetup
+        \%\%BeginSetup
+            $o->{Setup}
+        \%\%EndSetup
 END_SETUP
     return $postscript;
 }
@@ -1064,10 +1064,10 @@ END_SETUP
 sub post_pages {
     my $o = shift;
     my $postscript = "";
-    
+
     ($postscript .= <<END_TRAILER) =~ s/$o->{strip}//gm if ($o->{Trailer});
-	\%\%Trailer
-	$o->{Trailer}
+        \%\%Trailer
+        $o->{Trailer}
 END_TRAILER
 
     $postscript .= "\%\%EOF\n";
@@ -1082,98 +1082,98 @@ sub output {
 
     my ($debugbegin, $debugend) = ("", "");
     if (defined $o->{debug}) {
-	$debugbegin = "debugdict begin\nuserdict begin";
-	$debugend   = "end\nend";
-	if ($o->{debug} >= 2) {
-	    $debugbegin = <<END_DEBUG_BEGIN;
-		debugdict begin 
-		    userdict begin
-			mark 
-			(Start of page) db_show
+        $debugbegin = "debugdict begin\nuserdict begin";
+        $debugend   = "end\nend";
+        if ($o->{debug} >= 2) {
+            $debugbegin = <<END_DEBUG_BEGIN;
+                debugdict begin
+                    userdict begin
+                        mark
+                        (Start of page) db_show
 END_DEBUG_BEGIN
-	    $debugend = <<END_DEBUG_END;
-			(End of page) db_show 
-			db_stack 
-			cleartomark
-		    end
-		end
+            $debugend = <<END_DEBUG_END;
+                        (End of page) db_show
+                        db_stack
+                        cleartomark
+                    end
+                end
 END_DEBUG_END
-	}	
+        }
     } else {
-	$debugbegin = "userdict begin";
-	$debugend   = "end";
+        $debugbegin = "userdict begin";
+        $debugend   = "end";
     }
-    
-    if ($o->{eps}) {
-	my $p = 0;
-	do {
-	    my $epsfile = "";
-	    if ($o->{filename}) {
-		$epsfile = ($o->{pagecount} > 1) ? "$o->{filename}-$o->{page}[$p]"
-					   : "$o->{filename}";
-		$epsfile .= $o->{Preview} ? ".epsi" : ".epsf";
-	    }
-	    my $postscript = "";
-	    my $page = $o->{page}->[$p];
-	    my @pbox = $o->get_page_bounding_box($page);
-	    $o->set_bounding_box(@pbox);
-	    $postscript .= $o->pre_pages($o->{pagelandsc}[$p], $o->{pageclip}[$p], $epsfile);
-	    $postscript .= "landscape\n" if ($o->{pagelandsc}[$p]);
-	    $postscript .= "$pbox[0] $pbox[1] $pbox[2] $pbox[3] cliptobox\n" if ($o->{pageclip}[$p]);
-	    $postscript .= "$debugbegin\n";
-	    $postscript .= $o->{Pages}->[$p];
-	    $postscript .= "$debugend\n";
-	    $postscript .= $o->post_pages(); 
 
-	    $o->print_file( $epsfile, $postscript );
-	    
-	    $p++;
-	} while ($p < $o->{pagecount});
+    if ($o->{eps}) {
+        my $p = 0;
+        do {
+            my $epsfile = "";
+            if ($o->{filename}) {
+                $epsfile = ($o->{pagecount} > 1) ? "$o->{filename}-$o->{page}[$p]"
+                                           : "$o->{filename}";
+                $epsfile .= $o->{Preview} ? ".epsi" : ".epsf";
+            }
+            my $postscript = "";
+            my $page = $o->{page}->[$p];
+            my @pbox = $o->get_page_bounding_box($page);
+            $o->set_bounding_box(@pbox);
+            $postscript .= $o->pre_pages($o->{pagelandsc}[$p], $o->{pageclip}[$p], $epsfile);
+            $postscript .= "landscape\n" if ($o->{pagelandsc}[$p]);
+            $postscript .= "$pbox[0] $pbox[1] $pbox[2] $pbox[3] cliptobox\n" if ($o->{pageclip}[$p]);
+            $postscript .= "$debugbegin\n";
+            $postscript .= $o->{Pages}->[$p];
+            $postscript .= "$debugend\n";
+            $postscript .= $o->post_pages();
+
+            $o->print_file( $epsfile, $postscript );
+
+            $p++;
+        } while ($p < $o->{pagecount});
     } else {
-	my $landscape = $o->{landscape};
-	foreach my $pl (@{$o->{pagelandsc}}) {
-	    $landscape |= $pl;
-	}
-	my $clipping = $o->{clipping};
-	foreach my $cl (@{$o->{pageclip}}) {
-	    $clipping |= $cl;
-	}
-	my $psfile = $o->{filename} ? "$o->{filename}.ps" : "";
-	my $postscript = $o->pre_pages($landscape, $clipping, $psfile);
-	for (my $p = 0; $p < $o->{pagecount}; $p++) {
-	    my $page = $o->{page}->[$p];
-	    my @pbox = $o->get_page_bounding_box($page);
-	    my ($landscape, $pagebb);
-	    if ($o->{pagelandsc}[$p]) {
-		$landscape = "landscape";
-		$pagebb = "\%\%PageBoundingBox: $pbox[1] $pbox[0] $pbox[3] $pbox[2]";
-	    } else {
-		$landscape = "";
-		$pagebb = "\%\%PageBoundingBox: $pbox[0] $pbox[1] $pbox[2] $pbox[3]";
-	    }
-	    my $cliptobox = $o->{pageclip}[$p] ? "$pbox[0] $pbox[1] $pbox[2] $pbox[3] cliptobox" : "";
-	    ($postscript .= <<END_PAGE_SETUP) =~ s/$o->{strip}//gm;
-		\%\%Page: $o->{page}->[$p] ${\($p+1)}
-		$pagebb
-		\%\%BeginPageSetup
-		    /pagelevel save def
-		    $landscape
-		    $cliptobox
-		    $debugbegin
-		    $o->{PageSetup}
-		\%\%EndPageSetup
+        my $landscape = $o->{landscape};
+        foreach my $pl (@{$o->{pagelandsc}}) {
+            $landscape |= $pl;
+        }
+        my $clipping = $o->{clipping};
+        foreach my $cl (@{$o->{pageclip}}) {
+            $clipping |= $cl;
+        }
+        my $psfile = $o->{filename} ? "$o->{filename}.ps" : "";
+        my $postscript = $o->pre_pages($landscape, $clipping, $psfile);
+        for (my $p = 0; $p < $o->{pagecount}; $p++) {
+            my $page = $o->{page}->[$p];
+            my @pbox = $o->get_page_bounding_box($page);
+            my ($landscape, $pagebb);
+            if ($o->{pagelandsc}[$p]) {
+                $landscape = "landscape";
+                $pagebb = "\%\%PageBoundingBox: $pbox[1] $pbox[0] $pbox[3] $pbox[2]";
+            } else {
+                $landscape = "";
+                $pagebb = "\%\%PageBoundingBox: $pbox[0] $pbox[1] $pbox[2] $pbox[3]";
+            }
+            my $cliptobox = $o->{pageclip}[$p] ? "$pbox[0] $pbox[1] $pbox[2] $pbox[3] cliptobox" : "";
+            ($postscript .= <<END_PAGE_SETUP) =~ s/$o->{strip}//gm;
+                \%\%Page: $o->{page}->[$p] ${\($p+1)}
+                $pagebb
+                \%\%BeginPageSetup
+                    /pagelevel save def
+                    $landscape
+                    $cliptobox
+                    $debugbegin
+                    $o->{PageSetup}
+                \%\%EndPageSetup
 END_PAGE_SETUP
-	    $postscript .= $o->{Pages}->[$p];
-	    ($postscript .= <<END_PAGE_TRAILER) =~ s/$o->{strip}//gm;
-		\%\%PageTrailer
-		    $o->{PageTrailer}
-		    $debugend
-		    pagelevel restore
-		    showpage
+            $postscript .= $o->{Pages}->[$p];
+            ($postscript .= <<END_PAGE_TRAILER) =~ s/$o->{strip}//gm;
+                \%\%PageTrailer
+                    $o->{PageTrailer}
+                    $debugend
+                    pagelevel restore
+                    showpage
 END_PAGE_TRAILER
-	}
-	$postscript .= $o->post_pages();
-	return $o->print_file( $psfile, $postscript );
+        }
+        $postscript .= $o->post_pages();
+        return $o->print_file( $psfile, $postscript );
     }
 }
 
@@ -1191,20 +1191,20 @@ can still be extended.
 sub print_file {
     my ($o, $filename, $contents) = @_;
     if ($filename) {
-	open(OUTFILE, ">", $filename) or die "Unable to write to \'$filename\' : $!\nStopped";
-	print OUTFILE $contents;
-	close OUTFILE;
+        open(OUTFILE, ">", $filename) or die "Unable to write to \'$filename\' : $!\nStopped";
+        print OUTFILE $contents;
+        close OUTFILE;
 
-	if ($o->{png}) {
-	    my $psfile  = "$filename.ps";
-	    my $gs      = $o->get_ghostscript();
-	    my $pngfile = check_file("$o->{filename}.png", $o->{directory});
-	    my @cmd = qq(cat $filename | $gs -q -dBATCH -sDEVICE=png16m -sOutputFile=$pngfile -);
-	    system @cmd;
-	    unlink $filename;
-	}
+        if ($o->{png}) {
+            my $psfile  = "$filename.ps";
+            my $gs      = $o->get_ghostscript();
+            my $pngfile = check_file("$o->{filename}.png", $o->{directory});
+            my @cmd = qq(cat $filename | $gs -q -dBATCH -sDEVICE=png16m -sOutputFile=$pngfile -);
+            system @cmd;
+            unlink $filename;
+        }
     } else {
-	return "$contents\n";
+        return "$contents\n";
     }
 }
 # Internal method, used by output()
@@ -1212,16 +1212,16 @@ sub print_file {
 
 =head1 ACCESS METHODS
 
-Use these B<get_> and B<set_> methods to access a PostScript::File object's data. 
+Use these B<get_> and B<set_> methods to access a PostScript::File object's data.
 
 =cut
 
-sub get_filename { 
-    my $o = shift; 
-    return $o->{filename}; 
+sub get_filename {
+    my $o = shift;
+    return $o->{filename};
 }
 
-sub set_filename { 
+sub set_filename {
     my ($o, $filename, $dir) = @_;
     $o->{filename} = $filename ? check_file($filename, $dir) : "";
 }
@@ -1255,15 +1255,15 @@ Example
     $ps->new PostScript::File( eps => 1 );
     $ps->set_filename( "pics", "~/book" );
     $ps->newpage("vi");
-	... draw page
+        ... draw page
     $ps->newpage("7");
-	... draw page
+        ... draw page
     $ps->newpage();
-	... draw page
+        ... draw page
     $ps->output();
 
 The three pages for user 'chris' on a unix system would be:
-    
+
     /home/chris/book/pics-vi.epsf
     /home/chris/book/pics-7.epsf
     /home/chris/book/pics-8.epsf
@@ -1274,91 +1274,91 @@ It would be wise to use B<set_page_bounding_box> explicitly for each page if usi
 
 sub get_eps { my $o = shift; return $o->{eps}; }
 
-sub get_paper { 
-    my $o = shift; 
-    return $o->{paper}; 
+sub get_paper {
+    my $o = shift;
+    return $o->{paper};
 }
 
-sub set_paper { 
+sub set_paper {
     my $o = shift;
-    my $paper = shift || "A4"; 
+    my $paper = shift || "A4";
     my ($width, $height) = split(/\s+/, $size{lc($paper)});
     if ($height) {
-	$o->{paper} = $paper;
-	$o->{width} = $width;
-	$o->{height} = $height;
-	if ($o->{landscape}) {
-	    $o->{bbox}[0] = 0;
-	    $o->{bbox}[1] = 0;
-	    $o->{bbox}[2] = $height;
-	    $o->{bbox}[3] = $width;
-	} else {
-	    $o->{bbox}[0] = 0;
-	    $o->{bbox}[1] = 0;
-	    $o->{bbox}[2] = $width;
-	    $o->{bbox}[3] = $height;
-	}
+        $o->{paper} = $paper;
+        $o->{width} = $width;
+        $o->{height} = $height;
+        if ($o->{landscape}) {
+            $o->{bbox}[0] = 0;
+            $o->{bbox}[1] = 0;
+            $o->{bbox}[2] = $height;
+            $o->{bbox}[3] = $width;
+        } else {
+            $o->{bbox}[0] = 0;
+            $o->{bbox}[1] = 0;
+            $o->{bbox}[2] = $width;
+            $o->{bbox}[3] = $height;
+        }
     }
 }
 
-sub get_width { 
-    my $o = shift; 
-    return $o->{width}; 
+sub get_width {
+    my $o = shift;
+    return $o->{width};
 }
 
-sub set_width { 
+sub set_width {
     my ($o, $width) = @_;
     if (defined($width) and ($width+0)) {
-	$o->{width} = $width; 
-	$o->{paper} = "Custom";
-	if ($o->{landscape}) {
-	    $o->{bbox}[1] = 0;
-	    $o->{bbox}[3] = $width;
-	} else {
-	    $o->{bbox}[0] = 0;
-	    $o->{bbox}[2] = $width;
-	}
+        $o->{width} = $width;
+        $o->{paper} = "Custom";
+        if ($o->{landscape}) {
+            $o->{bbox}[1] = 0;
+            $o->{bbox}[3] = $width;
+        } else {
+            $o->{bbox}[0] = 0;
+            $o->{bbox}[2] = $width;
+        }
     }
 }
 
-sub get_height { 
-    my $o = shift; 
-    return $o->{height}; 
+sub get_height {
+    my $o = shift;
+    return $o->{height};
 }
-sub set_height { 
-    my ($o, $height) = @_; 
+sub set_height {
+    my ($o, $height) = @_;
     if (defined($height) and ($height+0)) {
-	$o->{height} = $height; 
-	$o->{paper} = "Custom";
-	if ($o->{landscape}) {
-	    $o->{bbox}[0] = 0;
-	    $o->{bbox}[2] = $height;
-	} else {
-	    $o->{bbox}[1] = 0;
-	    $o->{bbox}[3] = $height;
-	}
+        $o->{height} = $height;
+        $o->{paper} = "Custom";
+        if ($o->{landscape}) {
+            $o->{bbox}[0] = 0;
+            $o->{bbox}[2] = $height;
+        } else {
+            $o->{bbox}[1] = 0;
+            $o->{bbox}[3] = $height;
+        }
     }
 }
 
-sub get_landscape { 
-    my $o = shift; 
-    return $o->{landscape}; 
+sub get_landscape {
+    my $o = shift;
+    return $o->{landscape};
 }
 
 sub set_landscape {
     my $o = shift;
     my $landscape = shift || 0;
-    $o->{landscape} = 0 unless (defined $o->{landscape}); 
+    $o->{landscape} = 0 unless (defined $o->{landscape});
     if ($o->{landscape} != $landscape) {
-	$o->{landscape} = $landscape;
-	($o->{bbox}[0], $o->{bbox}[1]) = ($o->{bbox}[1], $o->{bbox}[0]);
-	($o->{bbox}[2], $o->{bbox}[3]) = ($o->{bbox}[3], $o->{bbox}[2]);
+        $o->{landscape} = $landscape;
+        ($o->{bbox}[0], $o->{bbox}[1]) = ($o->{bbox}[1], $o->{bbox}[0]);
+        ($o->{bbox}[2], $o->{bbox}[3]) = ($o->{bbox}[3], $o->{bbox}[2]);
     }
 }
 
-sub get_clipping { 
-    my $o = shift; 
-    return $o->{clipping}; 
+sub get_clipping {
+    my $o = shift;
+    return $o->{clipping};
 }
 
 sub set_clipping {
@@ -1366,9 +1366,9 @@ sub set_clipping {
     $o->{clipping} = shift || 0;
 }
 
-sub get_strip { 
-    my $o = shift; 
-    return $o->{strip}; 
+sub get_strip {
+    my $o = shift;
+    return $o->{strip};
 }
 
 sub set_strip {
@@ -1388,20 +1388,20 @@ without increasing the file size.  C<comments> remove lines beginning with '%' a
 
 =cut
 
-sub get_page_landscape { 
+sub get_page_landscape {
     my $o = shift;
     my $p = $o->get_ordinal( shift );
-    return $o->{pagelandsc}[$p]; 
+    return $o->{pagelandsc}[$p];
 }
 
 sub set_page_landscape {
     my $o = shift;
     my $p = (@_ == 2) ? $o->get_ordinal(shift) : $o->{p};
     my $landscape = shift || 0;
-    $o->{pagelandsc}[$p] = 0 unless (defined $o->{pagelandsc}[$p]); 
+    $o->{pagelandsc}[$p] = 0 unless (defined $o->{pagelandsc}[$p]);
     if ($o->{pagelandsc}[$p] != $landscape) {
-	($o->{pagebbox}[$p][0], $o->{pagebbox}[$p][1]) = ($o->{pagebbox}[$p][1], $o->{pagebbox}[$p][0]);
-	($o->{pagebbox}[$p][2], $o->{pagebbox}[$p][3]) = ($o->{pagebbox}[$p][3], $o->{pagebbox}[$p][2]);
+        ($o->{pagebbox}[$p][0], $o->{pagebbox}[$p][1]) = ($o->{pagebbox}[$p][1], $o->{pagebbox}[$p][0]);
+        ($o->{pagebbox}[$p][2], $o->{pagebbox}[$p][3]) = ($o->{pagebbox}[$p][3], $o->{pagebbox}[$p][2]);
     }
     $o->{pagelandsc}[$p] = $landscape;
 }
@@ -1415,10 +1415,10 @@ is the global setting as returned by B<get_landscape>.  If C<page> is omitted, t
 
 =cut
 
-sub get_page_clipping { 
+sub get_page_clipping {
     my $o = shift;
     my $p = $o->get_ordinal( shift );
-    return $o->{pageclip}[$p]; 
+    return $o->{pageclip}[$p];
 }
 
 sub set_page_clipping {
@@ -1435,12 +1435,12 @@ Inspect and change whether printing will be clipped to the page's bounding box. 
 
 =cut
 
-sub get_page_label { 
+sub get_page_label {
     my $o = shift;
-    return $o->{page}[$o->{p}]; 
+    return $o->{page}[$o->{p}];
 }
 
-sub set_page_label { 
+sub set_page_label {
     my $o = shift;
     my $page = shift || 1;
     $o->{page}[$o->{p}] = $page;
@@ -1456,12 +1456,12 @@ This will be automatically incremented using the function set by B<set_incpage_h
 
 =cut
 
-sub get_incpage_handler { 
-    my $o = shift; 
-    return $o->{incpage}; 
+sub get_incpage_handler {
+    my $o = shift;
+    return $o->{incpage};
 }
 
-sub set_incpage_handler { 
+sub set_incpage_handler {
     my $o = shift;
     $o->{incpage} = shift || \&incpage_label;
 }
@@ -1478,38 +1478,38 @@ C<handler> refer to functions defined in the module:
 
 The default (B<incpage_label>) increments numbers and letters, the other one handles roman numerals up to
 39.  C<handler> should be a reference to a subroutine that takes the current page label as its only argument and
-returns the new one.  Use this to increment pages using roman numerals or custom orderings.  
+returns the new one.  Use this to increment pages using roman numerals or custom orderings.
 
 =cut
 
-sub get_order { 
-    my $o = shift; 
-    return $o->{order}; 
+sub get_order {
+    my $o = shift;
+    return $o->{order};
 }
 
-sub get_title { 
-    my $o = shift; 
-    return $o->{title}; 
+sub get_title {
+    my $o = shift;
+    return $o->{title};
 }
 
-sub get_version { 
-    my $o = shift; 
-    return $o->{version}; 
+sub get_version {
+    my $o = shift;
+    return $o->{version};
 }
 
-sub get_langlevel { 
-    my $o = shift; 
-    return $o->{langlevel}; 
+sub get_langlevel {
+    my $o = shift;
+    return $o->{langlevel};
 }
 
-sub get_extensions { 
-    my $o = shift; 
-    return $o->{extensions}; 
+sub get_extensions {
+    my $o = shift;
+    return $o->{extensions};
 }
 
-sub get_bounding_box { 
-    my $o = shift; 
-    return @{$o->{bbox}}; 
+sub get_bounding_box {
+    my $o = shift;
+    return @{$o->{bbox}};
 }
 
 sub set_bounding_box {
@@ -1528,19 +1528,19 @@ Clipping is enabled.  Call with B<set_clipping> with 0 to stop clipping.
 
 =cut
 
-sub get_page_bounding_box { 
+sub get_page_bounding_box {
     my $o = shift;
     my $p = $o->get_ordinal( shift );
-    return @{$o->{pagebbox}[$p]}; 
+    return @{$o->{pagebbox}[$p]};
 }
 
 sub set_page_bounding_box {
     my $o = shift;
     my $page = (@_ == 5) ? shift : "";
     if (@_ == 4) {
-	my $p = $o->get_ordinal($page);
-	$o->{pagebbox}[$p] = [ @_ ];
-	$o->set_page_clipping($page, 1);
+        my $p = $o->get_ordinal($page);
+        $o->{pagebbox}[$p] = [ @_ ];
+        $o->set_page_clipping($page, 1);
     }
 }
 
@@ -1561,14 +1561,14 @@ sub set_page_margins {
     my $o = shift;
     my $page = (@_ == 5) ? shift : "";
     if (@_ == 4) {
-	my ($left, $bottom, $right, $top) = @_;
-	my $p = $o->get_ordinal($page);
-	if ($o->{pagelandsc}[$p]) {
-	    $o->{pagebbox}[$p] = [ $left, $bottom, $o->{height}-$right, $o->{width}-$top ];
-	} else {
-	    $o->{pagebbox}[$p] = [ $left, $bottom, $o->{width}-$right, $o->{height}-$top ];
-	}
-	$o->set_page_clipping($page, 1);
+        my ($left, $bottom, $right, $top) = @_;
+        my $p = $o->get_ordinal($page);
+        if ($o->{pagelandsc}[$p]) {
+            $o->{pagebbox}[$p] = [ $left, $bottom, $o->{height}-$right, $o->{width}-$top ];
+        } else {
+            $o->{pagebbox}[$p] = [ $left, $bottom, $o->{width}-$right, $o->{height}-$top ];
+        }
+        $o->set_page_clipping($page, 1);
     }
 }
 
@@ -1586,14 +1586,14 @@ B<set_page_clipping> with 0.
 sub get_ordinal {
     my ($o, $page) = @_;
     if ($page) {
-	for (my $i = 0; $i <= $o->{pagecount}; $i++) {
-	    my $here = $o->{page}->[$i] || "";
-	    return $i if ($here eq $page);
-	}
+        for (my $i = 0; $i <= $o->{pagecount}; $i++) {
+            my $here = $o->{page}->[$i] || "";
+            return $i if ($here eq $page);
+        }
     }
     return $o->{p};
 }
-    
+
 =head2 get_ordinal( [page] )
 
 Return the internal number for the page label specified.  (Default: current page)
@@ -1608,9 +1608,9 @@ Say pages are numbered "i", "ii", "iii, "iv", "1", "2", "3".
 
 =cut
 
-sub get_pagecount { 
-    my $o = shift; 
-    return $o->{pagecount}; 
+sub get_pagecount {
+    my $o = shift;
+    return $o->{pagecount};
 }
 
 =head2 get_pagecount()
@@ -1672,7 +1672,7 @@ Retrieve a user defined value.
 
 sub get_ghostscript {
     my $o = shift;
-    return defined($o->{ghostscript}) ? $o->{ghostscript} : 'gs'; 
+    return defined($o->{ghostscript}) ? $o->{ghostscript} : 'gs';
 }
 
 =head2 get_ghostscript
@@ -1685,14 +1685,14 @@ Return the ghostscript interpreter that would be used to output a Portable Netwo
 
 =cut
 
-sub get_comments { 
-    my $o = shift; 
-    return $o->{Comments}; 
+sub get_comments {
+    my $o = shift;
+    return $o->{Comments};
 }
 
-sub add_comment { 
-    my ($o, $entry) = @_; 
-    $o->{Comments} = "\%\%$entry\n" if defined($entry); 
+sub add_comment {
+    my ($o, $entry) = @_;
+    $o->{Comments} = "\%\%$entry\n" if defined($entry);
 }
 
 =head2 get_comments()
@@ -1713,19 +1713,19 @@ Example
 
 =cut
 
-sub get_preview { 
-    my $o = shift; 
-    return $o->{Preview}; 
+sub get_preview {
+    my $o = shift;
+    return $o->{Preview};
 }
 
-sub add_preview { 
-    my ($o, $width, $height, $depth, $lines, $entry) = @_; 
-    if (defined $entry) { 
-	$entry =~ s/$o->{strip}//gm;  
-	($o->{Preview} = <<END_PREVIEW) =~ s/$o->{strip}//gm;
-	    \%\%BeginPreview: $width $height $depth $lines
-		$entry
-	    \%\%EndPreview
+sub add_preview {
+    my ($o, $width, $height, $depth, $lines, $entry) = @_;
+    if (defined $entry) {
+        $entry =~ s/$o->{strip}//gm;
+        ($o->{Preview} = <<END_PREVIEW) =~ s/$o->{strip}//gm;
+            \%\%BeginPreview: $width $height $depth $lines
+                $entry
+            \%\%EndPreview
 END_PREVIEW
     }
 }
@@ -1739,14 +1739,14 @@ becomes an EPSI file rather than EPSF.
 
 =cut
 
-sub get_defaults { 
-    my $o = shift; 
-    return $o->{Defaults}; 
+sub get_defaults {
+    my $o = shift;
+    return $o->{Defaults};
 }
 
-sub add_default { 
-    my ($o, $entry) = @_; 
-    $o->{Defaults} = "\%\%$entry\n" if defined($entry); 
+sub add_default {
+    my ($o, $entry) = @_;
+    $o->{Defaults} = "\%\%$entry\n" if defined($entry);
 }
 
 =head2 get_defaults()
@@ -1758,20 +1758,20 @@ PageCustomColors: or PageRequirements:.
 
 =cut
 
-sub get_resources { 
-    my $o = shift; 
-    return $o->{Resources}; 
+sub get_resources {
+    my $o = shift;
+    return $o->{Resources};
 }
 
-sub add_resource { 
+sub add_resource {
     my ($o, $type, $name, $params, $resource) = @_;
     if (defined($resource)) {
-	$resource =~ s/$o->{strip}//gm;  
-	$o->{DocSupplied} .= "\%\%+ $name\n";
-	($o->{Resources} = <<END_USER_RESOURCE) =~ s/$o->{strip}//gm;
-	    \%\%Begin${type}: $name $params
-	    $resource
-	    \%\%End$type
+        $resource =~ s/$o->{strip}//gm;
+        $o->{DocSupplied} .= "\%\%+ $name\n";
+        ($o->{Resources} = <<END_USER_RESOURCE) =~ s/$o->{strip}//gm;
+            \%\%Begin${type}: $name $params
+            $resource
+            \%\%End$type
 END_USER_RESOURCE
     }
 }
@@ -1791,7 +1791,7 @@ Feature (case sensitive).
 
 An arbitrary identifier of this resource.
 
-=item C<params> 
+=item C<params>
 
 Some resource types require parameters.  See the Adobe documentation for details.
 
@@ -1805,29 +1805,29 @@ Use this to add fonts or images.  B<add_function> is provided for functions.
 
 Example
 
-    $ps->add_resource( "File", "My_File1", 
-		       "", <<END_FILE1 );
-	...postscript resource definition
+    $ps->add_resource( "File", "My_File1",
+                       "", <<END_FILE1 );
+        ...postscript resource definition
     END_FILE1
 
 Note that B<get_resources> returns I<all> resources added, including those added by any inheriting modules.
 
 =cut
 
-sub get_functions { 
-    my $o = shift; 
-    return $o->{Functions}; 
+sub get_functions {
+    my $o = shift;
+    return $o->{Functions};
 }
 
-sub add_function { 
-    my ($o, $name, $entry) = @_; 
+sub add_function {
+    my ($o, $name, $entry) = @_;
     if (defined($name) and defined($entry)) {
-	$entry =~ s/$o->{strip}//gm;
-	$o->{DocSupplied} .= "\%\%+ $name\n";
-	($o->{Functions} .= <<END_USER_FUNCTIONS) =~ s/$o->{strip}//gm;
-	    \%\%BeginProcSet: $name
-	    $entry
-	    \%\%EndProcSet
+        $entry =~ s/$o->{strip}//gm;
+        $o->{DocSupplied} .= "\%\%+ $name\n";
+        ($o->{Functions} .= <<END_USER_FUNCTIONS) =~ s/$o->{strip}//gm;
+            \%\%BeginProcSet: $name
+            $entry
+            \%\%EndProcSet
 END_USER_FUNCTIONS
     }
 }
@@ -1842,24 +1842,24 @@ the same code section. C<name> is an arbitrary identifier of this resource.  Bes
 Example
 
     $ps->add_function( "My_Functions", <<END_FUNCTIONS );
-	% postscript code can be freely indented
-	% as leading spaces and blank lines 
-	% (and comments, if desired) are stripped
-	
-	% foo does this...
-	/foo {
-	    ... definition of foo
-	} bind def
+        % postscript code can be freely indented
+        % as leading spaces and blank lines
+        % (and comments, if desired) are stripped
 
-	% bar does that...
-	/bar {
-	    ... definition of bar
-	} bind def
+        % foo does this...
+        /foo {
+            ... definition of foo
+        } bind def
+
+        % bar does that...
+        /bar {
+            ... definition of bar
+        } bind def
     END_FUNCTIONS
 
 Note that B<get_functions> (in common with the others) will return I<all> user defined functions possibly
 including those added by other classes.
-    
+
 =cut
 
 sub has_function {
@@ -1874,15 +1874,15 @@ should identical to that given to L</"add_function">.
 
 =cut
 
-sub get_setup { 
-    my $o = shift; 
-    return $o->{Setup}; 
+sub get_setup {
+    my $o = shift;
+    return $o->{Setup};
 }
 
-sub add_setup { 
-    my ($o, $entry) = @_; 
+sub add_setup {
+    my ($o, $entry) = @_;
     $entry =~ s/$o->{strip}//gm;
-    $o->{Setup} = $entry if (defined $entry); 
+    $o->{Setup} = $entry if (defined $entry);
 }
 
 =head2 get_setup()
@@ -1894,13 +1894,13 @@ that initialize the device or document.
 
 =cut
 
-sub get_page_setup { 
-    my $o = shift; 
-    return $o->{PageSetup}; 
+sub get_page_setup {
+    my $o = shift;
+    return $o->{PageSetup};
 }
 
-sub add_page_setup { 
-    my ($o, $entry) = @_; 
+sub add_page_setup {
+    my ($o, $entry) = @_;
     $entry =~ s/$o->{strip}//gm;
     $o->{PageSetup} = $entry if (defined $entry);
 }
@@ -1917,24 +1917,24 @@ carry settings from one page to another.
 
 =cut
 
-sub get_page { 
+sub get_page {
     my $o = shift;
     my $page = shift || $o->get_page_label();
     my $ord = $o->get_ordinal($page);
-    return $o->{Pages}->[$ord]; 
+    return $o->{Pages}->[$ord];
 }
 
-sub add_to_page { 
+sub add_to_page {
     my $o = shift;
     my $page = (@_ == 2) ? shift : "";
     my $entry = shift || "";
     if ($page) {
-	my $ord = $o->get_ordinal($page);
-	if (($ord == $o->{p}) and ($page ne $o->{page}[$ord])) {
-	    $o->newpage($page);
-	} else {
-	    $o->{p} = $ord;
-	}
+        my $ord = $o->get_ordinal($page);
+        if (($ord == $o->{p}) and ($page ne $o->{page}[$ord])) {
+            $o->newpage($page);
+        } else {
+            $o->{p} = $ord;
+        }
     }
     $entry =~ s/$o->{strip}//gm;
     $o->{Pages}[$o->{p}] .= $entry || "";
@@ -1954,25 +1954,25 @@ after "v".
 Examples
 
     $ps->add_to_page( <<END_PAGE );
-	...postscript building this page
+        ...postscript building this page
     END_PAGE
-    
+
     $ps->add_to_page( "3", <<END_PAGE );
-	...postscript building page 3
+        ...postscript building page 3
     END_PAGE
-    
+
 The first example adds code onto the end of the current page.  The second one either adds additional code to page
 3 if it exists, or starts a new one.
-    
+
 =cut
 
-sub get_page_trailer { 
-    my $o = shift; 
-    return $o->{PageTrailer}; 
+sub get_page_trailer {
+    my $o = shift;
+    return $o->{PageTrailer};
 }
 
-sub add_page_trailer { 
-    my ($o, $entry) = @_; 
+sub add_page_trailer {
+    my ($o, $entry) = @_;
     $entry =~ s/$o->{strip}//gm;
     $o->{PageTrailer} = $entry if (defined $entry);
 }
@@ -1986,15 +1986,15 @@ B<add_to_page>.
 
 =cut
 
-sub get_trailer { 
-    my $o = shift; 
-    return $o->{Trailer}; 
+sub get_trailer {
+    my $o = shift;
+    return $o->{Trailer};
 }
 
-sub add_trailer { 
-    my ($o, $entry) = @_; 
+sub add_trailer {
+    my ($o, $entry) = @_;
     $entry =~ s/$o->{strip}//gm;
-    $o->{Trailer} = $entry if (defined $entry); 
+    $o->{Trailer} = $entry if (defined $entry);
 }
 
 =head2 get_trailer()
@@ -2013,10 +2013,10 @@ This section documents the postscript functions which provide debugging output. 
 bounding boxes will also hide the debugging output which by default starts at the top left of the page.  Typical
 B<new> options required for debugging would include the following.
 
-    $ps = PostScript::File->new ( 
-	    errors => "page",
-	    debug => 2,
-	    clipcmd => "stroke" );
+    $ps = PostScript::File->new (
+            errors => "page",
+            debug => 2,
+            clipcmd => "stroke" );
 
 The debugging output is printed on the page being drawn.  In practice this works fine, especially as it is
 possible to move the output around.  Where the text appears is controlled by a number of postscript variables,
@@ -2028,7 +2028,7 @@ needs to be selected in order for any of its variables to be changed.  This is b
 illustrates the point.
 
     /debugdict begin
-	/db_active 1 def
+        /db_active 1 def
     end
     (this will now show) db_show
 
@@ -2050,9 +2050,9 @@ resetting with B<clip_bounding_box>) it is possible to use this to identify area
 
     $ps->draw_bounding_box();
     $ps->add_to_page( <<END_CODE );
-	...
-	my_l my_b my_r my_t cliptobox
-	...
+        ...
+        my_l my_b my_r my_t cliptobox
+        ...
     END_CODE
     $ps->clip_bounding_box();
 
@@ -2070,7 +2070,7 @@ finishes.
 
 The workhorse of the system.  This takes the item off the top of the stack and outputs a string representation of
 it.  So you can call it on numbers or strings and it will show them.  Arrays are printed using C<db_array> and
-marks are shown as '--mark--'. 
+marks are shown as '--mark--'.
 
 =head3 n msg B<db_nshow>
 
@@ -2108,7 +2108,7 @@ example, at the point '2 index' fetches 111, the stack holds '222 111 [ (top=)' 
 willl output this.
 
     top= 111 next= 222
-    
+
 It is important that the output does not exceed the string buffer size.  The default is 256, but it can be changed
 by giving B<new> the option C<bufsize>.
 
@@ -2161,14 +2161,14 @@ Moves output left by C<db_xtab>.  No stack requirements.
 
 =cut
 
-sub draw_bounding_box { 
-    my $o = shift; 
-    $o->{clipcmd} = "stroke"; 
+sub draw_bounding_box {
+    my $o = shift;
+    $o->{clipcmd} = "stroke";
 }
 
-sub clip_bounding_box { 
-    my $o = shift; 
-    $o->{clipcmd} = "clip"; 
+sub clip_bounding_box {
+    my $o = shift;
+    $o->{clipcmd} = "clip";
 }
 
 =head1 EXPORTED FUNCTIONS
@@ -2176,10 +2176,10 @@ sub clip_bounding_box {
 No functions are exported by default, they must be named as required.
 
     use PostScript::File qw(
-	    check_tilde check_file 
-	    incpage_label incpage_roman 
-	    array_as_string str
-	);
+            check_tilde check_file
+            incpage_label incpage_roman
+            array_as_string str
+        );
 
 =cut
 
@@ -2196,9 +2196,9 @@ effect is that letters are also incremented.
 =cut
 
 our $roman_max = 40;
-our @roman = qw(0 i ii iii iv v vi vii viii ix x xi xii xiii xiv xv xvi xvii xviii xix 
-		xx xi xxii xxii xxiii xxiv xxv xxvi xxvii xxviii xxix
-		xxx xxi xxxii xxxii xxxiii xxxiv xxxv xxxvi xxxvii xxxviii xxxix );
+our @roman = qw(0 i ii iii iv v vi vii viii ix x xi xii xiii xiv xv xvi xvii xviii xix
+                xx xi xxii xxii xxiii xxiv xxv xxvi xxvii xxviii xxix
+                xxx xxi xxxii xxxii xxxiii xxxiv xxxv xxxvi xxxvii xxxviii xxxix );
 our %roman = ();
 for (my $i = 1; $i <= $roman_max; $i++) {
     $roman{$roman[$i]} = $i;
@@ -2220,41 +2220,41 @@ values from "i" to "xxxix", but that should be quite enough for numbering the od
 sub check_file ($;$$) {
     my ($filename, $dir, $create) = @_;
     $create = 0 unless (defined $create);
-    
+
     if (not $filename) {
-	$filename = File::Spec->devnull();
+        $filename = File::Spec->devnull();
     } else {
-	$filename = check_tilde($filename);
-	$filename = File::Spec->canonpath($filename);
-	unless (File::Spec->file_name_is_absolute($filename)) {
-	    if (defined($dir)) {
-		$dir = check_tilde($dir);
-		$dir = File::Spec->canonpath($dir);
-		$dir = File::Spec->rel2abs($dir) unless (File::Spec->file_name_is_absolute($dir));
-		$filename = File::Spec->catfile($dir, $filename);
-	    } else {
-		$filename = File::Spec->rel2abs($filename);
-	    }
-	}
+        $filename = check_tilde($filename);
+        $filename = File::Spec->canonpath($filename);
+        unless (File::Spec->file_name_is_absolute($filename)) {
+            if (defined($dir)) {
+                $dir = check_tilde($dir);
+                $dir = File::Spec->canonpath($dir);
+                $dir = File::Spec->rel2abs($dir) unless (File::Spec->file_name_is_absolute($dir));
+                $filename = File::Spec->catfile($dir, $filename);
+            } else {
+                $filename = File::Spec->rel2abs($filename);
+            }
+        }
 
-	my @subdirs = ();
-	my ($volume, $directories, $file) = File::Spec->splitpath($filename);
-	@subdirs = File::Spec->splitdir( $directories );
+        my @subdirs = ();
+        my ($volume, $directories, $file) = File::Spec->splitpath($filename);
+        @subdirs = File::Spec->splitdir( $directories );
 
-	my $path = $volume;
-	foreach my $dir (@subdirs) {
-	    $path = File::Spec->catdir( $path, $dir );
-	    mkdir $path unless (-d $path);
-	}
-	
-	$filename = File::Spec->catfile($path, $file);
-	if ($create) {
-	    unless (-e $filename) {
-		open(FILE, ">", $filename) 
-		    or die "Unable to open \'$filename\' for writing : $!\nStopped";
-		close FILE;
-	    }
-	}
+        my $path = $volume;
+        foreach my $dir (@subdirs) {
+            $path = File::Spec->catdir( $path, $dir );
+            mkdir $path unless (-d $path);
+        }
+
+        $filename = File::Spec->catfile($path, $file);
+        if ($create) {
+            unless (-e $filename) {
+                open(FILE, ">", $filename)
+                    or die "Unable to open \'$filename\' for writing : $!\nStopped";
+                close FILE;
+            }
+        }
     }
 
     return $filename;
@@ -2284,9 +2284,9 @@ This ensures the filename returned is valid and in a directory tree which is cre
 
 Any leading '~' is expanded to the users home directory.  If no absolute directory is given either as part of
 C<file>, it is placed within the current directory.  Intervening directories are always created.  If C<create> is
-set, C<file> is created as an empty file, possible erasing any previous file of the same name. 
+set, C<file> is created as an empty file, possible erasing any previous file of the same name.
 
-B<File::Spec|File::Spec> is used throughout so file access should be portable.  
+B<File::Spec|File::Spec> is used throughout so file access should be portable.
 
 =cut
 
@@ -2319,9 +2319,9 @@ Converts a perl array to its postscript representation.
 sub str ($) {
     my $arg = shift;
     if (ref($arg) eq "ARRAY") {
-	return array_as_string( @$arg );
+        return array_as_string( @$arg );
     } else {
-	return $arg;
+        return $arg;
     }
 }
 
@@ -2335,7 +2335,7 @@ L<PostScript::Graph::Paper/gpapercolor>.
 =cut
 
 #=============================================================================
-		    
+
 =head1 BUGS
 
 When making EPS files, the landscape transformation throws the coordinates off.  To work around this, avoid the
