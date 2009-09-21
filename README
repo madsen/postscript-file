@@ -38,10 +38,11 @@ SEE ALSO
 
 COPYRIGHT AND LICENCE
 
-Copyright (C) 2002, 2003 Christopher P Willmot.  All rights reserved.
+Copyright 2002, 2003 Christopher P Willmot.  All rights reserved.
+
+Copyright 2009 Christopher J. Madsen. All rights reserved.
 
 This work is published under the same licensing terms as Perl itself, which may
 be found at http://www.perl.org.  The existance of this work does not imply that
 it is fit for any purpose implied by the code or accompanying documentation.
 There is no warranty whatsoever.  Use at your own risk.
-
