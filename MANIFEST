@@ -1,7 +1,8 @@
 Changes
 File.pm
-MANIFEST
+lib/PostScript/File.pm
 Makefile.PL
+MANIFEST
 README
 t/fi01simple.t
 t/fi02eps.t
