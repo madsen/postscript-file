@@ -23,6 +23,12 @@ my $rmcomment = qr(^\s+\(% .*\)?)m; # remove single line comments
 
 PostScript::File - Base class for creating Adobe PostScript files
 
+=head1 VERSION
+
+This document describes version {{$version}} of {{$module}},
+released {{$date}}.
+
+
 =head1 SYNOPSIS
 
     use PostScript::File qw(check_tilde check_file
@@ -2354,12 +2360,12 @@ As of September 2009, PostScript::File is now being maintained by
 Christopher J. Madsen  C<< <perl AT cjmweb.net> >>
 
 Please report any bugs or feature requests to
-S<< C<< <bug-PostScript-File AT rt.cpan.org> >> >>,
+S<< C<< <bug-{{$dist}} AT rt.cpan.org> >> >>,
 or through the web interface at
-L<http://rt.cpan.org/Public/Bug/Report.html?Queue=PostScript-File>
+L<http://rt.cpan.org/Public/Bug/Report.html?Queue={{$dist}}>
 
 You can follow or contribute to PostScript::File's development at
-L<http://github.com/madsen/postscript-file>.
+L<{{ $meta{resources}{repository} }}>.
 
 =head1 LICENSE AND COPYRIGHT
 

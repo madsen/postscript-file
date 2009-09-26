@@ -1,5 +1,4 @@
-PostScript::File
-================
+PostScript::File version {{$version}}, released {{$date}}
 
 This module produces the outline for an Adobe PostScript file. It provides
 convenient routines for writing postscript directly, including reporting
@@ -15,6 +14,8 @@ It is considered beta code as the interface has remained stable over many months
 of use.  However, not all the features have been tested properly so experiment
 with caution.
 
+
+
 INSTALLATION
 
 To install this module type the following:
@@ -24,6 +25,8 @@ To install this module type the following:
    make test
    make install
 
+
+
 DEPENDENCIES
 
 This module requires these other modules and libraries, although they are both
@@ -32,9 +35,14 @@ part of the standard distribution:
   File::Spec
   Sys::Hostname
 
-SEE ALSO
 
-  PostScript::Graph::Paper
+
+CHANGES
+    Here's what's new in version {{$version}} of PostScript::File:
+    (See the file "Changes" for the full revision history.)
+
+{{$changes}}
+
 
 COPYRIGHT AND LICENCE
 
