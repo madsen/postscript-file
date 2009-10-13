@@ -1,5 +1,5 @@
 package PostScript::File;
-our $VERSION = 1.02;
+our $VERSION = 1.03;
 use strict;
 use warnings;
 use File::Spec;
@@ -7,7 +7,8 @@ use Sys::Hostname;
 require Exporter;
 our @ISA = qw(Exporter);
 
-our @EXPORT_OK = qw(check_tilde check_file incpage_label incpage_roman array_as_string str);
+our @EXPORT_OK = qw(check_tilde check_file incpage_label incpage_roman
+                    array_as_string pstr str);
 
 # Prototypes for functions only
  sub incpage_label ($);
@@ -2337,6 +2338,27 @@ Converts the referenced array to a string representation suitable for postscript
 array reference, it is passed through unchanged.  This function was designed to simplify passing colours for the
 postscript function b<gpapercolor> which expects either an RGB array or a greyscale decimal.  See
 L<PostScript::Graph::Paper/gpapercolor>.
+
+=cut
+
+my %special = (
+  "\n" => '\n', "\r" => '\r', "\t" => '\t', "\b" => '\b',
+  "\f" => '\f', "\\" => '\\', "("  => '\(', ")"  => '\)',
+);
+my $specialKeys = join '', keys %special;
+
+sub pstr {
+  shift if @_ == 2;             # We were called as a method
+  my $string = shift;
+  $string =~ s/([$specialKeys])/$special{$1}/go;
+  "($string)";
+} # end pstr
+
+=head2 pstr( string )
+
+Converts the string to a string representation suitable for postscript code.
+
+This may also be called as a class or object method.
 
 =cut
 

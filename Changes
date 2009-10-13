@@ -1,5 +1,8 @@
 Revision history for Perl extension PostScript::File.
 
+1.03   NOT
+	- Added pstr function/method
+
 1.02   September 21, 2009
 	- Now maintained by Christopher J. Madsen
 	- Stripping leading whitespace now works with Perl 5.10 (RT#49838)
