@@ -1235,7 +1235,7 @@ sub print_file
       # Process the temporary file through Ghostscript to get PNG:
       my $gs = $o->get_ghostscript();
       $filename =~ s/\.\w+$/.png/ unless defined $o->{file_ext};
-      $outfile->seek(0,0) or die "Can't seek: $!";
+      seek($outfile, 0,0) or die "Can't seek: $!";
 
       open(my $oldin, '<&STDIN')  or die "Can't dup STDIN: $!";
       open(STDIN, '<&', $outfile) or die "Can't redirect STDIN: $!";
