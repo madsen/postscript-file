@@ -1,5 +1,6 @@
 package PostScript::File;
 our $VERSION = 1.03;
+use 5.008;
 use strict;
 use warnings;
 use File::Spec;
@@ -1195,25 +1196,43 @@ can still be extended.
 =cut
 
 
-sub print_file {
-    my ($o, $filename, $contents) = @_;
-    if ($filename) {
-        open(OUTFILE, ">", $filename) or die "Unable to write to \'$filename\' : $!\nStopped";
-        print OUTFILE $contents;
-        close OUTFILE;
+sub print_file
+{
+  my $o        = shift;
+  my $filename = shift;
 
-        if ($o->{png}) {
-            my $psfile  = "$filename.ps";
-            my $gs      = $o->get_ghostscript();
-            my $pngfile = check_file("$o->{filename}.png", $o->{directory});
-            my @cmd = qq(cat $filename | $gs -q -dBATCH -sDEVICE=png16m -sOutputFile=$pngfile -);
-            system @cmd;
-            unlink $filename;
-        }
+  if ($filename) {
+    my $outfile;
+    if ($o->{png}) {
+      # Write PostScript to temporary file:
+      require File::Temp;
+      $outfile = File::Temp->new;
     } else {
-        return "$contents\n";
-    }
-}
+      open($outfile, ">", $filename)
+          or die "Unable to write to \'$filename\' : $!\nStopped";
+    } # end else not PNG output
+
+    print $outfile $_[0];
+
+    if ($o->{png}) {
+      # Process the temporary file through Ghostscript to get PNG:
+      my $gs = $o->get_ghostscript();
+      $filename =~ s/\.\w+$/.png/;
+      $outfile->seek(0,0) or die "Can't seek: $!";
+
+      open(my $oldin, '<&STDIN')  or die "Can't dup STDIN: $!";
+      open(STDIN, '<&', $outfile) or die "Can't redirect STDIN: $!";
+      my @cmd = ($gs, qw(-q -dBATCH -sDEVICE=png16m),
+                 "-sOutputFile=$filename",  '-');
+      system @cmd;
+      open(STDIN, '<&', $oldin)   or die "Can't restore STDIN: $!";
+    } else {
+      close $outfile;
+    } # end else not PNG output
+  } else {
+    return $_[0];
+  } # end else no filename
+} # end print_file
 # Internal method, used by output()
 # Expects file name and contents
 
