@@ -263,6 +263,7 @@ sub new {
     $o->{png}   = defined($opt->{png})  ? $opt->{png}  : 0;
     $o->{gs}    = defined($opt->{gs})   ? $opt->{gs}   : 'gs';
     $o->{eps}   = defined($opt->{eps})  ? $opt->{eps}  : 0;
+    $o->{file_ext} = $opt->{file_ext};
     $o->set_filename(@$opt{qw(file dir)});
     $o->set_paper( $opt->{paper} );
     $o->set_width( $opt->{width} );
@@ -423,9 +424,23 @@ If no C<file> is specified, C<dir> is ignored.
 
 Set to 1 to produce Encapsulated PostScript.  B<get_eps> returns the value set here.  (Default: 0)
 
+=head3 png
+
+Set to 1 to produce a PNG image instead of PostScript code.  (Default: 0)
+Requires Ghostscript (L<http://pages.cs.wisc.edu/~ghost/>).
+
+=head3 gs
+
+The pathname of the Ghostscript application.  (Default: gs)
+Relevant only if PNG output is selected.
+
 =head3 file
 
 The name of the output file.  See </set_filename>.
+
+=head3 file_ext
+
+The extension for the output file.  See </set_file_ext>.
 
 =head3 font_suffix
 
@@ -1119,7 +1134,8 @@ END_DEBUG_END
             if ($o->{filename}) {
                 $epsfile = ($o->{pagecount} > 1) ? "$o->{filename}-$o->{page}[$p]"
                                            : "$o->{filename}";
-                $epsfile .= $o->{Preview} ? ".epsi" : ".epsf";
+                $epsfile .= defined($o->{file_ext}) ? $o->{file_ext}
+                            : ($o->{Preview} ? ".epsi" : ".epsf");
             }
             my $postscript = "";
             my $page = $o->{page}->[$p];
@@ -1146,7 +1162,8 @@ END_DEBUG_END
         foreach my $cl (@{$o->{pageclip}}) {
             $clipping |= $cl;
         }
-        my $psfile = $o->{filename} ? "$o->{filename}.ps" : "";
+        my $psfile = $o->{filename};
+        $psfile .= defined($o->{file_ext}) ? $o->{file_ext} : '.ps' if $psfile;
         my $postscript = $o->pre_pages($landscape, $clipping, $psfile);
         for (my $p = 0; $p < $o->{pagecount}; $p++) {
             my $page = $o->{page}->[$p];
@@ -1217,7 +1234,7 @@ sub print_file
     if ($o->{png}) {
       # Process the temporary file through Ghostscript to get PNG:
       my $gs = $o->get_ghostscript();
-      $filename =~ s/\.\w+$/.png/;
+      $filename =~ s/\.\w+$/.png/ unless defined $o->{file_ext};
       $outfile->seek(0,0) or die "Can't seek: $!";
 
       open(my $oldin, '<&STDIN')  or die "Can't dup STDIN: $!";
@@ -1273,8 +1290,9 @@ C<file>.  If no C<file> was specified, C<dir> is ignored.
 Specify the root file name for the output file(s) and ensure the resulting absolute path exists.  This should not
 include any extension. C<.ps> will be added for ordinary postscript files.  EPS files have an extension of
 C<.epsf> without or C<.epsi> with a preview image.
+(Unless you set the extension manually; see L</set_file_ext>.)
 
-If C<eps> has been set, multiple pages will have the page label appendend to the file name.
+If C<eps> has been set, multiple pages will have the page label appended to the file name.
 
 Example
 
@@ -1296,7 +1314,27 @@ The three pages for user 'chris' on a unix system would be:
 
 It would be wise to use B<set_page_bounding_box> explicitly for each page if using multiple pages in EPS files.
 
+=head2 get_file_ext()
+
+=head2 set_file_ext( file_ext )
+
+If the C<file_ext> is undef (the default), then the extension is set
+automatically based on the output type, as explained under
+L</set_filename>.  If C<file_ext> is the empty string, then no
+extension will be added to the filename.  Otherwise, it should be a
+string like '.ps' or '.eps'.  (But setting this has no effect on the
+actual type of the output file, only its name.)
+
 =cut
+
+sub get_file_ext {
+    shift->{file_ext};
+}
+
+sub set_file_ext {
+    my ($o, $ext) = @_;
+    $o->{file_ext} = $ext;
+}
 
 sub get_eps { my $o = shift; return $o->{eps}; }
 
@@ -1698,7 +1736,7 @@ Retrieve a user defined value.
 
 sub get_ghostscript {
     my $o = shift;
-    return defined($o->{ghostscript}) ? $o->{ghostscript} : 'gs';
+    return defined($o->{gs}) ? $o->{gs} : 'gs';
 }
 
 =head2 get_ghostscript
