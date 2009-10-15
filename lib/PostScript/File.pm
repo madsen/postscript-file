@@ -262,8 +262,7 @@ sub new {
     $o->{png}   = defined($opt->{png})  ? $opt->{png}  : 0;
     $o->{gs}    = defined($opt->{gs})   ? $opt->{gs}   : 'gs';
     $o->{eps}   = defined($opt->{eps})  ? $opt->{eps}  : 0;
-    $o->{file}  = defined($opt->{file}) ? $opt->{file} : "";
-    $o->{dir}   = defined($opt->{dir})  ? $opt->{dir}  : "";
+    $o->set_filename(@$opt{qw(file dir)});
     $o->set_paper( $opt->{paper} );
     $o->set_width( $opt->{width} );
     $o->set_height( $opt->{height} );
@@ -417,6 +416,7 @@ Set whether printing will be clipped to the file's bounding box. (Default: 0)
 =head3 dir
 
 An optional directory for the output file.  See </set_filename>.
+If no C<file> is specified, C<dir> is ignored.
 
 =head3 eps
 
@@ -1247,7 +1247,7 @@ File::Spec->devnull().
 =item C<dir>
 
 An optional directory C<dir>.  If present (and C<file> is not already an absolute path), it is prepended to
-C<file>.
+C<file>.  If no C<file> was specified, C<dir> is ignored.
 
 =back
 

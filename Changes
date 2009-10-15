@@ -2,6 +2,7 @@ Revision history for Perl extension PostScript::File.
 
 1.03   NOT
 	- Added pstr function/method
+	- The dir & file parameters to new now actually work
 
 1.02   September 21, 2009
 	- Now maintained by Christopher J. Madsen
