@@ -1,5 +1,5 @@
 package PostScript::File;
-our $VERSION = 1.03;
+our $VERSION = '1.03';
 use 5.008;
 use strict;
 use warnings;
