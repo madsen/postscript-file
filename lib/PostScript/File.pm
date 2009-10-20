@@ -5,8 +5,7 @@ use strict;
 use warnings;
 use File::Spec;
 use Sys::Hostname;
-require Exporter;
-our @ISA = qw(Exporter);
+use Exporter 'import';
 
 our @EXPORT_OK = qw(check_tilde check_file incpage_label incpage_roman
                     array_as_string pstr str);
