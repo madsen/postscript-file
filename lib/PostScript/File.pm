@@ -1055,7 +1055,7 @@ END_DEBUG_OFF
 
     my $supplied = "";
     if ($landscapefn or $clipfn or $errorfn or $debugfn) {
-        $o->{DocSupplied} .= "\%\%+ PostScript_File\n";
+        $o->{DocSupplied} .= "\%\%+ procset PostScript_File\n";
         ($supplied .= <<END_DOC_SUPPLIED) =~ s/$o->{strip}//gm;
             \%\%BeginProcSet: PostScript_File
                 $landscapefn
@@ -1827,11 +1827,20 @@ sub get_resources {
     return $o->{Resources};
 }
 
+our %supplied_type = (qw(
+  Document  file
+  File      file
+  Font      font
+  ProcSet   procset
+  Resource) => ''
+);
+
 sub add_resource {
     my ($o, $type, $name, $params, $resource) = @_;
     if (defined($resource)) {
         $resource =~ s/$o->{strip}//gm;
-        $o->{DocSupplied} .= "\%\%+ $name\n";
+        $o->{DocSupplied} .= "\%\%+ $supplied_type{$type} $name\n"
+            if defined $supplied_type{$type};
         ($o->{Resources} = <<END_USER_RESOURCE) =~ s/$o->{strip}//gm;
             \%\%Begin${type}: $name $params
             $resource
@@ -1887,7 +1896,7 @@ sub add_function {
     my ($o, $name, $entry) = @_;
     if (defined($name) and defined($entry)) {
         $entry =~ s/$o->{strip}//gm;
-        $o->{DocSupplied} .= "\%\%+ $name\n";
+        $o->{DocSupplied} .= "\%\%+ procset $name\n";
         ($o->{Functions} .= <<END_USER_FUNCTIONS) =~ s/$o->{strip}//gm;
             \%\%BeginProcSet: $name
             $entry
@@ -1928,7 +1937,7 @@ including those added by other classes.
 
 sub has_function {
     my ($o, $name) = @_;
-    return ($o->{DocSupplied} =~ /$name/);
+    return ($o->{DocSupplied} =~ /^\%\%\+ procset \Q$name\E$/m);
 }
 
 =head2 has_function( name )
@@ -1953,8 +1962,8 @@ sub embed_document
   my ($o, $filename) = @_;
 
   my $id = $o->pstr($filename);
-  $o->{DocSupplied} .= "%%+ $id\n"
-      unless index($o->{DocSupplied}, "%%+ $id\n") >= 0;
+  $o->{DocSupplied} .= "%%+ file $id\n"
+      unless index($o->{DocSupplied}, "%%+ file $id\n") >= 0;
 
   local $/;                     # Read entire file
   open(my $in, '<', $filename) or die "Unable to open $filename: $!";
