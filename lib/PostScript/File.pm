@@ -1936,7 +1936,33 @@ sub has_function {
 This returns true if C<name> has already been included in the file.  The name
 should identical to that given to L</"add_function">.
 
+=head2 embed_document( filename )
+
+This reads the contents of C<filename>, which should be a PostScript
+file.  It returns a string with the contents of the file surrounded by
+%%BeginDocument and %%EndDocument comments, and adds C<filename> to
+the list of document supplied resources.
+
+You must pass the returned string to add_to_page or some other method
+that will actually include it in the document.
+
 =cut
+
+sub embed_document
+{
+  my ($o, $filename) = @_;
+
+  my $id = $o->pstr($filename);
+  $o->{DocSupplied} .= "%%+ $id\n"
+      unless index($o->{DocSupplied}, "%%+ $id\n") >= 0;
+
+  local $/;                     # Read entire file
+  open(my $in, '<', $filename) or die "Unable to open $filename: $!";
+  my $content = <$in>;
+  close $in;
+
+  return "\%\%BeginDocument: $id\n$content\n\%\%EndDocument\n";
+} # end embed_document
 
 sub get_setup {
     my $o = shift;
