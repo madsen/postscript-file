@@ -6,6 +6,8 @@ postscript errors and debugging support.  Although it may be used independently,
 the functions provided are also suitable for use in other modules.  See one of
 these modules for a top-level object.
 
+    PostScript::Calendar
+    PostScript::Report
     PostScript::Graph::XY
     PostScript::Graph::Bar
     Finance::Shares::Chart

@@ -2503,6 +2503,8 @@ L<PostScript::Graph::Key>,
 L<PostScript::Graph::XY>,
 L<PostScript::Graph::Bar>.
 L<PostScript::Graph::Stock>.
+L<PostScript::Calendar>.
+L<PostScript::Report>.
 
 
 =head1 DISCLAIMER OF WARRANTY
