@@ -790,26 +790,6 @@ END_TITLES
 END_PS_ONLY
     }
 
-    $o->{title} = "($filename)" unless $o->{title};
-    $postscript .= $o->{Comments} if ($o->{Comments});
-    $postscript .= "\%\%Orientation: ${\( $o->{landscape} ? 'Landscape' : 'Portrait' )}\n";
-    $postscript .= "\%\%DocumentSuppliedResources:\n$o->{DocSupplied}" if ($o->{DocSupplied});
-    $postscript .= "\%\%Title: $o->{title}\n";
-    $postscript .= "\%\%Version: $o->{version}\n" if ($o->{version});
-    $postscript .= "\%\%Pages: $o->{pagecount}\n" if ((not $o->{eps}) and ($o->{pagecount} > 1));
-    $postscript .= "\%\%Order: $o->{order}\n" if ((not $o->{eps}) and ($o->{order}));
-    $postscript .= "\%\%Extensions: $o->{extensions}\n" if ($o->{extensions});
-    $postscript .= "\%\%LanguageLevel: $o->{langlevel}\n" if ($o->{langlevel});
-    $postscript .= "\%\%EndComments\n";
-
-    $postscript .= $o->{Preview} if ($o->{Preview});
-
-    ($postscript .= <<END_DEFAULTS) =~ s/$o->{strip}//gm if ($o->{Defaults});
-        \%\%BeginDefaults
-            $o->{Defaults}
-        \%\%EndDefaults
-END_DEFAULTS
-
     my $landscapefn = "";
     ($landscapefn .= <<END_LANDSCAPE) =~ s/$o->{strip}//gm if ($landscape);
                 % Rotate page 90 degrees
@@ -1065,6 +1045,26 @@ END_DEBUG_OFF
             \%\%EndProcSet
 END_DOC_SUPPLIED
     }
+
+    $o->{title} = "($filename)" unless $o->{title};
+    $postscript .= $o->{Comments} if ($o->{Comments});
+    $postscript .= "\%\%Orientation: ${\( $o->{landscape} ? 'Landscape' : 'Portrait' )}\n";
+    $postscript .= "\%\%DocumentSuppliedResources:\n$o->{DocSupplied}" if ($o->{DocSupplied});
+    $postscript .= "\%\%Title: $o->{title}\n";
+    $postscript .= "\%\%Version: $o->{version}\n" if ($o->{version});
+    $postscript .= "\%\%Pages: $o->{pagecount}\n" if ((not $o->{eps}) and ($o->{pagecount} > 1));
+    $postscript .= "\%\%Order: $o->{order}\n" if ((not $o->{eps}) and ($o->{order}));
+    $postscript .= "\%\%Extensions: $o->{extensions}\n" if ($o->{extensions});
+    $postscript .= "\%\%LanguageLevel: $o->{langlevel}\n" if ($o->{langlevel});
+    $postscript .= "\%\%EndComments\n";
+
+    $postscript .= $o->{Preview} if ($o->{Preview});
+
+    ($postscript .= <<END_DEFAULTS) =~ s/$o->{strip}//gm if ($o->{Defaults});
+        \%\%BeginDefaults
+            $o->{Defaults}
+        \%\%EndDefaults
+END_DEFAULTS
 
     ($postscript .= <<END_PROLOG) =~ s/$o->{strip}//gm;
         \%\%BeginProlog

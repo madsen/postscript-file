@@ -11,6 +11,7 @@ Revision history for Perl extension PostScript::File.
 	- Using Ghostscript to generate PNG should work on Windows now
 	- Include resource types in %%DocumentSuppliedResources comment
 	- Fixed has_function to avoid false positives
+	- Include procset PostScript_File in %%DocumentSuppliedResources
 	- PostScript::File now requires Perl 5.8.0 or later
 
 1.02   September 21, 2009
