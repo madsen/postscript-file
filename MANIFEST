@@ -1,0 +1,14 @@
+Changes
+LICENSE
+MANIFEST
+META.yml
+Makefile.PL
+README
+lib/PostScript/File.pm
+t/fi01simple.t
+t/fi02eps.t
+t/fi03debug.t
+t/fi04pages.t
+t/fi05pstr.t
+t/release-pod-coverage.t
+t/release-pod-syntax.t
