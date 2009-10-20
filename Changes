@@ -1,12 +1,12 @@
 Revision history for Perl extension PostScript::File.
 
-1.03   NOT
+1.03   October 20, 2009
 	- Added pstr function/method
 	- Added embed_document method
 	- The dir & file parameters to new now actually work
 	- The file_ext parameter and {get,set}_file_ext methods allow
 	  you to change the way PostScript::File appends an extension
-	  to the output filename.
+	  to the output filename
 	- The PNG output added in 1.01 is now documented
 	- Using Ghostscript to generate PNG should work on Windows now
 	- Include resource types in %%DocumentSuppliedResources comment
