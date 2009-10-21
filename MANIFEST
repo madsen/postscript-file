@@ -10,5 +10,6 @@ t/fi02eps.t
 t/fi03debug.t
 t/fi04pages.t
 t/fi05pstr.t
+t/fi06content.t
 t/release-pod-coverage.t
 t/release-pod-syntax.t
