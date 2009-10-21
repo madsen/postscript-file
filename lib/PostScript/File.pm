@@ -1,5 +1,5 @@
 package PostScript::File;
-our $VERSION = '1.03';
+our $VERSION = '1.04';
 use 5.008;
 use strict;
 use warnings;
@@ -629,8 +629,8 @@ Set the label (text or number) for the initial page.  See L</set_page_label>.  (
 
 =head3 strip
 
-Set whether the postscript code is filtered.  C<space> strips leading spaces so the user can indent freely
-without increasing the file size.  C<comments> remove lines beginning with '%' as well.  (Default: "space")
+Set whether the PostScript code is filtered.  C<space> strips leading spaces so the user can indent freely
+without increasing the file size.  C<comments> remove lines beginning with '%' as well.  C<none> does no filtering.  (Default: "space")
 
 =cut
 
@@ -671,7 +671,7 @@ sub pre_pages {
         $o->{DocSupplied} .= "\%\%+ Encoded_Fonts\n";
         my $encoding = $o->{reencode};
         my $ext = $o->{font_suffix};
-        ($fonts .= <<END_FONTS) =~ s/$o->{strip}//gm;
+        $fonts .= $o->_here_doc(<<END_FONTS);
         \%\%BeginResource: Encoded_Fonts
             /STARTDIFFENC { mark } bind def
             /ENDDIFFENC {
@@ -774,23 +774,23 @@ END_FONTS
     my $hostname = hostname();
     my $postscript = $o->{eps} ? "\%!PS-Adobe-3.0 EPSF-3.0\n" : "\%!PS-Adobe-3.0\n";
     if ($o->{eps}) {
-        ($postscript .= <<END_EPS) =~ s/$o->{strip}//gm;
+        $postscript .= $o->_here_doc(<<END_EPS);
         \%\%BoundingBox: $o->{bbox}[0] $o->{bbox}[1] $o->{bbox}[2] $o->{bbox}[3]
 END_EPS
     }
     if ($o->{headings}) {
-        ($postscript .= <<END_TITLES) =~ s/$o->{strip}//gm;
+        $postscript .= $o->_here_doc(<<END_TITLES);
         \%\%For: $user\@$hostname
         \%\%Creator: Perl module ${\( ref $o )} v$PostScript::File::VERSION
         \%\%CreationDate: ${\( scalar localtime )}
 END_TITLES
-        ($postscript .= <<END_PS_ONLY) =~ s/$o->{strip}//gm if (not $o->{eps});
+        $postscript .= $o->_here_doc(<<END_PS_ONLY) if (not $o->{eps});
         \%\%DocumentMedia: $o->{paper} $o->{width} $o->{height} 80 ( ) ( )
 END_PS_ONLY
     }
 
     my $landscapefn = "";
-    ($landscapefn .= <<END_LANDSCAPE) =~ s/$o->{strip}//gm if ($landscape);
+    $landscapefn .= $o->_here_doc(<<END_LANDSCAPE) if ($landscape);
                 % Rotate page 90 degrees
                 % _ => _
                 /landscape {
@@ -800,7 +800,7 @@ END_PS_ONLY
 END_LANDSCAPE
 
     my $clipfn = "";
-    ($clipfn .= <<END_CLIPPING) =~ s/$o->{strip}//gm if ($clipping);
+    $clipfn .= $o->_here_doc(<<END_CLIPPING) if ($clipping);
                 % Draw box as clipping path
                 % x0 y0 x1 y1 => _
                 /cliptobox {
@@ -818,7 +818,7 @@ END_LANDSCAPE
 END_CLIPPING
 
     my $errorfn = "";
-    ($errorfn .= <<END_ERRORS) =~ s/$o->{strip}//gm if ($o->{errors});
+    $errorfn .= $o->_here_doc(<<END_ERRORS) if ($o->{errors});
         /errx $o->{errx} def
         /erry $o->{erry} def
         /errmsg ($o->{errmsg}) def
@@ -852,7 +852,7 @@ END_CLIPPING
 END_ERRORS
 
     my $debugfn = "";
-    ($debugfn .= <<END_DEBUG_ON) =~ s/$o->{strip}//gm if ($o->{debug});
+    $debugfn .= $o->_here_doc(<<END_DEBUG_ON) if ($o->{debug});
         /debugdict 25 dict def
         debugdict begin
 
@@ -1015,7 +1015,7 @@ END_ERRORS
         end
 END_DEBUG_ON
 
-    ($debugfn .= <<END_DEBUG_OFF) =~ s/$o->{strip}//gm if (defined($o->{debug}) and not $o->{debug});
+    $debugfn .= $o->_here_doc(<<END_DEBUG_OFF) if (defined($o->{debug}) and not $o->{debug});
         % Define out the db_ functions
         /debugdict 25 dict def
         debugdict begin
@@ -1035,12 +1035,12 @@ END_DEBUG_OFF
     my $supplied = "";
     if ($landscapefn or $clipfn or $errorfn or $debugfn) {
         $o->{DocSupplied} .= "\%\%+ procset PostScript_File\n";
-        ($supplied .= <<END_DOC_SUPPLIED) =~ s/$o->{strip}//gm;
+        $supplied .= $o->_here_doc(<<END_DOC_SUPPLIED);
             \%\%BeginProcSet: PostScript_File
-                $landscapefn
-                $clipfn
-                $errorfn
-                $debugfn
+            $landscapefn
+            $clipfn
+            $errorfn
+            $debugfn
             \%\%EndProcSet
 END_DOC_SUPPLIED
     }
@@ -1059,22 +1059,22 @@ END_DOC_SUPPLIED
 
     $postscript .= $o->{Preview} if ($o->{Preview});
 
-    ($postscript .= <<END_DEFAULTS) =~ s/$o->{strip}//gm if ($o->{Defaults});
+    $postscript .= $o->_here_doc(<<END_DEFAULTS) if ($o->{Defaults});
         \%\%BeginDefaults
             $o->{Defaults}
         \%\%EndDefaults
 END_DEFAULTS
 
-    ($postscript .= <<END_PROLOG) =~ s/$o->{strip}//gm;
+    $postscript .= $o->_here_doc(<<END_PROLOG);
         \%\%BeginProlog
-            $supplied
-            $fonts
-            $o->{Resources}
-            $o->{Functions}
+        $supplied
+        $fonts
+        $o->{Resources}
+        $o->{Functions}
         \%\%EndProlog
 END_PROLOG
 
-    ($postscript .= <<END_SETUP) =~ s/$o->{strip}//gm if ($o->{Setup});
+    $postscript .= $o->_here_doc(<<END_SETUP) if ($o->{Setup});
         \%\%BeginSetup
             $o->{Setup}
         \%\%EndSetup
@@ -1087,7 +1087,7 @@ sub post_pages {
     my $o = shift;
     my $postscript = "";
 
-    ($postscript .= <<END_TRAILER) =~ s/$o->{strip}//gm if ($o->{Trailer});
+    $postscript .= $o->_here_doc(<<END_TRAILER) if ($o->{Trailer});
         \%\%Trailer
         $o->{Trailer}
 END_TRAILER
@@ -1176,7 +1176,7 @@ END_DEBUG_END
                 $pagebb = "\%\%PageBoundingBox: $pbox[0] $pbox[1] $pbox[2] $pbox[3]";
             }
             my $cliptobox = $o->{pageclip}[$p] ? "$pbox[0] $pbox[1] $pbox[2] $pbox[3] cliptobox" : "";
-            ($postscript .= <<END_PAGE_SETUP) =~ s/$o->{strip}//gm;
+            $postscript .= $o->_here_doc(<<END_PAGE_SETUP);
                 \%\%Page: $o->{page}->[$p] ${\($p+1)}
                 $pagebb
                 \%\%BeginPageSetup
@@ -1188,7 +1188,7 @@ END_DEBUG_END
                 \%\%EndPageSetup
 END_PAGE_SETUP
             $postscript .= $o->{Pages}->[$p];
-            ($postscript .= <<END_PAGE_TRAILER) =~ s/$o->{strip}//gm;
+            $postscript .= $o->_here_doc(<<END_PAGE_TRAILER);
                 \%\%PageTrailer
                     $o->{PageTrailer}
                     $debugend
@@ -1785,7 +1785,7 @@ sub add_preview {
     my ($o, $width, $height, $depth, $lines, $entry) = @_;
     if (defined $entry) {
         $entry =~ s/$o->{strip}//gm;
-        ($o->{Preview} = <<END_PREVIEW) =~ s/$o->{strip}//gm;
+        $o->{Preview} = $o->_here_doc(<<END_PREVIEW);
             \%\%BeginPreview: $width $height $depth $lines
                 $entry
             \%\%EndPreview
@@ -1840,7 +1840,7 @@ sub add_resource {
         $resource =~ s/$o->{strip}//gm;
         $o->{DocSupplied} .= "\%\%+ $supplied_type{$type} $name\n"
             if defined $supplied_type{$type};
-        ($o->{Resources} = <<END_USER_RESOURCE) =~ s/$o->{strip}//gm;
+        $o->{Resources} = $o->_here_doc(<<END_USER_RESOURCE);
             \%\%Begin${type}: $name $params
             $resource
             \%\%End$type
@@ -1896,7 +1896,7 @@ sub add_function {
     if (defined($name) and defined($entry)) {
         $entry =~ s/$o->{strip}//gm;
         $o->{DocSupplied} .= "\%\%+ procset $name\n";
-        ($o->{Functions} .= <<END_USER_FUNCTIONS) =~ s/$o->{strip}//gm;
+        $o->{Functions} .= $o->_here_doc(<<END_USER_FUNCTIONS);
             \%\%BeginProcSet: $name
             $entry
             \%\%EndProcSet
@@ -2268,6 +2268,24 @@ sub clip_bounding_box {
     my $o = shift;
     $o->{clipcmd} = "clip";
 }
+
+# Strip leading spaces off a here document:
+
+sub _here_doc
+{
+  my ($o, $text) = @_;
+
+  if ($o->{strip}) {
+    $text =~ s/$o->{strip}//gm;
+  } elsif ($text =~ /^([ \t]+)/) {
+    my $space = $1;
+
+    $text =~ s/^$space//gm;
+    $text =~ s/^[ \t]+\n/\n/gm;
+  } # end elsif no strip but $text is indented
+
+  $text;
+} # end _here_doc
 
 =head1 EXPORTED FUNCTIONS
 
