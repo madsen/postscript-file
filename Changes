@@ -1,6 +1,7 @@
 Revision history for Perl extension PostScript::File.
 
 1.04   NOT
+	- Allow WIDTHxHEIGHT as a paper size
 	- Remove spaces before DSC comments even when strip none
 
 1.03   October 20, 2009

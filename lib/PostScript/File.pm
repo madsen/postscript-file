@@ -484,6 +484,9 @@ A6, A7, A8, A9, B0, B1, B2, B3, B4, B5, B6, B7, B8, B9, B10, Executive, Folio, '
 Legal, 'US-Legal', Tabloid, 'SuperB', Ledger, 'Comm #10 Envelope', 'Envelope-Monarch', 'Envelope-DL',
 'Envelope-C5', 'EuroPostcard'.  (Default: "A4")
 
+You can also give a string in the form 'WIDTHxHEIGHT', where WIDTH and
+HEIGHT are numbers (in points).  This sets the paper size to "Custom".
+
 This also sets C<width> and C<height>.  B<get_paper> returns the value set here.
 
 =head3 right
@@ -1345,7 +1348,14 @@ sub get_paper {
 sub set_paper {
     my $o = shift;
     my $paper = shift || "A4";
-    my ($width, $height) = split(/\s+/, $size{lc($paper)});
+    my ($width, $height) = split(/\s+/, $size{lc($paper)} || '');
+
+    if (not $height and $paper =~ /^(\d+(?:\.\d+)?)\s*x\s*(\d+(?:\.\d+)?)$/i) {
+      $width  = $1;
+      $height = $2;
+      $paper  = 'Custom';
+    } # end if $paper is 'WIDTH x HEIGHT'
+
     if ($height) {
         $o->{paper} = $paper;
         $o->{width} = $width;
