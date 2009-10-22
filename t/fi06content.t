@@ -30,10 +30,10 @@ if (@ARGV and $ARGV[0] eq 'gen') {
   $generateResults = 1;
   printf "#%s\n\n__DATA__\n", '=' x 69;
 } else {
-  plan tests => 3;
+  plan tests => 5;
 }
 
-my ($name, %param);
+my ($name, %param, @methods);
 
 while (<DATA>) {
 
@@ -43,6 +43,9 @@ while (<DATA>) {
     $param{$1} = eval $2;
     die $@ if $@;
   } # end if constructor parameter (key: value)
+  elsif (/^(->.+)/) {
+    push @methods, $1;
+  } # end if method to call (->method(param))
   elsif ($_ eq "===\n") {
     # Read the expected results:
     my $expected = '';
@@ -54,6 +57,11 @@ while (<DATA>) {
     # Run the test:
     my $ps = PostScript::File->new(%param);
 
+    foreach my $call (@methods) {
+      eval '$ps' . $call;
+      die $@ if $@;
+    } # end foreach $call in @methods
+
     if ($generateResults) {
       printf "%s---\n", $ps->output;
     } else {
@@ -61,6 +69,7 @@ while (<DATA>) {
     }
 
     # Clean up:
+    @methods = ();
     %param = ();
     undef $name;
   } # end elsif expected contents (=== ... ---)
@@ -199,6 +208,60 @@ end
 %%EOF
 ---
 
+
+:: strip comments
+strip: 'comments'
+paper: 'US-Letter'
+===
+%!PS-Adobe-3.0
+%%Orientation: Portrait
+%%DocumentSuppliedResources:
+%%+ procset PostScript_File
+%%Title: ()
+%%EndComments
+%%BeginProlog
+%%BeginProcSet: PostScript_File
+/errx 72 def
+/erry 72 def
+/errmsg (ERROR:) def
+/errfont /Courier-Bold def
+/errsize 12 def
+/report_error {
+0 setgray
+errfont findfont errsize scalefont setfont
+errmsg errx erry moveto show
+80 string cvs errx erry errsize sub moveto show
+stop
+} bind def
+errordict begin
+/handleerror {
+$error begin
+false binary
+0 setgray
+errfont findfont errsize scalefont setfont
+errx erry moveto
+errmsg show
+errx erry errsize sub moveto
+errorname 80 string cvs show
+stop
+} def
+end
+%%EndProcSet
+%%EndProlog
+%%Page: 1 1
+%%PageBoundingBox: 28 28 584 764
+%%BeginPageSetup
+/pagelevel save def
+userdict begin
+%%EndPageSetup
+%%PageTrailer
+end
+pagelevel restore
+showpage
+%%EOF
+---
+
+
 :: custom paper
 paper: '123x456'
 ===
@@ -243,6 +306,72 @@ end
 %%EndProlog
 %%Page: 1 1
 %%PageBoundingBox: 28 28 95 428
+%%BeginPageSetup
+/pagelevel save def
+userdict begin
+%%EndPageSetup
+%%PageTrailer
+end
+pagelevel restore
+showpage
+%%EOF
+---
+
+
+:: multiple comments
+paper: 'Letter'
+->add_comment("ProofMode: NotifyMe");
+->add_comment("Requirements: manualfeed");
+->add_comment("DocumentNeededResources:");
+->add_comment("+ Paladin");
+->add_comment("+ Paladin-Bold");
+===
+%!PS-Adobe-3.0
+%%ProofMode: NotifyMe
+%%Requirements: manualfeed
+%%DocumentNeededResources:
+%%+ Paladin
+%%+ Paladin-Bold
+%%Orientation: Portrait
+%%DocumentSuppliedResources:
+%%+ procset PostScript_File
+%%Title: ()
+%%EndComments
+%%BeginProlog
+%%BeginProcSet: PostScript_File
+/errx 72 def
+/erry 72 def
+/errmsg (ERROR:) def
+/errfont /Courier-Bold def
+/errsize 12 def
+% Report fatal error on page
+% _ str => _
+/report_error {
+0 setgray
+errfont findfont errsize scalefont setfont
+errmsg errx erry moveto show
+80 string cvs errx erry errsize sub moveto show
+stop
+} bind def
+% postscript errors printed on page
+% not called directly
+errordict begin
+/handleerror {
+$error begin
+false binary
+0 setgray
+errfont findfont errsize scalefont setfont
+errx erry moveto
+errmsg show
+errx erry errsize sub moveto
+errorname 80 string cvs show
+stop
+} def
+end
+%%EndProcSet
+%%EndProlog
+%%Page: 1 1
+%%PageBoundingBox: 28 28 584 764
 %%BeginPageSetup
 /pagelevel save def
 userdict begin
