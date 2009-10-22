@@ -21,6 +21,9 @@ use warnings;
 
 use Test::More;
 
+my $diff;
+BEGIN { $diff = eval "use Test::Differences; 1" }
+
 use PostScript::File ();
 
 my $generateResults;
@@ -64,8 +67,10 @@ while (<DATA>) {
 
     if ($generateResults) {
       printf "%s---\n", $ps->output;
+    } elsif ($diff) {
+      eq_or_diff($ps->output, $expected, $name); # if Test::Differences
     } else {
-      is($ps->output, $expected, $name);
+      is($ps->output, $expected, $name); # fall back to Test::More
     }
 
     # Clean up:
