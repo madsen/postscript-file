@@ -1970,7 +1970,7 @@ sub embed_document
 {
   my ($o, $filename) = @_;
 
-  my $id = $o->pstr($filename);
+  my $id = $o->pstr(substr($filename, -234), 1); # in case it's long
   $o->{DocSupplied} .= "%%+ file $id\n"
       unless index($o->{DocSupplied}, "%%+ file $id\n") >= 0;
 
@@ -2469,13 +2469,22 @@ my $specialKeys = join '', keys %special;
 sub pstr {
   shift if @_ == 2;             # We were called as a method
   my $string = shift;
+  my $nowrap = shift;
   $string =~ s/([$specialKeys])/$special{$1}/go;
-  "($string)";
+  $string = "($string)";
+  # A PostScript file should not have more than 255 chars per line:
+  $string =~ s/(.{240}[^\\])(?=\S)/$1\\\n/g unless $nowrap;
+
+  $string;
 } # end pstr
 
-=head2 pstr( string )
+=head2 pstr( string, [nowrap] )
 
-Converts the string to a string representation suitable for postscript code.
+Converts the string to a string representation suitable for postscript
+code.  If the result is more than 240 characters, it will be broken
+into multiple lines unless the optional nowrap parameter is true.  (A
+PostScript file should not contain lines with more than 255
+characters.)
 
 This may also be called as a class or object method.
 

@@ -19,7 +19,7 @@
 use strict;
 use warnings;
 
-use Test::More tests => 6;
+use Test::More;
 
 use PostScript::File 'pstr';
 
@@ -30,7 +30,15 @@ my @realTests  = (
   'Hello, world'  => '(Hello, world)',
   'is ('          => '(is \()',
   "has\n newline" => '(has\n newline)',
+  'xxxx ' x 100   => '(' . ('xxxx ' x 48) . "\\\n" .
+                           ('xxxx ' x 48) . "x\\\nxxx " .
+                           ('xxxx ' x 3) . ')',
+  'a         ' x 50 => '(' . ('a         ' x 24) . "\\\n" .
+                             ('a         ' x 25) . "\\\n" .
+                             ('a         ' x 1) . ')',
 );
+
+plan tests => scalar @realTests;
 
 my @tests = @realTests;
 
@@ -38,6 +46,7 @@ while (@tests) {
   my $in = shift @tests;
 
   (my $name = $in) =~ s/\s+/ /g;
+  $name = substr($name, 0, 50);
 
   is(pstr($in), shift @tests, $name);
 } # end while @tests
@@ -49,6 +58,7 @@ while (@tests) {
   my $in = shift @tests;
 
   (my $name = $in) =~ s/\s+/ /g;
+  $name = substr($name, 0, 50);
 
   is(PostScript::File->pstr($in), shift @tests, "class method $name");
 } # end while @tests
