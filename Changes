@@ -1,6 +1,6 @@
 Revision history for Perl extension PostScript::File.
 
-1.04   NOT
+1.04   October 22, 2009
 	- add_comment now appends to comments (as originally documented)
 	  (fixes RT#25786)
 	- Allow WIDTHxHEIGHT as a paper size
