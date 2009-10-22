@@ -2473,7 +2473,8 @@ sub pstr {
   $string =~ s/([$specialKeys])/$special{$1}/go;
   $string = "($string)";
   # A PostScript file should not have more than 255 chars per line:
-  $string =~ s/(.{240}[^\\])(?=\S)/$1\\\n/g unless $nowrap;
+  $string =~ s/(.{240}[^\\])/$1\\\n/g unless $nowrap;
+  $string =~ s/^([ %])/\\$1/mg; # Make sure it doesn't get stripped
 
   $string;
 } # end pstr
