@@ -217,6 +217,9 @@ end
 :: strip comments
 strip: 'comments'
 paper: 'US-Letter'
+->add_to_page("% strip this\n");
+->add_to_page("%%%%%%%%%%%%%\n");
+->add_to_page("%------------\n");
 ===
 %!PS-Adobe-3.0
 %%Orientation: Portrait
@@ -259,6 +262,7 @@ end
 /pagelevel save def
 userdict begin
 %%EndPageSetup
+%%%%%%%%%%%%%
 %%PageTrailer
 end
 pagelevel restore

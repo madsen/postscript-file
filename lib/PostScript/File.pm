@@ -18,7 +18,7 @@ our @EXPORT_OK = qw(check_tilde check_file incpage_label incpage_roman
 
 # global constants
 my $rmspace   = qr(^\s+)m;          # remove leading spaces
-my $rmcomment = qr(^\s+\(% .*\)?)m; # remove single line comments
+my $rmcomment = qr(^\s*\(%(?![!%]).*\n\)?)m; # remove single line comments
 
 =head1 NAME
 
