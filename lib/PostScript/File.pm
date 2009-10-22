@@ -1765,7 +1765,7 @@ sub get_comments {
 
 sub add_comment {
     my ($o, $entry) = @_;
-    $o->{Comments} = "\%\%$entry\n" if defined($entry);
+    $o->{Comments} .= "\%\%$entry\n" if defined($entry);
 }
 
 =head2 get_comments()
