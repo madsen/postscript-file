@@ -1472,12 +1472,15 @@ END ISOLatin1Encoding
   Win1252Encoding => <<'END Win1252Encoding',
 % Define Windows Latin1 encoding
 /Win1252Encoding StandardEncoding STARTDIFFENC
+    96 /grave
+    % Here are the CP1252 extensions to ISO-8859-1:
     128 /Euro /.notdef /quotesinglbase /florin /quotedblbase
     /ellipsis /dagger /daggerdbl /circumflex /perthousand
     /Scaron /guilsinglleft /OE /.notdef /Zcaron /zcaron
     /.notdef /quoteleft /quoteright /quotedblleft /quotedblright
     /bullet /endash /emdash /tilde /trademark /scaron
     /guilsinglright /oe /.notdef /.notdef /Ydieresis
+    % We now return you to your ISO-8859-1 character set:
     /space
     /exclamdown /cent /sterling /currency /yen /brokenbar
     /section /dieresis /copyright /ordfeminine
