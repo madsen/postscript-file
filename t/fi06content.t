@@ -34,7 +34,7 @@ if (@ARGV and $ARGV[0] eq 'gen') {
   open(OUT, '>', '/tmp/fi06content.t') or die $!;
   printf OUT "#%s\n\n__DATA__\n", '=' x 69;
 } else {
-  plan tests => 5;
+  plan tests => 6;
 }
 
 my ($name, %param, @methods);
@@ -386,6 +386,144 @@ end
 /pagelevel save def
 userdict begin
 %%EndPageSetup
+%%PageTrailer
+end
+pagelevel restore
+showpage
+%%EOF
+---
+
+
+:: cp1252
+strip: 'comments'
+paper: 'US-Letter'
+reencode: 'cp1252'
+->add_to_page("(\x{201C}Hello, world.\x{201D}) show\n");
+===
+%!PS-Adobe-3.0
+%%Orientation: Portrait
+%%DocumentSuppliedResources:
+%%+ Encoded_Fonts
+%%+ procset PostScript_File
+%%Title: ()
+%%EndComments
+%%BeginProlog
+%%BeginProcSet: PostScript_File
+/errx 72 def
+/erry 72 def
+/errmsg (ERROR:) def
+/errfont /Courier-Bold def
+/errsize 12 def
+/report_error {
+0 setgray
+errfont findfont errsize scalefont setfont
+errmsg errx erry moveto show
+80 string cvs errx erry errsize sub moveto show
+stop
+} bind def
+errordict begin
+/handleerror {
+$error begin
+false binary
+0 setgray
+errfont findfont errsize scalefont setfont
+errx erry moveto
+errmsg show
+errx erry errsize sub moveto
+errorname 80 string cvs show
+stop
+} def
+end
+%%EndProcSet
+%%BeginResource: Encoded_Fonts
+/STARTDIFFENC { mark } bind def
+/ENDDIFFENC {
+counttomark 2 add -1 roll 256 array copy
+/TempEncode exch def
+/EncodePointer 0 def
+{
+counttomark -1 roll
+dup type dup /marktype eq {
+pop pop exit
+} {
+/nametype eq {
+TempEncode EncodePointer 3 -1 roll put
+/EncodePointer EncodePointer 1 add def
+} {
+/EncodePointer exch def
+} ifelse
+} ifelse
+} loop
+TempEncode def
+} bind def
+/Win1252Encoding StandardEncoding STARTDIFFENC
+128 /Euro /.notdef /quotesinglbase /florin /quotedblbase
+/ellipsis /dagger /daggerdbl /circumflex /perthousand
+/Scaron /guilsinglleft /OE /.notdef /Zcaron /zcaron
+/.notdef /quoteleft /quoteright /quotedblleft /quotedblright
+/bullet /endash /emdash /tilde /trademark /scaron
+/guilsinglright /oe /.notdef /.notdef /Ydieresis
+/space
+/exclamdown /cent /sterling /currency /yen /brokenbar
+/section /dieresis /copyright /ordfeminine
+/guillemotleft /logicalnot /hyphen /registered
+/macron /degree /plusminus /twosuperior
+/threesuperior /acute /mu /paragraph /periodcentered
+/cedilla /onesuperior /ordmasculine /guillemotright
+/onequarter /onehalf /threequarters /questiondown
+/Agrave /Aacute /Acircumflex /Atilde /Adieresis
+/Aring /AE /Ccedilla /Egrave /Eacute /Ecircumflex
+/Edieresis /Igrave /Iacute /Icircumflex /Idieresis
+/Eth /Ntilde /Ograve /Oacute /Ocircumflex /Otilde
+/Odieresis /multiply /Oslash /Ugrave /Uacute
+/Ucircumflex /Udieresis /Yacute /Thorn /germandbls
+/agrave /aacute /acircumflex /atilde /adieresis
+/aring /ae /ccedilla /egrave /eacute /ecircumflex
+/edieresis /igrave /iacute /icircumflex /idieresis
+/eth /ntilde /ograve /oacute /ocircumflex /otilde
+/odieresis /divide /oslash /ugrave /uacute
+/ucircumflex /udieresis /yacute /thorn /ydieresis
+ENDDIFFENC
+/REENCODEFONT { % /Newfont NewEncoding /Oldfont
+findfont dup length 4 add dict
+begin
+{ % forall
+1 index /FID ne
+2 index /UniqueID ne and
+2 index /XUID ne and
+{ def } { pop pop } ifelse
+} forall
+/Encoding exch def
+/BitmapWidths false def
+/ExactSize 0 def
+/InBetweenSize 0 def
+/TransformedChar 0 def
+currentdict
+end
+definefont pop
+} bind def
+/Courier-iso Win1252Encoding /Courier REENCODEFONT
+/Courier-Bold-iso Win1252Encoding /Courier-Bold REENCODEFONT
+/Courier-BoldOblique-iso Win1252Encoding /Courier-BoldOblique REENCODEFONT
+/Courier-Oblique-iso Win1252Encoding /Courier-Oblique REENCODEFONT
+/Helvetica-iso Win1252Encoding /Helvetica REENCODEFONT
+/Helvetica-Bold-iso Win1252Encoding /Helvetica-Bold REENCODEFONT
+/Helvetica-BoldOblique-iso Win1252Encoding /Helvetica-BoldOblique REENCODEFONT
+/Helvetica-Oblique-iso Win1252Encoding /Helvetica-Oblique REENCODEFONT
+/Times-Roman-iso Win1252Encoding /Times-Roman REENCODEFONT
+/Times-Bold-iso Win1252Encoding /Times-Bold REENCODEFONT
+/Times-BoldItalic-iso Win1252Encoding /Times-BoldItalic REENCODEFONT
+/Times-Italic-iso Win1252Encoding /Times-Italic REENCODEFONT
+/Symbol-iso Win1252Encoding /Symbol REENCODEFONT
+%%EndResource
+%%EndProlog
+%%Page: 1 1
+%%PageBoundingBox: 28 28 584 764
+%%BeginPageSetup
+/pagelevel save def
+userdict begin
+%%EndPageSetup
+(“Hello, world.”) show
 %%PageTrailer
 end
 pagelevel restore

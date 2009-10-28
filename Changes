@@ -1,5 +1,9 @@
 Revision history for Perl extension PostScript::File.
 
+1.05   NOT
+	- Major change in the way reencode works
+	- Added cp1252 (Win1252Encoding) support
+
 1.04   October 22, 2009
 	- add_comment now appends to comments (as originally documented)
 	  (fixes RT#25786)
