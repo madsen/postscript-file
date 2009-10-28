@@ -414,9 +414,9 @@ that are not in Latin1, especially common punctuation marks like the
 curly quotation marks, en & em dashes, Euro sign, and ellipsis.
 L<http://en.wikipedia.org/wiki/Windows-1252>
 
-For backwards compatibility with older versions of PostScript::File,
-setting this to C<ISOLatin1Encoding> reencodes the fonts, but does not
-do any character set translation in the document.
+For backwards compatibility with versions of PostScript::File older
+than 1.05, setting this to C<ISOLatin1Encoding> reencodes the fonts,
+but does not do any character set translation in the document.
 
 =head2 Initialization keys
 
