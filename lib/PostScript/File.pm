@@ -1238,6 +1238,7 @@ sub print_file
     } else {
       close $outfile;
     } # end else not PNG output
+    return $filename;
   } else {
     return $_[0];
   } # end else no filename

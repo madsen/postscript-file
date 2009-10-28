@@ -2,7 +2,13 @@ Revision history for Perl extension PostScript::File.
 
 1.05   NOT
 	- Major change in the way reencode works
+	  Setting it to 'cp1252' or 'iso-8859-1' causes automatic
+	  character set translation from Unicode strings.
 	- Added cp1252 (Win1252Encoding) support
+	  Most people should now use reencode => 'cp1252',
+	  even if they are not on Windows, to get the best
+	  Unicode support (which is still quite limited).
+	- When writing to a file, the output method now returns the pathname
 
 1.04   October 22, 2009
 	- add_comment now appends to comments (as originally documented)
