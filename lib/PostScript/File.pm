@@ -43,7 +43,7 @@ An 'hello world' program:
 
     use PostScript::File;
 
-    my $ps = new PostScript::File();
+    my $ps = PostScript::File->new();
 
     $ps->add_to_page( <<END_PAGE );
         /Helvetica findfont
@@ -57,7 +57,7 @@ An 'hello world' program:
 
 =head2 All options
 
-    my $ps = new PostScript::File(
+    my $ps = PostScript::File->new(
         paper => 'Letter',
         height => 500,
         width => 400,
@@ -473,7 +473,7 @@ and Symbol.  The string value is appended to these to make the new names.
 
 Example
 
-    $ps = new PostScript::File(
+    $ps = PostScript::File->new(
                 font_suffix => "-iso",
                 reencode => "ISOLatin1Encoding"
             );
@@ -1288,7 +1288,7 @@ If C<eps> has been set, multiple pages will have the page label appended to the 
 
 Example
 
-    $ps->new PostScript::File( eps => 1 );
+    $ps = PostScript::File->new( eps => 1 );
     $ps->set_filename( "pics", "~/book" );
     $ps->newpage("vi");
         ... draw page
