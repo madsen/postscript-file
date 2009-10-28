@@ -31,7 +31,8 @@ my $generateResults;
 if (@ARGV and $ARGV[0] eq 'gen') {
   # Just output the actual results, so they can be diffed against this file
   $generateResults = 1;
-  printf "#%s\n\n__DATA__\n", '=' x 69;
+  open(OUT, '>', '/tmp/fi06content.t') or die $!;
+  printf OUT "#%s\n\n__DATA__\n", '=' x 69;
 } else {
   plan tests => 5;
 }
@@ -40,7 +41,7 @@ my ($name, %param, @methods);
 
 while (<DATA>) {
 
-  print $_ if $generateResults;
+  print OUT $_ if $generateResults;
 
   if (/^(\w+):(.+)/) {
     $param{$1} = eval $2;
@@ -66,7 +67,7 @@ while (<DATA>) {
     } # end foreach $call in @methods
 
     if ($generateResults) {
-      printf "%s---\n", $ps->output;
+      printf OUT "%s---\n", $ps->output;
     } elsif ($diff) {
       eq_or_diff($ps->output, $expected, $name); # if Test::Differences
     } else {
