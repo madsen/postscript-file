@@ -97,9 +97,11 @@ An 'hello world' program:
 
 =head1 DESCRIPTION
 
-This module is designed as a supporting part of the PostScript::Graph suite.  For top level modules that output
+This module is designed to support other PostScript:: modules.  For top level modules that output
 something useful, see
 
+    PostScript::Calendar
+    PostScript::Report
     PostScript::Graph::Bar
     PostScript::Graph::Stock
     PostScript::Graph::XY
