@@ -40,6 +40,12 @@ my @realTests  = (
      has\backslash      (has\\backslash)
      double\\backslash  (double\\\\backslash)
 END BACKSLASHES
+  "have\n newline"   => '(have\n newline)',
+  "have\r\n CRLF"    => '(have\r\n CRLF)',
+  "have\t tab"       => '(have\t tab)',
+  "have\b backspace" => '(have\b backspace)',
+  "have\f form feed" => '(have\f form feed)',
+  "have () parens"   => '(have \(\) parens)',
 );
 
 plan tests => scalar @realTests;
@@ -49,7 +55,7 @@ my @tests = @realTests;
 while (@tests) {
   my $in = shift @tests;
 
-  (my $name = $in) =~ s/\s+/ /g;
+  (my $name = $in) =~ s/[\b\s]+/ /g;
   $name = substr($name, 0, 50);
 
   is(pstr($in), shift @tests, $name);
@@ -61,7 +67,7 @@ while (@tests) {
 while (@tests) {
   my $in = shift @tests;
 
-  (my $name = $in) =~ s/\s+/ /g;
+  (my $name = $in) =~ s/[\b\s]+/ /g;
   $name = substr($name, 0, 50);
 
   is(PostScript::File->pstr($in), shift @tests, "class method $name");
