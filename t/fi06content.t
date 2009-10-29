@@ -133,7 +133,8 @@ end
 %%EndProcSet
 %%EndProlog
 %%Page: 1 1
-%%PageBoundingBox: 28 28 567.27559 813.88976
+%%PageBoundingBox: 28 28 568 814
+%%PageHiResBoundingBox: 28 28 567.27559 813.88976
 %%BeginPageSetup
 /pagelevel save def
 userdict begin
@@ -198,7 +199,8 @@ end
 
 %%EndProlog
 %%Page: 1 1
-%%PageBoundingBox: 28 28 567.27559 813.88976
+%%PageBoundingBox: 28 28 568 814
+%%PageHiResBoundingBox: 28 28 567.27559 813.88976
 %%BeginPageSetup
     /pagelevel save def
 

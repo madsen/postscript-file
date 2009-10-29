@@ -9,6 +9,8 @@ Revision history for Perl extension PostScript::File.
 	  even if they are not on Windows, to get the best
 	  Unicode support (which is still quite limited).
 	- When writing to a file, the output method now returns the pathname
+	- The %%BoundingBox must be integers.  If it's not, round up and
+	  also add a %%HiResBoundingBox comment.
 
 1.04   October 22, 2009
 	- add_comment now appends to comments (as originally documented)

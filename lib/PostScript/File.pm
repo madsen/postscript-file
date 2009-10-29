@@ -767,9 +767,7 @@ END_FONTS
     my $hostname = hostname();
     my $postscript = $o->{eps} ? "\%!PS-Adobe-3.0 EPSF-3.0\n" : "\%!PS-Adobe-3.0\n";
     if ($o->{eps}) {
-        $postscript .= $o->_here_doc(<<END_EPS);
-        \%\%BoundingBox: $o->{bbox}[0] $o->{bbox}[1] $o->{bbox}[2] $o->{bbox}[3]
-END_EPS
+        $postscript .= $o->bbox_comment('', $o->{bbox});
     }
     if ($o->{headings}) {
         $postscript .= $o->_here_doc(<<END_TITLES);
@@ -1163,16 +1161,15 @@ END_DEBUG_END
             my ($landscape, $pagebb);
             if ($o->{pagelandsc}[$p]) {
                 $landscape = "landscape";
-                $pagebb = "\%\%PageBoundingBox: $pbox[1] $pbox[0] $pbox[3] $pbox[2]";
+                $pagebb = $o->bbox_comment(Page => [ @pbox[1,0,3,2] ]);
             } else {
                 $landscape = "";
-                $pagebb = "\%\%PageBoundingBox: $pbox[0] $pbox[1] $pbox[2] $pbox[3]";
+                $pagebb = $o->bbox_comment(Page => \@pbox);
             }
             my $cliptobox = $o->{pageclip}[$p] ? "$pbox[0] $pbox[1] $pbox[2] $pbox[3] cliptobox" : "";
             $postscript .= $o->_here_doc(<<END_PAGE_SETUP);
                 \%\%Page: $o->{page}->[$p] ${\($p+1)}
-                $pagebb
-                \%\%BeginPageSetup
+                $pagebb\%\%BeginPageSetup
                     /pagelevel save def
                     $landscape
                     $cliptobox
@@ -1204,6 +1201,24 @@ can still be extended.
 
 =cut
 
+#---------------------------------------------------------------------
+# Create a BoundingBox: comment,
+# and a HiRes version if the box has a fractional part:
+
+sub bbox_comment
+{
+  my ($o, $type, $bbox) = @_;
+
+  my $comment = join(' ', @$bbox);
+
+  if ($comment =~ /\./) {
+    $comment = sprintf("%d %d %d %d\n%%%%%sHiResBoundingBox: %s",
+                       (map { $_ + 0.999999 } @$bbox),
+                       $type, $comment);
+  } # end if fractional bbox
+
+  "%%${type}BoundingBox: $comment\n";
+} # end bbox_comment
 
 sub print_file
 {
