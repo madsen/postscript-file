@@ -519,7 +519,6 @@ definefont pop
 /Times-Bold-iso Win1252Encoding /Times-Bold REENCODEFONT
 /Times-BoldItalic-iso Win1252Encoding /Times-BoldItalic REENCODEFONT
 /Times-Italic-iso Win1252Encoding /Times-Italic REENCODEFONT
-/Symbol-iso Win1252Encoding /Symbol REENCODEFONT
 %%EndResource
 %%EndProlog
 %%Page: 1 1

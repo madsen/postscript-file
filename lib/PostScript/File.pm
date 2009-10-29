@@ -1,5 +1,5 @@
 package PostScript::File;
-our $VERSION = '1.05';
+our $VERSION = '1.06';
 use 5.008;
 use strict;
 use warnings;
@@ -762,6 +762,7 @@ sub pre_pages {
             % Reencode the std fonts:
 END_FONTS
         for my $font (@fonts) {
+            next if $font eq 'Symbol'; # doesn't use StandardEncoding
             $fonts .= "/${font}$ext $encoding /$font REENCODEFONT\n";
         }
         $fonts .= "\%\%EndResource";
