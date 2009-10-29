@@ -4,6 +4,8 @@ MANIFEST
 META.yml
 Makefile.PL
 README
+examples/hello_world.pl
+examples/minimal.pl
 lib/PostScript/File.pm
 t/fi01simple.t
 t/fi02eps.t
