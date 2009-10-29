@@ -405,7 +405,7 @@ reencode: 'cp1252'
 %!PS-Adobe-3.0
 %%Orientation: Portrait
 %%DocumentSuppliedResources:
-%%+ Encoded_Fonts
+%%+ Win1252_Encoded_Fonts
 %%+ procset PostScript_File
 %%Title: ()
 %%EndComments
@@ -437,7 +437,7 @@ stop
 } def
 end
 %%EndProcSet
-%%BeginResource: Encoded_Fonts
+%%BeginResource: Win1252_Encoded_Fonts
 /STARTDIFFENC { mark } bind def
 /ENDDIFFENC {
 counttomark 2 add -1 roll 256 array copy

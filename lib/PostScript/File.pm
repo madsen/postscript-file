@@ -693,11 +693,13 @@ sub pre_pages {
     ## Thanks to Johan Vromans for the ISOLatin1Encoding.
     my $fonts = "";
     if ($o->{reencode}) {
-        $o->{DocSupplied} .= "\%\%+ Encoded_Fonts\n";
         my $encoding = $o->{reencode};
+        my $resource = $encoding;
+        $resource =~ s/(?:Encoding)?$/_Encoded_Fonts/;
+        $o->{DocSupplied} .= "\%\%+ $resource\n";
         my $ext = $o->{font_suffix};
         $fonts .= $o->_here_doc(<<"END_FONTS");
-        \%\%BeginResource: Encoded_Fonts
+        \%\%BeginResource: $resource
             /STARTDIFFENC { mark } bind def
             /ENDDIFFENC {
 
