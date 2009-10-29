@@ -11,6 +11,7 @@ Revision history for Perl extension PostScript::File.
 	- When writing to a file, the output method now returns the pathname
 	- The %%BoundingBox must be integers.  If it's not, round up and
 	  also add a %%HiResBoundingBox comment.
+	- Fixed bug in pstr (wasn't quoting backslashes)
 	- Added an examples directory
 
 1.04   October 22, 2009

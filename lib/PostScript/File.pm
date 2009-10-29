@@ -2576,9 +2576,10 @@ L<PostScript::Graph::Paper/gpapercolor>.
 
 my %special = (
   "\n" => '\n', "\r" => '\r', "\t" => '\t', "\b" => '\b',
-  "\f" => '\f', "\\" => '\\', "("  => '\(', ")"  => '\)',
+  "\f" => '\f', "\\" => "\\\\", "("  => '\(', ")"  => '\)',
 );
 my $specialKeys = join '', keys %special;
+$specialKeys =~ s/\\/\\\\/;     # Have to quote backslash
 
 sub pstr {
   shift if @_ == 2;             # We were called as a method

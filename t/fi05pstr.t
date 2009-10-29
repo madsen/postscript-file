@@ -36,6 +36,10 @@ my @realTests  = (
   'a         ' x 50 => '(' . ('a         ' x 24) . "\\\n" .
                              ('a         ' x 24) . "a\\\n\\         " .
                              ('a         ' x 1) . ')',
+  (grep { $_ } split /\s+/, <<'END BACKSLASHES'),
+     has\backslash      (has\\backslash)
+     double\\backslash  (double\\\\backslash)
+END BACKSLASHES
 );
 
 plan tests => scalar @realTests;
