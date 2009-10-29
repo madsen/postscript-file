@@ -12,6 +12,7 @@ Revision history for Perl extension PostScript::File.
 	- The %%BoundingBox must be integers.  If it's not, round up and
 	  also add a %%HiResBoundingBox comment.
 	- Fixed bug in pstr (wasn't quoting backslashes)
+	- It's %%PageOrder, not %%Order (and the order should be capitalized)
 	- Added an examples directory
 
 1.04   October 22, 2009

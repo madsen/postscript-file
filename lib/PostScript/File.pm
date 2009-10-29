@@ -299,7 +299,7 @@ sub new {
     $o->{version}    = defined($opt->{version})      ? $opt->{version}      : undef;
     $o->{langlevel}  = defined($opt->{langlevel})    ? $opt->{langlevel}    : undef;
     $o->{extensions} = defined($opt->{extensions})   ? $opt->{extensions}   : undef;
-    $o->{order}      = defined($opt->{order})        ? $opt->{order}        : undef;
+    $o->{order}      = defined($opt->{order})        ? ucfirst lc $opt->{order} : undef;
     $o->set_page_label( $opt->{page} );
     $o->set_incpage_handler( $opt->{incpage_handler} );
 
@@ -628,8 +628,9 @@ Set the PostScript language level.  (No default)
 
 =head3 order
 
-Set the order the pages have been defined.  It should one of "ascend", "descend" or "special" if a document
-manager must not reorder the pages.  (No default)
+Set the order the pages are defined in the document.  It should one of
+"Ascend", "Descend" or "Special" if a document manager must not
+reorder the pages.  (No default)
 
 =head3 title
 
@@ -1045,7 +1046,7 @@ END_DOC_SUPPLIED
     $postscript .= $o->encode_text("\%\%Title: $o->{title}\n");
     $postscript .= "\%\%Version: $o->{version}\n" if ($o->{version});
     $postscript .= "\%\%Pages: $o->{pagecount}\n" if ((not $o->{eps}) and ($o->{pagecount} > 1));
-    $postscript .= "\%\%Order: $o->{order}\n" if ((not $o->{eps}) and ($o->{order}));
+    $postscript .= "\%\%PageOrder: $o->{order}\n" if ((not $o->{eps}) and ($o->{order}));
     $postscript .= "\%\%Extensions: $o->{extensions}\n" if ($o->{extensions});
     $postscript .= "\%\%LanguageLevel: $o->{langlevel}\n" if ($o->{langlevel});
     $postscript .= "\%\%EndComments\n";

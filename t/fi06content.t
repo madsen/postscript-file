@@ -332,6 +332,7 @@ showpage
 
 :: multiple comments
 paper: 'Letter'
+order: 'ascend'
 ->add_comment("ProofMode: NotifyMe");
 ->add_comment("Requirements: manualfeed");
 ->add_comment("DocumentNeededResources:");
@@ -348,6 +349,7 @@ paper: 'Letter'
 %%DocumentSuppliedResources:
 %%+ procset PostScript_File
 %%Title: ()
+%%PageOrder: Ascend
 %%EndComments
 %%BeginProlog
 %%BeginProcSet: PostScript_File
