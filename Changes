@@ -1,6 +1,6 @@
 Revision history for Perl extension PostScript::File.
 
-1.05   NOT
+1.05   October 29, 2009
 	- Major change in the way reencode works
 	  Setting it to 'cp1252' or 'iso-8859-1' causes automatic
 	  character set translation from Unicode strings.
