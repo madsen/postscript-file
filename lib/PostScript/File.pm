@@ -1494,10 +1494,10 @@ END ISOLatin1Encoding
     % Here are the CP1252 extensions to ISO-8859-1:
     128 /Euro /.notdef /quotesinglbase /florin /quotedblbase
     /ellipsis /dagger /daggerdbl /circumflex /perthousand
-    /Scaron /guilsinglleft /OE /.notdef /Zcaron /zcaron
+    /Scaron /guilsinglleft /OE /.notdef /Zcaron /.notdef
     /.notdef /quoteleft /quoteright /quotedblleft /quotedblright
     /bullet /endash /emdash /tilde /trademark /scaron
-    /guilsinglright /oe /.notdef /.notdef /Ydieresis
+    /guilsinglright /oe /.notdef /zcaron /Ydieresis
     % We now return you to your ISO-8859-1 character set:
     /space
     /exclamdown /cent /sterling /currency /yen /brokenbar

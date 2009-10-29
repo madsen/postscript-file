@@ -462,10 +462,10 @@ TempEncode def
 96 /grave
 128 /Euro /.notdef /quotesinglbase /florin /quotedblbase
 /ellipsis /dagger /daggerdbl /circumflex /perthousand
-/Scaron /guilsinglleft /OE /.notdef /Zcaron /zcaron
+/Scaron /guilsinglleft /OE /.notdef /Zcaron /.notdef
 /.notdef /quoteleft /quoteright /quotedblleft /quotedblright
 /bullet /endash /emdash /tilde /trademark /scaron
-/guilsinglright /oe /.notdef /.notdef /Ydieresis
+/guilsinglright /oe /.notdef /zcaron /Ydieresis
 /space
 /exclamdown /cent /sterling /currency /yen /brokenbar
 /section /dieresis /copyright /ordfeminine
