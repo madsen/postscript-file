@@ -1558,7 +1558,7 @@ sub encode_text
 
 sub get_metrics
 {
-  my ($o, $font, $encoding) = @_;
+  my ($o, $font, $size, $encoding) = @_;
 
   # Figure out what encoding to ask for:
   unless ($encoding) {
@@ -1574,7 +1574,7 @@ sub get_metrics
 
   # Create the Metrics object:
   require PostScript::File::Metrics;
-  my $metrics = PostScript::File::Metrics->new($font, $encoding);
+  my $metrics = PostScript::File::Metrics->new($font, $size, $encoding);
 
   # Whatever encoding they asked for, make sure that the
   # auto-translation matches what we're doing:

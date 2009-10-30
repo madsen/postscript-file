@@ -37,24 +37,52 @@ BEGIN {
     weight
     fixed_pitch
     italic_angle
-    font_bbox
+    version
+  )) {
+    eval "sub $attribute { shift->{info}{$attribute} };";
+    die $@ if $@;
+  }
+
+  foreach my $attribute (qw(
     underline_position
     underline_thickness
-    version
     cap_height
     x_height
     ascender
     descender
   )) {
-    eval "sub $attribute { shift->{info}{$attribute} };";
+    eval <<"END SUB";
+      sub $attribute {
+        my \$self = shift;
+        my \$v = \$self->{info}{$attribute};
+        defined \$v ? \$v * \$self->{factor} : \$v;
+      }
+END SUB
     die $@ if $@;
   }
 } # end BEGIN
 
+#---------------------------------------------------------------------
+sub font_bbox
+{
+  my $self = shift;
+
+  my $bbox = $self->{info}{font_bbox};
+
+  if (1 != (my $f = $self->{factor})) {
+    [ map { $_ * $f } @$bbox ];
+  } else {
+    $bbox;
+  }
+} # end font_bbox
+
+#---------------------------------------------------------------------
+sub size { shift->{size} }
+
 #=====================================================================
 sub new
 {
-  my ($class, $font, $encoding) = @_;
+  my ($class, $font, $size, $encoding) = @_;
 
   $encoding ||= 'std';
 
@@ -68,20 +96,31 @@ sub new
     } # end unless metrics have been pre-generated
   } # end unless the metrics are loaded
 
-  my %self = (
+  my $self = bless {
     info     => $Info{$font},
     metrics  => $Metrics{$font}{$encoding},
-  );
+  }, $class;
 
-  $self{encoding} = $encoding unless $encoding =~ /^(?:std|sym)$/;
-
-  bless \%self, $class;
+  $self->{encoding} = $encoding unless $encoding =~ /^(?:std|sym)$/;
+  $self->set_size($size);
 } # end new
 
 #---------------------------------------------------------------------
-sub stringwidth
+sub set_size
 {
-  my $self = shift; # $string, $pointsize
+  my ($self, $size) = @_;
+
+  $self->{size} = $size || 1000;
+
+  $self->{factor} = ($size ? $size/1000.0 : 1);
+
+  $self;
+} # end set_size
+
+#---------------------------------------------------------------------
+sub width
+{
+  my $self = shift; # $string
 
   return 0.0 unless defined $_[0] and length $_[0];
 
@@ -94,15 +133,44 @@ sub stringwidth
     $string = $_[0];
   }
 
-  my $width = 0.0;
+  my $width = 0;
   $width += $wx->[$_] for unpack("C*", $string);
 
-  if ($_[1]) {
-    $width *= $_[1] / 1000;
-  }
+  $width * $self->{factor};
+} # end width
 
-  $width;
-} # end stringwidth
+#---------------------------------------------------------------------
+sub wrap
+{
+  my ($self, $width) = @_; # , $text
+
+  my @lines = '';
+
+  pos($_[2]) = 0;               # Make sure we start at the beginning
+  for ($_[2]) {
+    if (m/\G[ \t]*\n/gc) {
+      push @lines, '';
+    } else {
+      m/\G(\s*(?:[^-\s]+-*|\S+))/g or last;
+      my $word = $1;
+    check_word:
+      if ($self->width($lines[-1] . $word) <= $width) {
+        $lines[-1] .= $word;
+      } elsif ($lines[-1] eq '') {
+        $lines[-1] = $word;
+        warn "$word is too wide for field width $width";
+      } else {
+        push @lines, '';
+        $word =~ s/^\s+//;
+        goto check_word;
+      }
+    } # end else not at LF
+
+    redo;                   # Only the "last" statement above can exit
+  } # end for $_[2] (the text to wrap)
+
+  @lines;
+} # end wrap
 
 #---------------------------------------------------------------------
 # Return the package in which the font's metrics are stored:
