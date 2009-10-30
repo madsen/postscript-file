@@ -1556,6 +1556,33 @@ sub encode_text
   }
 } # end encode_text
 
+sub get_metrics
+{
+  my ($o, $font, $encoding) = @_;
+
+  # Figure out what encoding to ask for:
+  unless ($encoding) {
+    if ($font eq 'Symbol') {
+      $encoding = 'sym';
+    }
+    elsif ($o->{reencode} and $font =~ s/\Q$o->{font_suffix}\E$//) {
+      $encoding = $o->{encoding} || 'iso-8859-1';
+    } else {
+      $encoding = 'std';
+    }
+  } # end unless $encoding supplied as parameter
+
+  # Create the Metrics object:
+  require PostScript::File::Metrics;
+  my $metrics = PostScript::File::Metrics->new($font, $encoding);
+
+  # Whatever encoding they asked for, make sure that the
+  # auto-translation matches what we're doing:
+  $metrics->{encoding} = $o->{encoding};
+
+  $metrics;
+} # end get_metrics
+
 sub get_strip {
     my $o = shift;
     return $o->{strip};
