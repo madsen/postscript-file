@@ -154,14 +154,25 @@ our @SymbolEncoding = (
     parenrightbt bracketrighttp bracketrightex bracketrightbt
 	bracerighttp bracerightmid bracerightbt .notdef),
 );
-
 #=====================================================================
+
+=sub load
+
+  PostScript::File::Metrics::Loader::load($font, \@encodings)
+
+This uses Font::AFM to read the metrics for C<$font>, and creates
+width tables for each of the C<@encodings>.  The metrics are stored
+into the hashes used internally by PostScript::File::Metrics.
+
+=cut
+
 sub load
 {
   my ($font, $encodings) = @_;
 
   my $afm = Font::AFM->new($font) or die "Unable to load metrics for $font";
 
+  # Process the encoding-independent font attributes:
   unless ($PostScript::File::Metrics::Info{$font}) {
     my %info;
     while (my ($method, $key) = each %attribute) {
@@ -178,6 +189,7 @@ sub load
     $PostScript::File::Metrics::Info{$font} = \%info;
   } # end unless info has been loaded
 
+  # Create a width table for each requested encoding:
   my $wxHash = $afm->Wx;
 
   foreach my $encoding (@$encodings) {
@@ -198,8 +210,17 @@ sub load
     $PostScript::File::Metrics::Metrics{$font}{$encoding} = \@wx;
   } # end foreach $encoding
 } # end load
-
 #---------------------------------------------------------------------
+
+=sub get_encoding_vector
+
+  PostScript::File::Metrics::Loader::get_encoding_vector($encoding)
+
+This returns the encoding vector for C<$encoding>, an arrayref of 256
+glyph names.
+
+=cut
+
 sub get_encoding_vector
 {
   my ($encoding) = @_;
@@ -238,3 +259,65 @@ sub get_encoding_vector
 1;
 
 __END__
+
+=head1 DESCRIPTION
+
+PostScript::File::Metrics::Loader is used by
+L<PostScript::File::Metrics> when no pre-compiled metrics are
+available for the requested font.  It uses Font::AFM to read the AFM
+file and extract metrics from it.
+
+You should not normally need to use this module, since pre-compiled
+metrics for the standard PostScript fonts are included with this
+distribution.  If you request metrics for a non-standard font,
+PostScript::File::Metrics will load this module automatically.
+
+If you need metrics for additional fonts, you may want to modify and
+run F<examples/generate_metrics.pl> to create pre-compiled modules for
+them.
+
+=head1 CONFIGURATION AND ENVIRONMENT
+
+PostScript::File::Metrics::Loader requires no configuration files or
+environment variables.
+
+However, it uses L<Font::AFM>, and unfortunately that's difficult to
+configure properly (which is why I created PostScript::File::Metrics
+in the first place).  Font::AFM expects to find a file named
+F<FontName.afm> in one of the directories it searches.
+
+I wound up creating symlinks in F</usr/local/lib/afm/> (which is one
+of the default paths that Font::AFM searches if you don't have a
+C<METRICS> environment variable):
+
+ Courier.afm
+   -> /usr/share/texmf-dist/fonts/afm/adobe/courier/pcrr8a.afm
+ Courier-Bold.afm
+   -> /usr/share/texmf-dist/fonts/afm/adobe/courier/pcrb8a.afm
+ Courier-BoldOblique.afm
+   -> /usr/share/texmf-dist/fonts/afm/adobe/courier/pcrbo8a.afm
+ Courier-Oblique.afm
+   -> /usr/share/texmf-dist/fonts/afm/adobe/courier/pcrro8a.afm
+ Helvetica.afm
+   -> /usr/share/texmf-dist/fonts/afm/adobe/helvetic/phvr8a.afm
+ Helvetica-Bold.afm
+   -> /usr/share/texmf-dist/fonts/afm/adobe/helvetic/phvb8a.afm
+ Helvetica-BoldOblique.afm
+   -> /usr/share/texmf-dist/fonts/afm/adobe/helvetic/phvbo8a.afm
+ Helvetica-Oblique.afm
+   -> /usr/share/texmf-dist/fonts/afm/adobe/helvetic/phvro8a.afm
+ Symbol.afm
+   -> /usr/share/texmf-dist/fonts/afm/adobe/symbol/psyr.afm
+ Times-Bold.afm
+   -> /usr/share/texmf-dist/fonts/afm/adobe/times/ptmb8a.afm
+ Times-BoldItalic.afm
+   -> /usr/share/texmf-dist/fonts/afm/adobe/times/ptmbi8a.afm
+ Times-Italic.afm
+   -> /usr/share/texmf-dist/fonts/afm/adobe/times/ptmri8a.afm
+ Times-Roman.afm
+   -> /usr/share/texmf-dist/fonts/afm/adobe/times/ptmr8a.afm
+
+Paths on your system may vary.  I suggest searching for C<.afm> files,
+and then grepping them for "FontName X", where X is the font you need
+metrics for.
+
