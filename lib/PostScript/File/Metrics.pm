@@ -184,7 +184,7 @@ sub width
 
 =method wrap
 
-  @lines = $font->wrap($width, $text)
+  @lines = $metrics->wrap($width, $text)
 
 This wraps C<$text> into lines of no more than C<$width> points.  If
 C<$text> contains newlines, they will also cause line breaks.  If
@@ -251,13 +251,15 @@ __END__
 
 =head1 SYNOPSIS
 
+  use PostScript::File;
+
   my $ps = PostScript::File->new(reencode => 'cp1252');
 
-  my $m = $ps->get_metrics('Helvetica-iso', 9);
+  my $metrics = $ps->get_metrics('Helvetica-iso', 9);
 
-  my $width = $m->width('Hello, World!');
+  my $width = $metrics->width('Hello, World!');
 
-  my @wrapped = $m->wrap( 72, # wrap it into 1 inch lines
+  my @lines = $metrics->wrap( 72, # wrap it into 1 inch lines
     'This is a long string that will not fit on just one line of text.'
   );
 
