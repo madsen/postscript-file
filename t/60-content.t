@@ -31,7 +31,7 @@ my $generateResults;
 if (@ARGV and $ARGV[0] eq 'gen') {
   # Just output the actual results, so they can be diffed against this file
   $generateResults = 1;
-  open(OUT, '>', '/tmp/fi06content.t') or die $!;
+  open(OUT, '>', '/tmp/60-content.t') or die $!;
   printf OUT "#%s\n\n__DATA__\n", '=' x 69;
 } else {
   plan tests => 6;

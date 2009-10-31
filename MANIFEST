@@ -50,11 +50,11 @@ lib/PostScript/File/Metrics/std/Times/BoldItalic.pm
 lib/PostScript/File/Metrics/std/Times/Italic.pm
 lib/PostScript/File/Metrics/std/Times/Roman.pm
 lib/PostScript/File/Metrics/sym/Symbol.pm
-t/fi01simple.t
-t/fi02eps.t
-t/fi03debug.t
-t/fi04pages.t
-t/fi05pstr.t
-t/fi06content.t
+t/10-simple.t
+t/20-eps.t
+t/30-debug.t
+t/40-pages.t
+t/50-pstr.t
+t/60-content.t
 t/release-pod-coverage.t
 t/release-pod-syntax.t
