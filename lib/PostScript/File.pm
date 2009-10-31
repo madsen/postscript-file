@@ -1556,6 +1556,22 @@ sub encode_text
   }
 } # end encode_text
 
+=head2 get_metrics( font, [size, [encoding]] )
+
+Construct a L<PostScript::File::Metrics> object for C<font>.  The
+C<encoding> is normally determined automatically from the font name
+and the document's encoding.  The default C<size> is 1000.
+
+If this document uses L</reencode>, and the font ends with
+L</font_suffix>, then the Metrics object will use that encoding.
+Otherwise, the encoding is C<std> (except for the Symbol font, which
+always uses C<sym>).
+
+No matter what encoding the font uses, the Metrics object will always
+use the same Unicode translation setting as this document.
+
+=cut
+
 sub get_metrics
 {
   my ($o, $font, $size, $encoding) = @_;
