@@ -2681,8 +2681,8 @@ Copyright 2002, 2003 Christopher P Willmot.  All rights reserved.
 
 Copyright 2009 Christopher J. Madsen. All rights reserved.
 
-This module is free software; you can redistribute it and/or
-modify it under the same terms as Perl itself. See L<perlartistic>.
+This is free software; you can redistribute it and/or modify it under
+the same terms as the Perl 5 programming language system itself.
 
 
 =head1 SEE ALSO
