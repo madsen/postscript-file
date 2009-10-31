@@ -9,7 +9,7 @@ use Sys::Hostname;
 use Exporter 'import';
 
 our @EXPORT_OK = qw(check_tilde check_file incpage_label incpage_roman
-                    array_as_string pstr str);
+                    array_as_string pstr str encode_text);
 
 # Prototypes for functions only
  sub incpage_label ($);
