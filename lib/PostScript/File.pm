@@ -1536,15 +1536,27 @@ sub _set_reencode
       or croak "Invalid reencode setting $encoding";
 
   $o->{encoding} = $encoding;
-  require Encode;
+  require Encode;  Encode->VERSION(2.12); # Need coderef for CHECK
 } # end _set_reencode
+
+our %encode_char = (
+  8208 => pack(C => 0xAD), # U+2010 HYPHEN
+  8209 => pack(C => 0xAD), # U+2011 NON-BREAKING HYPHEN
+  8722 => pack(C => 0x2D), # U+2212 MINUS SIGN
+);
 
 sub encode_text
 {
   my $o = shift;
 
   if ($o->{encoding} and Encode::is_utf8( $_[0] )) {
-    Encode::encode($o->{encoding}, $_[0], 0);
+    Encode::encode($o->{encoding}, $_[0], sub {
+      $encode_char{$_[0]} || do {
+        warn sprintf("PostScript::File can't convert U+%04X to %s\n",
+                     $_[0], $o->{encoding});
+        '?'
+      }; # end invalid character
+    });
   } else {
     $_[0];
   }
