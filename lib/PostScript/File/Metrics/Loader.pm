@@ -248,6 +248,10 @@ If this happens, it indicates you found a bug in
 PostScript::File::Metrics::Loader.  Please report it as described
 under L</AUTHOR>.
 
+=diag C<< Invalid term %s in %s >>
+
+This also indicates a bug in PostScript::File.  Please report it.
+
 =cut
 
   $PostScript::File::encoding_def{$name}
@@ -264,8 +268,10 @@ under L</AUTHOR>.
     my $term = $1;
     if ($term =~ m!^/(.+)!) {
       $vec[$i++] = $1;
-    } else {
+    } elsif ($term =~ /^\d+$/) {
       $i = $term;
+    } else {
+      confess "Invalid term $term in $name";
     }
   }
 

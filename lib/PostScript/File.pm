@@ -1457,6 +1457,7 @@ our %encoding_name = qw(
 } {
     (ISOLatin1 does not exist, creating...) =
     /ISOLatin1Encoding StandardEncoding STARTDIFFENC
+        45 /minus
         144 /dotlessi /grave /acute /circumflex /tilde
         /macron /breve /dotaccent /dieresis /.notdef /ring
         /cedilla /.notdef /hungarumlaut /ogonek /caron /space
@@ -1486,6 +1487,7 @@ END ISOLatin1Encoding
   Win1252Encoding => <<'END Win1252Encoding',
 % Define Windows Latin1 encoding
 /Win1252Encoding StandardEncoding STARTDIFFENC
+    45 /minus
     96 /grave
     % Here are the CP1252 extensions to ISO-8859-1:
     128 /Euro /.notdef /quotesinglbase /florin /quotedblbase

@@ -461,6 +461,7 @@ TempEncode EncodePointer 3 -1 roll put
 TempEncode def
 } bind def
 /Win1252Encoding StandardEncoding STARTDIFFENC
+45 /minus
 96 /grave
 128 /Euro /.notdef /quotesinglbase /florin /quotedblbase
 /ellipsis /dagger /daggerdbl /circumflex /perthousand
