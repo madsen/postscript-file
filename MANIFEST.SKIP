@@ -16,3 +16,4 @@
 ^Build$
 ^Build.bat$
 ^dist\.ini$
+^tools/
