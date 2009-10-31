@@ -22,7 +22,6 @@ our $VERSION = '1.06';
 
 use strict;
 use warnings;
-use Carp 'croak';
 use Encode qw(encode is_utf8);
 
 use PostScript::File 'encode_text'; # Get our encode_text method
