@@ -22,7 +22,7 @@ our $VERSION = '1.06';
 
 use strict;
 use warnings;
-use Carp 'croak';
+use Carp 'confess';
 use Font::AFM;
 use PostScript::File 1.06 ();
 
@@ -170,7 +170,14 @@ sub load
 {
   my ($font, $encodings) = @_;
 
-  my $afm = Font::AFM->new($font) or die "Unable to load metrics for $font";
+  my $afm = Font::AFM->new($font);
+
+=diag C<< Can't find the AFM file for %s >>
+
+Font::AFM could not find F<%s.afm> in any of the directories it
+searched.  See L</"CONFIGURATION AND ENVIRONMENT">.
+
+=cut
 
   # Process the encoding-independent font attributes:
   unless ($PostScript::File::Metrics::Info{$font}) {
@@ -229,11 +236,23 @@ sub get_encoding_vector
   return \@SymbolEncoding   if $encoding eq 'sym';
 
   my $name = $PostScript::File::encoding_name{$encoding}
-      or die "Unknown encoding $encoding";
+      or confess "Unknown encoding $encoding";
+
+=diag C<< Unknown encoding %s >>
+
+You asked for an encoding that PostScript::File::Metrics doesn't know about.
+
+=diag C<< Can't find definition for %s >>
+
+If this happens, it indicates you found a bug in
+PostScript::File::Metrics::Loader.  Please report it as described
+under L</AUTHOR>.
+
+=cut
 
   $PostScript::File::encoding_def{$name}
       =~ /\bSTARTDIFFENC\b(.+)\bENDDIFFENC\b/s
-          or die "Can't find definition for $encoding";
+          or confess "Can't find definition for $encoding";
 
   my $def = $1;
   $def =~ s/%.*//g;             # Strip comments
