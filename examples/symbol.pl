@@ -14,6 +14,7 @@ use PostScript::File 1.05;      # Need cp1252 support
 my $ps = PostScript::File->new(
   paper    => 'letter',
   reencode => 'cp1252',
+  auto_hyphen => 0,             # We don't want any hyphen translation
   left     => 72,
   top      => 72,
 );

@@ -147,6 +147,38 @@ Finally, there are a few stand-alone functions.  These are not methods and are a
     incpage_label
     incpage_roman
 
+=head2 Hyphens and Minus Signs
+
+In ASCII, the character C<\x2D> (C<\055>) is used as both a hyphen and
+a minus sign.  Unicode calls this character HYPHEN-MINUS (U+002D).
+PostScript has two characters, which it calls C</hyphen> and
+C</minus>.  The difference is that C</minus> is usually wider than
+C</hyphen> (except in Courier, of course).
+
+In PostScript's StandardEncoding (what you get if you don't use
+L</reencode>), character C<\x2D> is C</hyphen>, and C</minus> is not
+available.  In the Latin1-based encodings created by C<reencode>,
+character C<\x2D> is C</minus>, and character C<\xAD> is C</hyphen>.
+(C<\xAD> is supposed to be a "soft hyphen" (U+00AD) that appears only
+if the line is broken at that point, but it doesn't work that way in
+PostScript.)
+
+Unicode has additional non-ambiguous characters: HYPHEN (U+2010),
+NON-BREAKING HYPHEN (U+2011), and MINUS SIGN (U+2212).  The first two
+always indicate C</hyphen>, and the last is always C</minus>.  When you set
+C<reencode> to C<cp1252> or C<iso-8859-1>, those characters will be
+handled automatically.
+
+To make it easier to handle strings containing HYPHEN-MINUS,
+PostScript::File provides the L</auto_hyphen> attribute.  When this is
+true (the default when using C<cp1252> or C<iso-8859-1>), the L<pstr>
+method will automatically translate HYPHEN-MINUS to either HYPHEN or
+MINUS SIGN.  (This happens only when C<pstr> is called as an object method.)
+
+The rule is that if a HYPHEN-MINUS is surrounded by whitespace, or
+it's preceded by whitespace and followed by a digit, it's translated
+to MINUS SIGN.  Otherwise, it's translated to HYPHEN:
+
 =cut
 
 # define page sizes here (a4, letter, etc)
@@ -309,6 +341,7 @@ sub new {
     $o->{headings}   = defined($opt->{headings})     ? $opt->{headings}     : 0;
     $o->set_strip( $opt->{strip} );
     $o->_set_reencode( $opt->{reencode} );
+    $o->set_auto_hyphen(defined($opt->{auto_hyphen}) ? $opt->{auto_hyphen} : 1);
 
     $o->newpage( $o->get_page_label() );
 
@@ -1263,7 +1296,26 @@ sub print_file
 
 Use these B<get_> and B<set_> methods to access a PostScript::File object's data.
 
+=head2 get_auto_hyphen()
+
+=head2 set_auto_hyphen( translate )
+
+If translate is a true value, then L</pstr> will do automatic
+hyphen-minus translation when called as an object method (but only if
+the document uses character set translation).
+See L</"Hyphens and Minus Signs">.
+
 =cut
+
+sub get_auto_hyphen {
+    my $o = shift;
+    return $o->{auto_hyphen};
+}
+
+sub set_auto_hyphen {
+    my ($o, $translate) = @_;
+    $o->{auto_hyphen} = $o->{encoding} && $translate;
+}
 
 sub get_filename {
     my $o = shift;
@@ -2136,7 +2188,8 @@ sub embed_document
 {
   my ($o, $filename) = @_;
 
-  my $id = $o->pstr(substr($filename, -234), 1); # in case it's long
+  # Call pstr as class method to prevent auto_hyphen processing:
+  my $id = ref($o)->pstr(substr($filename, -234), 1); # in case it's long
   my $supplied = $o->encode_text("%%+ file $id\n");
   $o->{DocSupplied} .= $supplied
       unless index($o->{DocSupplied}, $supplied) >= 0;
@@ -2635,9 +2688,24 @@ my $specialKeys = join '', keys %special;
 $specialKeys =~ s/\\/\\\\/;     # Have to quote backslash
 
 sub pstr {
-  shift if @_ == 2;             # We were called as a method
+  my $o;
+  $o = shift if @_ == 2;        # We were called as a method
   my $string = shift;
   my $nowrap = shift;           # Pass this ONLY when method call
+
+  # Possibly convert \x2D (hyphen-minus) to hyphen or minus sign:
+  if (ref $o and $o->{auto_hyphen}) {
+    $string = Encode::decode($o->{encoding}, $string)
+        unless Encode::is_utf8( $string );
+    # If it's surrounded by whitespace, or
+    # it's preceded by whitespace and followed by a digit,
+    # it's a minus sign (U+2212):
+    $string =~ s/(?: ^ | (?<=\s) ) - (?= \d | \s | $ ) /\x{2212}/gx;
+    # Otherwise, it's a hyphen (U+2010):
+    $string =~ s/-/\x{2010}/gx;
+  } # end if converting hyphen-minus
+
+  # Now form the parenthesized string:
   $string =~ s/([$specialKeys])/$special{$1}/go;
   $string = "($string)";
   # A PostScript file should not have more than 255 chars per line:
@@ -2649,7 +2717,7 @@ sub pstr {
 
 =head2 pstr( string )
 
-Converts the string to a string representation suitable for postscript
+Converts the string to a string representation suitable for PostScript
 code.  If the result is more than 240 characters, it will be broken
 into multiple lines.  (A PostScript file should not contain lines with
 more than 255 characters.)
@@ -2657,6 +2725,12 @@ more than 255 characters.)
 This may also be called as a class or object method.  In this case,
 you can pass a second parameter C<nowrap>.  If this optional parameter
 is true, then the string will not be wrapped.
+
+When called as an object method, C<pstr> will do automatic
+hyphen-minus translation if L</auto_hyphen> is true.  This has the
+side-effect of setting the UTF8 flag on the returned string.  (If the
+UTF8 flag was not set on the input string, it will be decoded using
+the document's character set.)  See L</"Hyphens and Minus Signs">.
 
 =cut
 

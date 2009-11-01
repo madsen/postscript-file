@@ -4,6 +4,10 @@ Revision history for Perl extension PostScript::File.
 	- Changed ISOLatin1Encoding to match PostScript's
 	  The HYPHEN-MINUS (\x2D) is now /minus instead of /hyphen.
 	  Use SOFT-HYPHEN (\xAD) to get a proper hyphen.
+
+	  Please read Hyphens and Minus Signs in PostScript::File for details.
+
+	- Added auto_hyphen attribute with get/set methods
 	- Added PostScript::File::Metrics, which includes the metrics
 	  for the standard PostScript fonts.  No more trying to
 	  configure Font::AFM!!!
