@@ -1619,6 +1619,36 @@ sub encode_text
   }
 } # end encode_text
 
+sub decode_text
+{
+  my $o = shift;
+
+  if ($o->{encoding} and not Encode::is_utf8( $_[0] )) {
+    Encode::decode($o->{encoding}, $_[0], sub { pack U => shift });
+  } else {
+    $_[0];
+  }
+} # end decode_text
+
+sub convert_hyphens
+{
+  my $o = shift;
+  my $text = $o->decode_text(shift);
+
+  # If it's surrounded by whitespace, or
+  # it's preceded by whitespace and followed by a digit,
+  # it's a minus sign (U+2212):
+  $text =~ s/(?: ^ | (?<=\s) ) - (?= \d | \s | $ ) /\x{2212}/gx;
+
+  # If it's surrounded by digits, it's a minus sign (U+2212):
+  $text =~ s/ (?<=\d) - (?=\d) /\x{2212}/gx;
+
+  # Otherwise, it's a hyphen (U+2010):
+  $text =~ s/-/\x{2010}/gx;
+
+  $text;
+} # end convert_hyphens
+
 =head2 get_metrics( font, [size, [encoding]] )
 
 Construct a L<PostScript::File::Metrics> object for C<font>.  The
@@ -2694,22 +2724,13 @@ $specialKeys =~ s/\\/\\\\/;     # Have to quote backslash
 
 sub pstr {
   my $o;
-  $o = shift if @_ == 2;        # We were called as a method
+  $o = shift if @_ > 1;         # We were called as a method
   my $string = shift;
   my $nowrap = shift;           # Pass this ONLY when method call
 
   # Possibly convert \x2D (hyphen-minus) to hyphen or minus sign:
-  if (ref $o and $o->{auto_hyphen}) {
-    # Upgrade to UTF8 (leaving unmapped chars unchanged):
-    $string = Encode::decode($o->{encoding}, $string, sub { pack U => shift })
-        unless Encode::is_utf8( $string );
-    # If it's surrounded by whitespace, or
-    # it's preceded by whitespace and followed by a digit,
-    # it's a minus sign (U+2212):
-    $string =~ s/(?: ^ | (?<=\s) ) - (?= \d | \s | $ ) /\x{2212}/gx;
-    # Otherwise, it's a hyphen (U+2010):
-    $string =~ s/-/\x{2010}/gx;
-  } # end if converting hyphen-minus
+  $string = $o->convert_hyphens($string)
+      if ref $o and $o->{auto_hyphen} and $string =~ /-/;
 
   # Now form the parenthesized string:
   $string =~ s/([$specialKeys])/$special{$1}/go;
