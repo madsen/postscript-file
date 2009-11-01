@@ -23,7 +23,8 @@ our $VERSION = '1.06';
 use strict;
 use warnings;
 use Exporter 'import';
-use Test::More tests => 270;
+use constant number_of_tests => 274;
+use Test::More tests => number_of_tests;
 
 use PostScript::File::Metrics;
 
@@ -60,7 +61,7 @@ sub test_font
      'used pre-compiled metrics');
 
   SKIP: {
-    my $testsInBlock = 256 + keys %attribute;
+    my $testsInBlock = number_of_tests - 2;
 
     # Construct the Font::AFM object, or skip the remaining tests:
     eval { require Font::AFM };
@@ -89,6 +90,15 @@ sub test_font
           if $char >= 0x20 and $char < 0x7F;
       is( $metrics->width(pack 'C', $char), $wx->[$char], $name);
     } # end for $char
+
+    # Test width vs stringwidth:
+    my $size = 125;
+    $metrics->set_size($size);
+    while (<DATA>) {
+      chomp $_;
+      is( $metrics->width($_), $afm->stringwidth($_, $size), $_);
+    }
+
   } # end SKIP
 } # end test_font
 
@@ -96,3 +106,9 @@ sub test_font
 # Package Return Value:
 
 1;
+
+__DATA__
+Now is the time for all good men to come to the aid of their country.
+The quick brown fox jumps over the lazy dog.
+car­wash
+-1
