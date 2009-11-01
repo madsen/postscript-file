@@ -1595,6 +1595,7 @@ our %encode_char = (
   8208 => pack(C => 0xAD), # U+2010 HYPHEN
   8209 => pack(C => 0xAD), # U+2011 NON-BREAKING HYPHEN
   8722 => pack(C => 0x2D), # U+2212 MINUS SIGN
+ 65533 => pack(C => 0x3F), # U+FFFD REPLACEMENT CHARACTER
 );
 
 sub encode_text
