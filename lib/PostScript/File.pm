@@ -2637,7 +2637,7 @@ $specialKeys =~ s/\\/\\\\/;     # Have to quote backslash
 sub pstr {
   shift if @_ == 2;             # We were called as a method
   my $string = shift;
-  my $nowrap = shift;
+  my $nowrap = shift;           # Pass this ONLY when method call
   $string =~ s/([$specialKeys])/$special{$1}/go;
   $string = "($string)";
   # A PostScript file should not have more than 255 chars per line:
@@ -2647,15 +2647,16 @@ sub pstr {
   $string;
 } # end pstr
 
-=head2 pstr( string, [nowrap] )
+=head2 pstr( string )
 
 Converts the string to a string representation suitable for postscript
 code.  If the result is more than 240 characters, it will be broken
-into multiple lines unless the optional nowrap parameter is true.  (A
-PostScript file should not contain lines with more than 255
-characters.)
+into multiple lines.  (A PostScript file should not contain lines with
+more than 255 characters.)
 
-This may also be called as a class or object method.
+This may also be called as a class or object method.  In this case,
+you can pass a second parameter C<nowrap>.  If this optional parameter
+is true, then the string will not be wrapped.
 
 =cut
 
