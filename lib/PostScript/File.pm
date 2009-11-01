@@ -1605,9 +1605,13 @@ sub encode_text
   if ($o->{encoding} and Encode::is_utf8( $_[0] )) {
     Encode::encode($o->{encoding}, $_[0], sub {
       $encode_char{$_[0]} || do {
-        warn sprintf("PostScript::File can't convert U+%04X to %s\n",
-                     $_[0], $o->{encoding});
-        '?'
+        if ($_[0] < 0x100) {
+          pack C => $_[0];      # Unmapped chars stay themselves
+        } else {
+          warn sprintf("PostScript::File can't convert U+%04X to %s\n",
+                       $_[0], $o->{encoding});
+          '?'
+        }
       }; # end invalid character
     });
   } else {
@@ -2696,7 +2700,8 @@ sub pstr {
 
   # Possibly convert \x2D (hyphen-minus) to hyphen or minus sign:
   if (ref $o and $o->{auto_hyphen}) {
-    $string = Encode::decode($o->{encoding}, $string)
+    # Upgrade to UTF8 (leaving unmapped chars unchanged):
+    $string = Encode::decode($o->{encoding}, $string, sub { pack U => shift })
         unless Encode::is_utf8( $string );
     # If it's surrounded by whitespace, or
     # it's preceded by whitespace and followed by a digit,
