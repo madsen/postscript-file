@@ -34,7 +34,7 @@ if (@ARGV and $ARGV[0] eq 'gen') {
   open(OUT, '>', '/tmp/60-content.t') or die $!;
   printf OUT "#%s\n\n__DATA__\n", '=' x 69;
 } else {
-  plan tests => 7;
+  plan tests => 8;
 }
 
 my ($name, %param, @methods);
@@ -605,5 +605,80 @@ userdict begin
 end
 pagelevel restore
 showpage
+%%EOF
+---
+
+
+:: setup & trailers
+paper: 'Letter'
+->add_setup("% Setup line 1\n");
+->add_setup("% Setup line 2\n");
+->add_page_setup("% Page Setup line 1\n");
+->add_page_setup("% Page Setup line 2\n");
+->add_page_trailer("% Page Trailer line 1\n");
+->add_page_trailer("% Page Trailer line 2\n");
+->add_trailer("% Trailer line 1\n");
+->add_trailer("% Trailer line 2\n");
+===
+%!PS-Adobe-3.0
+%%Orientation: Portrait
+%%DocumentSuppliedResources:
+%%+ procset PostScript_File
+%%Title: ()
+%%EndComments
+%%BeginProlog
+%%BeginProcSet: PostScript_File
+/errx 72 def
+/erry 72 def
+/errmsg (ERROR:) def
+/errfont /Courier-Bold def
+/errsize 12 def
+% Report fatal error on page
+% _ str => _
+/report_error {
+0 setgray
+errfont findfont errsize scalefont setfont
+errmsg errx erry moveto show
+80 string cvs errx erry errsize sub moveto show
+stop
+} bind def
+% postscript errors printed on page
+% not called directly
+errordict begin
+/handleerror {
+$error begin
+false binary
+0 setgray
+errfont findfont errsize scalefont setfont
+errx erry moveto
+errmsg show
+errx erry errsize sub moveto
+errorname 80 string cvs show
+stop
+} def
+end
+%%EndProcSet
+%%EndProlog
+%%BeginSetup
+% Setup line 1
+% Setup line 2
+%%EndSetup
+%%Page: 1 1
+%%PageBoundingBox: 28 28 584 764
+%%BeginPageSetup
+/pagelevel save def
+userdict begin
+% Page Setup line 1
+% Page Setup line 2
+%%EndPageSetup
+%%PageTrailer
+% Page Trailer line 1
+% Page Trailer line 2
+end
+pagelevel restore
+showpage
+%%Trailer
+% Trailer line 1
+% Trailer line 2
 %%EOF
 ---

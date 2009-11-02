@@ -1111,7 +1111,7 @@ END_PROLOG
 
     $postscript .= $o->_here_doc(<<END_SETUP) if ($o->{Setup});
         \%\%BeginSetup
-            $o->{Setup}
+        $o->{Setup}
         \%\%EndSetup
 END_SETUP
     return $postscript;
@@ -2271,12 +2271,12 @@ sub get_setup {
 sub add_setup {
     my ($o, $entry) = @_;
     $entry =~ s/$o->{strip}//gm;
-    $o->{Setup} = $o->encode_text($entry) if (defined $entry);
+    $o->{Setup} .= $o->encode_text($entry) if (defined $entry);
 }
 
 =head2 get_setup()
 
-=head2 set_setup( code )
+=head2 add_setup( code )
 
 Direct access to the C<%%Begin(End)Setup> section.  Use this for C<setpagedevice>, C<statusdict> or other settings
 that initialize the device or document.
@@ -2291,12 +2291,12 @@ sub get_page_setup {
 sub add_page_setup {
     my ($o, $entry) = @_;
     $entry =~ s/$o->{strip}//gm;
-    $o->{PageSetup} = $o->encode_text($entry) if (defined $entry);
+    $o->{PageSetup} .= $o->encode_text($entry) if (defined $entry);
 }
 
 =head2 get_page_setup()
 
-=head2 set_page_setup( code )
+=head2 add_page_setup( code )
 
 Code added here is output before each page.  As there is no special provision for %%Page... DSC comments, they
 should be included here.
@@ -2363,14 +2363,14 @@ sub get_page_trailer {
 sub add_page_trailer {
     my ($o, $entry) = @_;
     $entry =~ s/$o->{strip}//gm;
-    $o->{PageTrailer} = $o->encode_text($entry) if (defined $entry);
+    $o->{PageTrailer} .= $o->encode_text($entry) if (defined $entry);
 }
 
 =head2 get_page_trailer()
 
-=head2 set_page_trailer( code )
+=head2 add_page_trailer( code )
 
-Code added here is output after each page.  It may refer to settings made during B<set_page_setup> or
+Code added here is output after each page.  It may refer to settings made during B<add_page_setup> or
 B<add_to_page>.
 
 =cut
@@ -2383,12 +2383,12 @@ sub get_trailer {
 sub add_trailer {
     my ($o, $entry) = @_;
     $entry =~ s/$o->{strip}//gm;
-    $o->{Trailer} = $o->encode_text($entry) if (defined $entry);
+    $o->{Trailer} .= $o->encode_text($entry) if (defined $entry);
 }
 
 =head2 get_trailer()
 
-=head2 set_trailer( code )
+=head2 add_trailer( code )
 
 Add code to the PostScript C<%%Trailer> section.  Use this for any tidying up after all the pages are output.
 
