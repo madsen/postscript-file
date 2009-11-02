@@ -15,6 +15,7 @@ Revision history for Perl extension PostScript::File.
 	  This is not backwards compatible, but I doubt anyone was
 	  using Symbol-iso, as it's not very useful.
 	- add_default now appends to defaults
+	- add_resource now appends to resources
 
 1.05   October 29, 2009
 	- Major change in the way reencode works

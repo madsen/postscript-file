@@ -34,7 +34,7 @@ if (@ARGV and $ARGV[0] eq 'gen') {
   open(OUT, '>', '/tmp/60-content.t') or die $!;
   printf OUT "#%s\n\n__DATA__\n", '=' x 69;
 } else {
-  plan tests => 6;
+  plan tests => 7;
 }
 
 my ($name, %param, @methods);
@@ -535,6 +535,72 @@ definefont pop
 userdict begin
 %%EndPageSetup
 (“Hello, world.”) show
+%%PageTrailer
+end
+pagelevel restore
+showpage
+%%EOF
+---
+
+
+:: multiple resources
+paper: 'Letter'
+->add_resource(Font => 'Random', 'printer', "% The Random font would go here\n");
+->add_resource(File => 'SomeFile', '', "% SomeFile would go here\n");
+===
+%!PS-Adobe-3.0
+%%Orientation: Portrait
+%%DocumentSuppliedResources:
+%%+ font Random
+%%+ file SomeFile
+%%+ procset PostScript_File
+%%Title: ()
+%%EndComments
+%%BeginProlog
+%%BeginProcSet: PostScript_File
+/errx 72 def
+/erry 72 def
+/errmsg (ERROR:) def
+/errfont /Courier-Bold def
+/errsize 12 def
+% Report fatal error on page
+% _ str => _
+/report_error {
+0 setgray
+errfont findfont errsize scalefont setfont
+errmsg errx erry moveto show
+80 string cvs errx erry errsize sub moveto show
+stop
+} bind def
+% postscript errors printed on page
+% not called directly
+errordict begin
+/handleerror {
+$error begin
+false binary
+0 setgray
+errfont findfont errsize scalefont setfont
+errx erry moveto
+errmsg show
+errx erry errsize sub moveto
+errorname 80 string cvs show
+stop
+} def
+end
+%%EndProcSet
+%%BeginFont: Random printer
+% The Random font would go here
+%%EndFont
+%%BeginFile: SomeFile
+% SomeFile would go here
+%%EndFile
+%%EndProlog
+%%Page: 1 1
+%%PageBoundingBox: 28 28 584 764
+%%BeginPageSetup
+/pagelevel save def
+userdict begin
+%%EndPageSetup
 %%PageTrailer
 end
 pagelevel restore

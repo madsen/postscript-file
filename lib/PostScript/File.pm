@@ -2126,8 +2126,11 @@ sub add_resource {
         $resource =~ s/$o->{strip}//gm;
         $o->{DocSupplied} .= $o->encode_text("\%\%+ $supplied_type{$type} $name\n")
             if defined $supplied_type{$type};
-        $o->{Resources} = $o->_here_doc(<<END_USER_RESOURCE);
-            \%\%Begin${type}: $name $params
+
+        $name .= " $params" if defined $params and length $params;
+
+        $o->{Resources} .= $o->_here_doc(<<END_USER_RESOURCE);
+            \%\%Begin${type}: $name
             $resource
             \%\%End$type
 END_USER_RESOURCE
