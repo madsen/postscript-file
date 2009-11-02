@@ -248,6 +248,8 @@ sub wrap
   } # end for $text
 
   if ($self->{auto_hyphen}) {
+    # At this point, any hyphen-minus characters are unambiguously
+    # MINUS SIGN.  Protect them from further processing:
     map { $self->decode_text($_, 1) } @lines;
   } else {
     @lines;
@@ -284,6 +286,8 @@ __END__
 
   my $metrics = $ps->get_metrics('Helvetica-iso', 9);
 
+  my $upos = $metrics->underline_position;
+
   my $width = $metrics->width('Hello, World!');
 
   my @lines = $metrics->wrap( 72, # wrap it into 1 inch lines
@@ -307,7 +311,7 @@ standard PostScript fonts:
   Courier-Bold         Helvetica-Bold         Times-Bold
   Courier-BoldOblique  Helvetica-BoldOblique  Times-BoldItalic
   Courier-Oblique      Helvetica-Oblique      Times-Italic
-                                              Symbol
+                       Symbol
 
 If you need metrics for a font not in that list, you'll need to have
 Font::AFM installed and configured.  (You can modify
