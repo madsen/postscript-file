@@ -54,6 +54,7 @@ t/10-simple.t
 t/20-eps.t
 t/30-debug.t
 t/40-pages.t
+t/45-hyphens.t
 t/50-pstr.t
 t/60-content.t
 t/70-Courier.t
