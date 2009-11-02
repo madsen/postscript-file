@@ -37,6 +37,9 @@ our %attribute = qw(
   IsFixedPitch       fixed_pitch
   ItalicAngle        italic_angle
   FontBBox           font_bbox
+);
+
+our %dimension_attribute = qw(
   UnderlinePosition  underline_position
   UnderlineThickness underline_thickness
   CapHeight          cap_height
@@ -53,7 +56,10 @@ sub test_font
 {
   my ($font) = @_;
 
-  my $metrics = PostScript::File::Metrics->new($font, undef, 'iso-8859-1');
+  my $size = 125;
+  my $factor = 1000 / $size;
+
+  my $metrics = PostScript::File::Metrics->new($font, $size, 'iso-8859-1');
 
   isa_ok($metrics, 'PostScript::File::Metrics');
 
@@ -76,14 +82,25 @@ sub test_font
     foreach my $afm_method (sort keys %attribute) {
       my $metrics_method = $attribute{$afm_method};
       my $got = $metrics->$metrics_method;
-      $got = "@$got" if $afm_method eq 'FontBBox';
+      if ($afm_method eq 'FontBBox') {
+        $_ *= $factor for @$got;
+        $got = "@$got" ;
+      } # end if FontBBox
       $got = $got ? 'true' : 'false' if $afm_method eq 'IsFixedPitch';
       is($got, $afm->$afm_method, $afm_method);
+    }
+
+    # Compare the font dimension attributes:
+    foreach my $afm_method (sort keys %dimension_attribute) {
+      my $metrics_method = $dimension_attribute{$afm_method};
+      my $got = $metrics->$metrics_method;
+      is($got * $factor, $afm->$afm_method, $afm_method);
     }
 
     # Compare the character widths:
     my $wx = $afm->latin1_wx_table;
     $metrics->set_auto_hyphen(0); # Font::AFM doesn't translate hyphen-minus
+    $metrics->set_size(undef);    # Switch to default size to match Font::AFM
 
     for my $char (0 .. 255) {
       my $name = sprintf 'width of char \%03o, \x%02X', $char, $char;
@@ -93,8 +110,7 @@ sub test_font
     } # end for $char
 
     # Test width vs stringwidth:
-    my $size = 125;
-    $metrics->set_size($size);
+    $metrics->set_size($size);  # Switch back to old size
     while (<DATA>) {
       chomp $_;
       is( $metrics->width($_), $afm->stringwidth($_, $size), $_);
