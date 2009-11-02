@@ -186,10 +186,12 @@ searched.  See L</"CONFIGURATION AND ENVIRONMENT">.
       $info{$key} = eval { $afm->$method };
     }
 
+    # Ensure Data::Dumper will dump numbers as such:
     for (@numeric_attributes) {
       $info{$_} += 0 if defined $info{$_};
     }
 
+    # Convert attributes to be more "Perlish":
     $info{fixed_pitch} = ($info{fixed_pitch} eq 'true' ? 1 : 0);
     $info{font_bbox} = [ map { $_ + 0 } split ' ', $info{font_bbox} ];
 
@@ -200,9 +202,9 @@ searched.  See L</"CONFIGURATION AND ENVIRONMENT">.
   my $wxHash = $afm->Wx;
 
   foreach my $encoding (@$encodings) {
-    my $vector = get_encoding_vector($encoding);
-
     next if $PostScript::File::Metrics::Metrics{$font}{$encoding};
+
+    my $vector = get_encoding_vector($encoding);
 
     my @wx;
     for (0..255) {
@@ -289,8 +291,8 @@ __END__
 
 PostScript::File::Metrics::Loader is used by
 L<PostScript::File::Metrics> when no pre-compiled metrics are
-available for the requested font.  It uses Font::AFM to read the AFM
-file and extract metrics from it.
+available for the requested font or encoding.  It uses Font::AFM to
+read the AFM file and extract metrics from it.
 
 You should not normally need to use this module, since pre-compiled
 metrics for the standard PostScript fonts are included with this
