@@ -18,7 +18,7 @@ package Font_Test;
 #---------------------------------------------------------------------
 
 use 5.008;
-our $VERSION = '1.06';
+our $VERSION = '2.00';
 
 use strict;
 use warnings;

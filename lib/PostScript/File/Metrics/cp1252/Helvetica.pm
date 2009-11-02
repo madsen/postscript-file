@@ -5,7 +5,7 @@
 #---------------------------------------------------------------------
 package PostScript::File::Metrics::cp1252::Helvetica;
 
-our $VERSION = '1.06';
+our $VERSION = '2.00';
 
 $PostScript::File::Metrics::Info{'Helvetica'} ||= {
   'ascender' => 718,

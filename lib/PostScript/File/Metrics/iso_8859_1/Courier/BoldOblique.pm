@@ -5,7 +5,7 @@
 #---------------------------------------------------------------------
 package PostScript::File::Metrics::iso_8859_1::Courier::BoldOblique;
 
-our $VERSION = '1.06';
+our $VERSION = '2.00';
 
 $PostScript::File::Metrics::Info{'Courier-BoldOblique'} ||= {
   'ascender' => 626,

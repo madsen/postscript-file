@@ -1,6 +1,6 @@
 Revision history for Perl extension PostScript::File.
 
-1.06   NOT
+2.00   NOT
 	- Changed ISOLatin1Encoding to match PostScript's
 	  The HYPHEN-MINUS (\x2D) is now /minus instead of /hyphen.
 	  Use SOFT-HYPHEN (\xAD) to get a proper hyphen.

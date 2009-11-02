@@ -18,13 +18,13 @@ package PostScript::File::Metrics::Loader;
 #---------------------------------------------------------------------
 
 use 5.008;
-our $VERSION = '1.06';
+our $VERSION = '2.00';
 
 use strict;
 use warnings;
 use Carp 'confess';
 use Font::AFM;
-use PostScript::File 1.06 ();
+use PostScript::File 2.00 ();
 
 our %attribute = qw(
   FullName           full_name

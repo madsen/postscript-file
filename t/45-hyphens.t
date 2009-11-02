@@ -21,7 +21,7 @@ use warnings;
 
 use Test::More;
 
-use PostScript::File 1.06;
+use PostScript::File 2.00;
 
 #---------------------------------------------------------------------
 my %char = qw(
