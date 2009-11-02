@@ -336,21 +336,27 @@ order: 'ascend'
 ->add_comment("ProofMode: NotifyMe");
 ->add_comment("Requirements: manualfeed");
 ->add_comment("DocumentNeededResources:");
-->add_comment("+ Paladin");
-->add_comment("+ Paladin-Bold");
+->add_comment("+ font Paladin");
+->add_comment("+ font Paladin-Bold");
+->add_default("PageResources: font Paladin");
+->add_default("+ font Paladin-Bold");
 ===
 %!PS-Adobe-3.0
 %%ProofMode: NotifyMe
 %%Requirements: manualfeed
 %%DocumentNeededResources:
-%%+ Paladin
-%%+ Paladin-Bold
+%%+ font Paladin
+%%+ font Paladin-Bold
 %%Orientation: Portrait
 %%DocumentSuppliedResources:
 %%+ procset PostScript_File
 %%Title: ()
 %%PageOrder: Ascend
 %%EndComments
+%%BeginDefaults
+%%PageResources: font Paladin
+%%+ font Paladin-Bold
+%%EndDefaults
 %%BeginProlog
 %%BeginProcSet: PostScript_File
 /errx 72 def

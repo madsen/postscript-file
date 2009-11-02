@@ -14,6 +14,7 @@ Revision history for Perl extension PostScript::File.
 	- Don't reencode Symbol; it doesn't use the StandardEncoding.
 	  This is not backwards compatible, but I doubt anyone was
 	  using Symbol-iso, as it's not very useful.
+	- add_default now appends to defaults
 
 1.05   October 29, 2009
 	- Major change in the way reencode works

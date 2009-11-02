@@ -1096,7 +1096,7 @@ END_DOC_SUPPLIED
 
     $postscript .= $o->_here_doc(<<END_DEFAULTS) if ($o->{Defaults});
         \%\%BeginDefaults
-            $o->{Defaults}
+        $o->{Defaults}
         \%\%EndDefaults
 END_DEFAULTS
 
@@ -2095,7 +2095,7 @@ sub get_defaults {
 
 sub add_default {
     my ($o, $entry) = @_;
-    $o->{Defaults} = "\%\%$entry\n" if defined($entry);
+    $o->{Defaults} .= "\%\%$entry\n" if defined($entry);
 }
 
 =head2 get_defaults()
