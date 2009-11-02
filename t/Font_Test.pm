@@ -23,7 +23,7 @@ our $VERSION = '1.06';
 use strict;
 use warnings;
 use Exporter 'import';
-use constant number_of_tests => 274;
+use constant number_of_tests => 275;
 use Test::More tests => number_of_tests;
 
 use PostScript::File::Metrics;
@@ -83,6 +83,7 @@ sub test_font
 
     # Compare the character widths:
     my $wx = $afm->latin1_wx_table;
+    $metrics->set_auto_hyphen(0); # Font::AFM doesn't translate hyphen-minus
 
     for my $char (0 .. 255) {
       my $name = sprintf 'width of char \%03o, \x%02X', $char, $char;
@@ -111,4 +112,5 @@ __DATA__
 Now is the time for all good men to come to the aid of their country.
 The quick brown fox jumps over the lazy dog.
 car­wash
+car-wash
 -1

@@ -24,7 +24,7 @@ use strict;
 use warnings;
 use Encode qw(encode is_utf8);
 
-use PostScript::File 'encode_text'; # Get our encode_text method
+use PostScript::File ':metrics_methods'; # Import some methods
 
 our (%Info, %Metrics);
 
@@ -78,7 +78,9 @@ sub font_bbox
 } # end font_bbox
 
 #---------------------------------------------------------------------
+sub auto_hyphen { shift->{auto_hyphen} }
 sub size { shift->{size} }
+
 #=====================================================================
 
 =method new
@@ -97,6 +99,9 @@ default is C<std>, meaning PostScript's StandardEncoding (unless the
 C<$font> is Symbol, which uses C<sym>, meaning PostScript's
 SymbolEncoding).  Neither C<std> nor C<sym> does any character set
 translation.
+
+The C<auto_hyphen> attribute is always set to true when character
+translation is enabled.
 
 =cut
 
@@ -126,9 +131,16 @@ sub new
   }, $class;
 
   $self->{encoding} = $encoding unless $encoding =~ /^(?:std|sym)$/;
+  $self->set_auto_hyphen(1);
   $self->set_size($size);
 } # end new
 #---------------------------------------------------------------------
+
+=method set_auto_hyphen( translate )
+
+If translate is a true value, then C<width> and C<wrap> will do
+automatic hyphen-minus translation as described in
+L<PostScript::File/"Hyphens and Minus Signs">.
 
 =method set_size
 
@@ -154,13 +166,17 @@ sub set_size
 
 =method width
 
-  $width = $metrics->width($string)
+  $width = $metrics->width($string, [$already_encoded])
 
 This calculates the width of C<$string> (in points) when displayed in
 this font at the current size.  If C<$string> has the UTF8 flag set,
 it is translated into the font's encoding.  Otherwise, the C<$string>
 is expected to be in the correct character set already.  C<$string>
 should not contain newlines.
+
+If optional parameter C<$already_encoded> is true, then C<$string> is
+assumed to be already encoded in the document's character set.  This
+also prevents any hyphen-minus processing.
 
 =cut
 
@@ -172,7 +188,9 @@ sub width
 
   my $wx = $self->{metrics};
 
-  my $string = $self->encode_text($_[0]);
+  my $string = $_[1] ? $_[0] : $self->encode_text(
+    $self->{auto_hyphen} ? $self->convert_hyphens($_[0]) : $_[0]
+  );
 
   my $width = 0;
   $width += $wx->[$_] for unpack("C*", $string);
@@ -191,13 +209,19 @@ C<$text> has the UTF8 flag set, it is translated into the font's
 encoding.  Otherwise, the C<$text> is expected to be in the correct
 character set already.
 
+If the C<auto_hyphen> attribute is true, then any HYPHEN-MINUS
+(U+002D) characters in C<$text> will be converted to either HYPHEN
+(U+2010) or MINUS SIGN (U+2212) in the returned strings.
+
 =cut
 
 sub wrap
 {
   my $self  = shift;
   my $width = shift;
-  my $text  = $self->encode_text(shift);
+  my $text  = $self->encode_text(
+    $self->{auto_hyphen} ? $self->convert_hyphens(shift) : shift
+  );
 
   my @lines = '';
 
@@ -208,7 +232,7 @@ sub wrap
       m/\G(\s*(?:[^-\s]+-*|\S+))/g or last;
       my $word = $1;
     check_word:
-      if ($self->width($lines[-1] . $word) <= $width) {
+      if ($self->width($lines[-1] . $word, 1) <= $width) {
         $lines[-1] .= $word;
       } elsif ($lines[-1] eq '') {
         $lines[-1] = $word;
@@ -223,7 +247,11 @@ sub wrap
     redo;                   # Only the "last" statement above can exit
   } # end for $text
 
-  @lines;
+  if ($self->{auto_hyphen}) {
+    map { $self->decode_text($_, 1) } @lines;
+  } else {
+    @lines;
+  }
 } # end wrap
 
 #---------------------------------------------------------------------
@@ -289,8 +317,8 @@ system.)
 
 =head1 ATTRIBUTES
 
-All attributes are read-only, except for C<size>, which can be set
-using the C<set_size> method.
+All attributes are read-only, except for C<auto_hyphen> and C<size>,
+which can be set using the corresponding C<set_> methods.
 
 =for Pod::Loom-no_sort_attr
 
@@ -299,6 +327,12 @@ using the C<set_size> method.
 The current font size in points.  This is not an attribute of the
 font, but of this Metrics object.  The attributes that describe the
 font's dimensions are adjusted according to this value.
+
+=attr auto_hyphen
+
+If true, the C<width> and C<wrap> methods will do hyphen-minus
+processing as described in L<PostScript::File/"Hyphens and Minus Signs">,
+but only if the encoding is C<cp1252> or C<iso-8859-1>.
 
 =attr full_name
 

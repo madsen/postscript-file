@@ -8,8 +8,14 @@ use File::Spec;
 use Sys::Hostname;
 use Exporter 'import';
 
-our @EXPORT_OK = qw(check_tilde check_file incpage_label incpage_roman
-                    array_as_string pstr str encode_text);
+our %EXPORT_TAGS = (metrics_methods => [qw(
+  encode_text decode_text convert_hyphens set_auto_hyphen
+)]);
+
+our @EXPORT_OK = (qw(check_tilde check_file incpage_label incpage_roman
+                    array_as_string pstr str),
+                  # These are only for PostScript::File::Metrics:
+                  @{ $EXPORT_TAGS{metrics_methods} });
 
 # Prototypes for functions only
  sub incpage_label ($);
@@ -176,8 +182,9 @@ method will automatically translate HYPHEN-MINUS to either HYPHEN or
 MINUS SIGN.  (This happens only when C<pstr> is called as an object method.)
 
 The rule is that if a HYPHEN-MINUS is surrounded by whitespace, or
-it's preceded by whitespace and followed by a digit, it's translated
-to MINUS SIGN.  Otherwise, it's translated to HYPHEN:
+surrounded by digits, or it's preceded by whitespace and followed by a
+digit, it's translated to MINUS SIGN.  Otherwise, it's translated to
+HYPHEN.
 
 =cut
 
@@ -684,6 +691,12 @@ Set the label (text or number) for the initial page.  See L</set_page_label>.  (
 
 Set whether the PostScript code is filtered.  C<space> strips leading spaces so the user can indent freely
 without increasing the file size.  C<comments> remove lines beginning with '%' as well.  C<none> does no filtering.  (Default: "space")
+
+=head3 auto_hyphen
+
+Controls whether the L</pstr> method does hyphen-minus translation as
+described in L</"Hyphens and Minus Signs">.  This can only be enabled
+when the document is using character set translation.  (Default: 1).
 
 =cut
 
@@ -1621,10 +1634,13 @@ sub encode_text
 
 sub decode_text
 {
-  my $o = shift;
+  my $o = shift; # $text, $preserve_minus
 
   if ($o->{encoding} and not Encode::is_utf8( $_[0] )) {
-    Encode::decode($o->{encoding}, $_[0], sub { pack U => shift });
+    my $text = Encode::decode($o->{encoding}, $_[0], sub { pack U => shift });
+    # Protect - from hyphen-minus processing if $preserve_minus:
+    $text =~ s/-/\x{2212}/g if $_[1];
+    $text;
   } else {
     $_[0];
   }
@@ -1633,20 +1649,25 @@ sub decode_text
 sub convert_hyphens
 {
   my $o = shift;
-  my $text = $o->decode_text(shift);
+  if ($_[0] =~ /-/) {
+    # Text contains at least one hyphen-minus character:
+    my $text = $o->decode_text(shift);
 
-  # If it's surrounded by whitespace, or
-  # it's preceded by whitespace and followed by a digit,
-  # it's a minus sign (U+2212):
-  $text =~ s/(?: ^ | (?<=\s) ) - (?= \d | \s | $ ) /\x{2212}/gx;
+    # If it's surrounded by whitespace, or
+    # it's preceded by whitespace and followed by a digit,
+    # it's a minus sign (U+2212):
+    $text =~ s/(?: ^ | (?<=\s) ) - (?= \d | \s | $ ) /\x{2212}/gx;
 
-  # If it's surrounded by digits, it's a minus sign (U+2212):
-  $text =~ s/ (?<=\d) - (?=\d) /\x{2212}/gx;
+    # If it's surrounded by digits, it's a minus sign (U+2212):
+    $text =~ s/ (?<=\d) - (?=\d) /\x{2212}/gx;
 
-  # Otherwise, it's a hyphen (U+2010):
-  $text =~ s/-/\x{2010}/gx;
+    # Otherwise, it's a hyphen (U+2010):
+    $text =~ s/-/\x{2010}/gx;
 
-  $text;
+    $text;
+  } else {
+    shift;                      # Return text unmodified
+  }
 } # end convert_hyphens
 
 =head2 get_metrics( font, [size, [encoding]] )
@@ -1661,7 +1682,8 @@ Otherwise, the encoding is C<std> (except for the Symbol font, which
 always uses C<sym>).
 
 No matter what encoding the font uses, the Metrics object will always
-use the same Unicode translation setting as this document.
+use the same Unicode translation setting as this document.  It also
+inherits the current value of the L</auto_hyphen> attribute.
 
 =cut
 
@@ -1688,6 +1710,7 @@ sub get_metrics
   # Whatever encoding they asked for, make sure that the
   # auto-translation matches what we're doing:
   $metrics->{encoding} = $o->{encoding};
+  $metrics->{auto_hyphen} = $o->{auto_hyphen};
 
   $metrics;
 } # end get_metrics
