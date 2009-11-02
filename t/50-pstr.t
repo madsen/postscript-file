@@ -23,10 +23,23 @@ use Test::More;
 
 use PostScript::File 'pstr';
 
+#---------------------------------------------------------------------
+my %char = qw(
+  8208 <HYPHEN>
+  8722 <MINUS>
+);
+
+sub U
+{
+  join '', map {
+    $char{$_} || ($_ < 0x7F ? chr($_) : sprintf '<U+%04X>', $_)
+  } unpack 'U*', $_[0];
+} # end U
+
 #=====================================================================
 #  Run the tests.
 
-my @realTests  = (
+my @standardTests  = (
   'Hello, world'  => '(Hello, world)',
   'is ('          => '(is \()',
   "has\n newline" => '(has\n newline)',
@@ -46,11 +59,32 @@ END BACKSLASHES
   "have\b backspace" => '(have\b backspace)',
   "have\f form feed" => '(have\f form feed)',
   "have () parens"   => '(have \(\) parens)',
-);
+); # end @standardTests
 
-plan tests => scalar @realTests;
+my $hyphen = chr(0x2010);
+my $minus  = chr(0x2212);
 
-my @tests = @realTests;
+my @hyphenTests = (
+  @standardTests,
+  'non-invasive'     => '(non<HYPHEN>invasive)',
+  'black-and-white'  => '(black<HYPHEN>and<HYPHEN>white)',
+  '-'                => '(<MINUS>)',
+  '-s'               => '(<HYPHEN>s)',
+  'but-'             => '(but<HYPHEN>)',
+  'night-owl'        => '(night<HYPHEN>owl)',
+  '-1'               => '(<MINUS>1)',
+  '2 - 3'            => '(2 <MINUS> 3)',
+  '4-5'              => '(4<MINUS>5)',
+  '6-'               => '(6<HYPHEN>)',
+  "$hyphen $minus -" => '(<HYPHEN> <MINUS> <MINUS>)',
+); # end @hyphenTests
+
+plan tests => 1 + @standardTests + @hyphenTests / 2;
+
+#---------------------------------------------------------------------
+# Test pstr as exported subroutine:
+
+my @tests = @standardTests;
 
 while (@tests) {
   my $in = shift @tests;
@@ -62,7 +96,9 @@ while (@tests) {
 } # end while @tests
 
 #---------------------------------------------------------------------
-@tests = @realTests;
+# Test pstr as class method:
+
+@tests = @standardTests;
 
 while (@tests) {
   my $in = shift @tests;
@@ -71,4 +107,26 @@ while (@tests) {
   $name = substr($name, 0, 50);
 
   is(PostScript::File->pstr($in), shift @tests, "class method $name");
+} # end while @tests
+
+#---------------------------------------------------------------------
+# Test pstr as class method with nowrap:
+
+my $text = 'xxxx ' x 60;
+is(PostScript::File->pstr($text, 1), "($text)", "class method with nowrap");
+
+#---------------------------------------------------------------------
+# Test pstr as object method with hyphen processing:
+
+@tests = @hyphenTests;
+
+my $ps = PostScript::File->new(reencode => 'cp1252');
+
+while (@tests) {
+  my $in = shift @tests;
+
+  (my $name = $in) =~ s/[\b\s]+/ /g;
+  $name = substr($name, 0, 50);
+
+  is(U($ps->pstr($in)), shift @tests, "hypen $name");
 } # end while @tests
