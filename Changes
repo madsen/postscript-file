@@ -17,6 +17,8 @@ Revision history for Perl extension PostScript::File.
 	- add_default, add_resource, add_setup, add_page_setup,
 	  add_page_trailer, & add_trailer now append instead of
 	  overwriting previous value
+	- get_strip now returns none, space, or comments
+	  instead of the regular expression being used
 
 1.05   October 29, 2009
 	- Major change in the way reencode works

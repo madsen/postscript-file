@@ -24,8 +24,11 @@ our @EXPORT_OK = (qw(check_tilde check_file incpage_label incpage_roman
  sub check_file ($;$$);
 
 # global constants
-my $rmspace   = qr(^\s+)m;          # remove leading spaces
-my $rmcomment = qr(^\s*\(%(?![!%]).*\n\)?)m; # remove single line comments
+our %strip_re = (
+  none     => qr{\A\z},                    # remove nothing
+  space    => qr{^\s+}m,                   # remove leading spaces
+  comments => qr{^\s*(?:%(?![!%]).*\n)?}m, # remove single line comments
+);
 our %encoding_def; # defined near _set_reencode
 
 # ABSTRACT: Base class for creating Adobe PostScript files
@@ -1717,15 +1720,18 @@ sub get_metrics
 
 sub get_strip {
     my $o = shift;
-    return $o->{strip};
+    return $o->{strip_type};
 }
 
 sub set_strip {
     my ($o, $strip) = @_;
-    $o->{strip} = $rmspace unless (defined $o->{strip});
-    $o->{strip} = "" if (lc($strip) eq "none");
-    $o->{strip} = $rmspace if (lc($strip) eq "space");
-    $o->{strip} = $rmcomment if (lc($strip) eq "comments");
+
+    if (not defined $strip) { $strip = 'space'   }
+    else                    { $strip = lc $strip }
+
+    $o->{strip} = $strip_re{$strip}
+        or croak "Invalid strip type $strip";
+    $o->{strip_type} = $strip;
 }
 
 =head2 get_strip
@@ -2566,7 +2572,7 @@ sub _here_doc
 {
   my ($o, $text) = @_;
 
-  if ($o->{strip}) {
+  if ($o->{strip_type} ne 'none') {
     $text =~ s/$o->{strip}//gm;
   } elsif ($text =~ /^([ \t]+)/) {
     my $space = $1;
