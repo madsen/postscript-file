@@ -27,7 +27,7 @@ my $ps = new PostScript::File(
     errors => 1,
     debug => 2,
     );
-ok($ps); # object created
+isa_ok($ps, 'PostScript::File'); # object created
 
 $ps->add_to_page( <<END_PAGE );
     /Helvetica findfont
@@ -42,7 +42,7 @@ $ps->add_to_page( <<END_PAGE );
     666
 END_PAGE
 my $page = $ps->get_page_label();
-ok($page, "page 1");
+is($page, '1', "page 1");
 ok($ps->get_page());
 
 my $dir  = $ARGV[0] || File::Temp->newdir;

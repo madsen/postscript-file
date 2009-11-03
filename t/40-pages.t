@@ -24,10 +24,10 @@ my $hash = { headings => 1,
 	     fontsuffix => "-latin1",
 	     };
 my $ps = new PostScript::File( $hash );
-ok($ps); # object created
+isa_ok($ps, 'PostScript::File'); # object created
 
 my $label = $ps->get_page_label();
-ok($label, "viii");
+is($label, "viii", 'page viii');
 $ps->add_to_page( <<END_PAGE1 );
     [ (This is page $label) ] db_print
     /Helvetica-latin1 findfont
@@ -39,7 +39,7 @@ END_PAGE1
 
 $ps->newpage();
 $label = $ps->get_page_label();
-ok($label, "ix");
+is($label, "ix", 'page ix');
 my $msg = "Second Page: \N{LATIN SMALL LETTER E WITH CIRCUMFLEX} £";
 $ps->add_to_page( <<END_PAGE2 );
     [ (This is page $label) ] db_print
