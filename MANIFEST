@@ -50,6 +50,7 @@ lib/PostScript/File/Metrics/std/Times/BoldItalic.pm
 lib/PostScript/File/Metrics/std/Times/Italic.pm
 lib/PostScript/File/Metrics/std/Times/Roman.pm
 lib/PostScript/File/Metrics/sym/Symbol.pm
+t/00-load.t
 t/10-simple.t
 t/20-eps.t
 t/30-debug.t
