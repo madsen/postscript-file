@@ -2,8 +2,15 @@
 use strict;
 use warnings;
 
-use Test;
-BEGIN { plan tests => 7 };
+use Test::More;
+
+BEGIN {
+  eval "use File::Temp 0.14;";
+  plan skip_all => "File::Temp 0.14 required for testing" if $@;
+
+  plan tests => 7;
+}
+
 use PostScript::File qw(check_file);
 ok(1); # module found
 
@@ -23,8 +30,8 @@ my $ps = new PostScript::File(
 ok($ps); # object created
 
 $ps->add_to_page( <<END_PAGE );
-    /Helvetica findfont 
-    12 scalefont 
+    /Helvetica findfont
+    12 scalefont
     setfont
     100 150 moveto
     (hello world) show
@@ -35,13 +42,13 @@ $ps->add_to_page( <<END_PAGE );
     666
 END_PAGE
 my $page = $ps->get_page_label();
-ok($page, "1");
+ok($page, "page 1");
 ok($ps->get_page());
 
+my $dir  = $ARGV[0] || File::Temp->newdir;
 my $name = "fi03debug";
-$ps->output( $name, "test-results" );
+$ps->output( $name, $dir );
 ok(1); # survived so far
-my $file = check_file( "$name.ps", "test-results" );
+my $file = check_file( "$name.ps", $dir );
 ok($file);
 ok(-e $file);
-

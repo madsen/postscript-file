@@ -2,9 +2,16 @@
 use strict;
 use warnings;
 
-use Test;
+use Test::More;
+
+BEGIN {
+  eval "use File::Temp 0.14;";
+  plan skip_all => "File::Temp 0.14 required for testing" if $@;
+
+  plan tests => 4;
+}
+
 use charnames qw(:full);
-BEGIN { plan tests => 4 };
 use PostScript::File qw(check_file incpage_label incpage_roman);
 
 my $hash = { headings => 1,
@@ -23,8 +30,8 @@ my $label = $ps->get_page_label();
 ok($label, "viii");
 $ps->add_to_page( <<END_PAGE1 );
     [ (This is page $label) ] db_print
-    /Helvetica-latin1 findfont 
-    12 scalefont 
+    /Helvetica-latin1 findfont
+    12 scalefont
     setfont
     172 400 moveto
     (First page) show
@@ -36,19 +43,17 @@ ok($label, "ix");
 my $msg = "Second Page: \N{LATIN SMALL LETTER E WITH CIRCUMFLEX} £";
 $ps->add_to_page( <<END_PAGE2 );
     [ (This is page $label) ] db_print
-    /Times-BoldItalic-latin1 findfont 
-    12 scalefont 
+    /Times-BoldItalic-latin1 findfont
+    12 scalefont
     setfont
     172 400 moveto
     ($msg) show
 END_PAGE2
 
+my $dir  = $ARGV[0] || File::Temp->newdir;
 my $name = "fi04pages";
-$ps->output( $name, "test-results" );
-my $file = check_file( "$name.ps", "test-results" );
+$ps->output( $name, $dir );
+my $file = check_file( "$name.ps", $dir );
 ok(-e $file);
 
 __END__
-
-
-

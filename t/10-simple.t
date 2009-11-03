@@ -2,18 +2,25 @@
 use strict;
 use warnings;
 
-use Test;
-BEGIN { plan tests => 5 };
+use Test::More;
+
+BEGIN {
+  eval "use File::Temp 0.14;";
+  plan skip_all => "File::Temp 0.14 required for testing" if $@;
+
+  plan tests => 5;
+}
+
 use PostScript::File 0.08 qw(check_file);
 ok(1); # module found
 
 my $ps = new PostScript::File();
 ok($ps); # object created
 
+my $dir  = $ARGV[0] || File::Temp->newdir;
 my $name = "fi01simple";
-$ps->output( $name, "test-results" );
+$ps->output( $name, $dir );
 ok(1); # survived so far
-my $file = check_file( "$name.ps", "test-results" );
+my $file = check_file( "$name.ps", $dir );
 ok($file);
 ok(-e $file);
-
