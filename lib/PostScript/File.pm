@@ -448,7 +448,9 @@ versions of the fonts, and just have it do the right thing.
 Windows code page 1252 (aka WinLatin1) is a superset of the printable
 characters in iso-8859-1 (aka Latin1).  It adds a number of characters
 that are not in Latin1, especially common punctuation marks like the
-curly quotation marks, en & em dashes, Euro sign, and ellipsis.
+curly quotation marks, en & em dashes, Euro sign, and ellipsis.  These
+characters exist in the standard PostScript fonts, but there's no easy
+way to access them when using the standard or ISOLatin1 encodings.
 L<http://en.wikipedia.org/wiki/Windows-1252>
 
 For backwards compatibility with versions of PostScript::File older
