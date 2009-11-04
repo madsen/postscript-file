@@ -2191,6 +2191,7 @@ sub get_functions {
 sub add_function {
     my ($o, $name, $entry) = @_;
     if (defined($name) and defined($entry)) {
+        return if $o->has_function($name);
         $entry =~ s/$o->{strip}//gm;
         $o->{DocSupplied} .= $o->encode_text("\%\%+ procset $name\n");
         $o->{Functions} .= $o->_here_doc(<<END_USER_FUNCTIONS);
@@ -2198,15 +2199,23 @@ sub add_function {
             $entry
             \%\%EndProcSet
 END_USER_FUNCTIONS
+        return 1;
     }
+    return;
 }
 
 =head2 get_functions()
 
 =head2 add_function( name, code )
 
-Add user defined functions to the PostScript prolog.  Despite the name, it is better to add related functions in
-the same code section. C<name> is an arbitrary identifier of this resource.  Best used with a 'here' document.
+Add a ProcSet containing user defined functions to the PostScript
+prolog.  Despite the name, it is better to add related functions in
+the same code section. C<name> is an arbitrary identifier of this
+resource.  Best used with a 'here' document.  If the document already
+contains ProcSet C<name> (as reported by C<has_function>, then
+C<add_function> does nothing.
+
+Returns true if the ProcSet was added, or false if it already existed.
 
 Example
 

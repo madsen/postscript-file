@@ -4,6 +4,7 @@ Revision history for Perl extension PostScript::File.
 	- Changed ISOLatin1Encoding to match PostScript's
 	  The HYPHEN-MINUS (\x2D) is now /minus instead of /hyphen.
 	  Use SOFT-HYPHEN (\xAD) to get a proper hyphen.
+	  Made the same change to Win1252Encoding (cp1252).
 
 	  Please read Hyphens and Minus Signs in PostScript::File for details.
 
@@ -17,7 +18,8 @@ Revision history for Perl extension PostScript::File.
 	- add_default, add_resource, add_setup, add_page_setup,
 	  add_page_trailer, & add_trailer now append instead of
 	  overwriting previous value
-	- get_strip now returns none, space, or comments
+	- add_function is now a no-op if has_function returns true
+	- get_strip now returns 'none', 'space', or 'comments'
 	  instead of the regular expression being used
 
 1.05   October 29, 2009
