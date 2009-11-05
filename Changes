@@ -21,6 +21,7 @@ Revision history for Perl extension PostScript::File.
 	- add_function is now a no-op if has_function returns true
 	- get_strip now returns 'none', 'space', or 'comments'
 	  instead of the regular expression being used
+	- Multiple calls to output no longer cause duplicate resources
 
 1.05   October 29, 2009
 	- Major change in the way reencode works

@@ -736,13 +736,14 @@ given to every B<newpage> call.
 
 sub pre_pages {
     my ($o, $landscape, $clipping, $filename) = @_;
+    my $docSupplied = $o->{DocSupplied};
     ## Thanks to Johan Vromans for the ISOLatin1Encoding.
     my $fonts = "";
     if ($o->{reencode}) {
         my $encoding = $o->{reencode};
         my $resource = $encoding;
         $resource =~ s/(?:Encoding)?$/_Encoded_Fonts/;
-        $o->{DocSupplied} .= "\%\%+ $resource\n";
+        $docSupplied .= "\%\%+ $resource\n";
         my $ext = $o->{font_suffix};
         $fonts .= $o->_here_doc(<<"END_FONTS");
         \%\%BeginResource: $resource
@@ -1074,7 +1075,7 @@ END_DEBUG_OFF
 
     my $supplied = "";
     if ($landscapefn or $clipfn or $errorfn or $debugfn) {
-        $o->{DocSupplied} .= "\%\%+ procset PostScript_File\n";
+        $docSupplied .= "\%\%+ procset PostScript_File\n";
         $supplied .= $o->_here_doc(<<END_DOC_SUPPLIED);
             \%\%BeginProcSet: PostScript_File
             $landscapefn
@@ -1088,7 +1089,7 @@ END_DOC_SUPPLIED
     $o->{title} = "($filename)" unless $o->{title};
     $postscript .= $o->{Comments} if ($o->{Comments});
     $postscript .= "\%\%Orientation: ${\( $o->{landscape} ? 'Landscape' : 'Portrait' )}\n";
-    $postscript .= "\%\%DocumentSuppliedResources:\n$o->{DocSupplied}" if ($o->{DocSupplied});
+    $postscript .= "\%\%DocumentSuppliedResources:\n$docSupplied" if $docSupplied;
     $postscript .= $o->encode_text("\%\%Title: $o->{title}\n");
     $postscript .= "\%\%Version: $o->{version}\n" if ($o->{version});
     $postscript .= "\%\%Pages: $o->{pagecount}\n" if ((not $o->{eps}) and ($o->{pagecount} > 1));
