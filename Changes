@@ -19,6 +19,7 @@ Revision history for Perl extension PostScript::File.
 	  add_page_trailer, & add_trailer now append instead of
 	  overwriting previous value
 	- add_function is now a no-op if has_function returns true
+	- embed_document now handles & removes TIFF, WMF, or EPSI preview
 	- get_strip now returns 'none', 'space', or 'comments'
 	  instead of the regular expression being used
 	- Multiple calls to output no longer cause duplicate resources

@@ -2274,9 +2274,23 @@ sub embed_document
       unless index($o->{DocSupplied}, $supplied) >= 0;
 
   local $/;                     # Read entire file
-  open(my $in, '<', $filename) or die "Unable to open $filename: $!";
+  open(my $in, '<:raw', $filename) or die "Unable to open $filename: $!";
   my $content = <$in>;
   close $in;
+
+  # Remove TIFF or WMF preview image:
+  if ($content =~ /^\xC5\xD0\xD3\xC6/) {
+    my ($pos, $len) = unpack('V2', substr($content, 4, 8));
+    $content = substr($content, $pos, $len);
+  } # end if EPS file with TIFF or WMF preview image
+
+  # Remove EPSI preview:
+  $content =~ s/^\s*%%BeginPreview:.*\n
+                (?:\s*%(?!%).*\n)*
+                \s*%%EndPreview.*\n//gmx;
+
+  # Do CRLF processing, since we read in RAW mode:
+  $content =~ s/\r\n/\n/g;
 
   return "\%\%BeginDocument: $id\n$content\n\%\%EndDocument\n";
 } # end embed_document

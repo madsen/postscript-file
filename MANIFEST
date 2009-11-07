@@ -71,5 +71,9 @@ t/79-Times-BoldItalic.t
 t/7A-Times-Italic.t
 t/7B-Times-Roman.t
 t/Font_Test.pm
+t/recycle-i.epsi
+t/recycle-tiff4.eps
+t/recycle-wmf.epsf
+t/recycle.eps
 t/release-pod-coverage.t
 t/release-pod-syntax.t
