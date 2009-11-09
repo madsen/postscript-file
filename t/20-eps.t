@@ -3,12 +3,13 @@ use strict;
 use warnings;
 
 use Test::More;
+use File::Spec ();
 
 BEGIN {
-  eval "use File::Temp 0.14;";
-  plan skip_all => "File::Temp 0.14 required for testing" if $@;
+  eval "use File::Temp 0.15 'tempdir';";
+  plan skip_all => "File::Temp 0.15 required for testing" if $@;
 
-  plan tests => 7;
+  plan tests => 8;
 }
 
 use PostScript::File qw(check_file);
@@ -33,10 +34,13 @@ my $page = $ps->get_page_label();
 is($page, '1', "page 1");
 ok($ps->get_page());
 
-my $dir  = $ARGV[0] || File::Temp->newdir;
+my $dir  = $ARGV[0] || tempdir(CLEANUP => 1);
 my $name = "fi02eps";
-$ps->output( $name, $dir );
+my $out  = $ps->output( $name, $dir );
 ok(1); # survived so far
+
+is($out, File::Spec->catfile( $dir, "$name.epsf" ), 'expected output filename');
+
 my $file = check_file( "$name.epsf", $dir );
 ok($file);
 ok(-e $file);

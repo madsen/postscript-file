@@ -3,12 +3,13 @@ use strict;
 use warnings;
 
 use Test::More;
+use File::Spec ();
 
 BEGIN {
-  eval "use File::Temp 0.14;";
-  plan skip_all => "File::Temp 0.14 required for testing" if $@;
+  eval "use File::Temp 0.15 'tempdir';";
+  plan skip_all => "File::Temp 0.15 required for testing" if $@;
 
-  plan tests => 4;
+  plan tests => 5;
 }
 
 use charnames qw(:full);
@@ -50,9 +51,12 @@ $ps->add_to_page( <<END_PAGE2 );
     ($msg) show
 END_PAGE2
 
-my $dir  = $ARGV[0] || File::Temp->newdir;
+my $dir  = $ARGV[0] || tempdir(CLEANUP => 1);
 my $name = "fi04pages";
-$ps->output( $name, $dir );
+my $out  = $ps->output( $name, $dir );
+
+is($out, File::Spec->catfile( $dir, "$name.ps" ), 'expected output filename');
+
 my $file = check_file( "$name.ps", $dir );
 ok(-e $file);
 
