@@ -546,6 +546,10 @@ userdict begin
 end
 pagelevel restore
 showpage
+%%Trailer
+% Local Variables:
+% coding: cp1252
+% End:
 %%EOF
 ---
 

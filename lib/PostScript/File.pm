@@ -1128,11 +1128,11 @@ sub post_pages {
     my $o = shift;
     my $postscript = "";
 
-    $postscript .= $o->_here_doc(<<END_TRAILER) if ($o->{Trailer});
-        \%\%Trailer
-        $o->{Trailer}
-END_TRAILER
+    my $trailer = $o->{Trailer};
+    $trailer .= "% Local\ Variables:\n% coding: $o->{encoding}\n% End:\n"
+        if $o->{encoding};
 
+    $postscript .= "%%Trailer\n$trailer" if $trailer;
     $postscript .= "\%\%EOF\n";
 
     return $postscript;

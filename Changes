@@ -23,6 +23,8 @@ Revision history for Perl extension PostScript::File.
 	- get_strip now returns 'none', 'space', or 'comments'
 	  instead of the regular expression being used
 	- Multiple calls to output no longer cause duplicate resources
+	- Include a Local Variables section for Emacs in the %%Trailer
+	  describing the file's encoding
 
 1.05   October 29, 2009
 	- Major change in the way reencode works
