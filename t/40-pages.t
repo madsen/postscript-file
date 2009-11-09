@@ -24,7 +24,7 @@ my $hash = { headings => 1,
 	     reencode => "ISOLatin1Encoding",
 	     fontsuffix => "-latin1",
 	     };
-my $ps = new PostScript::File( $hash );
+my $ps = PostScript::File->new( $hash );
 isa_ok($ps, 'PostScript::File'); # object created
 
 my $label = $ps->get_page_label();

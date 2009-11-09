@@ -15,7 +15,7 @@ BEGIN {
 use PostScript::File qw(check_file);
 ok(1); # module found
 
-my $ps = new PostScript::File(
+my $ps = PostScript::File->new(
     headings => 1,
     paper => "A5",
     landscape => 1,

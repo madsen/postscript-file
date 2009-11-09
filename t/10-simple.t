@@ -15,7 +15,7 @@ BEGIN {
 use PostScript::File 0.08 qw(check_file);
 ok(1); # module found
 
-my $ps = new PostScript::File();
+my $ps = PostScript::File->new();
 isa_ok($ps, 'PostScript::File'); # object created
 
 my $dir  = $ARGV[0] || tempdir(CLEANUP => 1);
