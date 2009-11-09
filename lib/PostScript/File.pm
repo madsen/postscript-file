@@ -1168,6 +1168,7 @@ END_DEBUG_END
     }
 
     if ($o->{eps}) {
+        my @pages;
         my $p = 0;
         do {
             my $epsfile = "";
@@ -1189,10 +1190,11 @@ END_DEBUG_END
             $postscript .= "$debugend\n";
             $postscript .= $o->post_pages();
 
-            $o->print_file( $epsfile, $postscript );
+            push @pages, $o->print_file( $epsfile, $postscript );
 
             $p++;
         } while ($p < $o->{pagecount});
+        return wantarray ? @pages : $pages[0];
     } else {
         my $landscape = $o->{landscape};
         foreach my $pl (@{$o->{pagelandsc}}) {
@@ -1243,11 +1245,19 @@ END_PAGE_TRAILER
 
 =head2 output( [filename [, dir]] )
 
-Writes the current PostScript out to the named file provided a filename has been given either here, to
-B<new> or B<set_filename>.  If no filename is given, the text is returned by the function.
+If a filename has been given either here, to C<new>, or to
+C<set_filename>, write the PostScript document to that file and return
+its pathname.
+
+If no filename has been given, return the PostScript document as a string.
+
+In C<eps> mode, each page of the document becomes a separate EPS file.
+In list context, returns a list of these files (either the pathname or
+the PostScript code as explained above).  In scalar context, only the
+first page is returned (but all pages will still be processed).
 
 Use this option whenever output is required to disk. The current PostScript document in memory is not cleared, and
-can still be extended.
+can still be extended or output again.
 
 =cut
 
