@@ -124,9 +124,10 @@ my $ps = PostScript::File->new(reencode => 'cp1252');
 
 while (@tests) {
   my $in = shift @tests;
+  my $out = shift @tests;
 
-  (my $name = $in) =~ s/[\b\s]+/ /g;
+  (my $name = $out) =~ s/[\b\s]+/ /g;
   $name = substr($name, 0, 50);
 
-  is(U($ps->pstr($in)), shift @tests, "hypen $name");
+  is(U($ps->pstr($in)), $out, "hypen $name");
 } # end while @tests
