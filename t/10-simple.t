@@ -9,7 +9,7 @@ BEGIN {
   eval "use File::Temp 0.15 'tempdir';";
   plan skip_all => "File::Temp 0.15 required for testing" if $@;
 
-  plan tests => 6;
+  plan tests => 7;
 }
 
 use PostScript::File 0.08 qw(check_file);
@@ -28,3 +28,8 @@ is($out, File::Spec->catfile( $dir, "$name.ps" ), 'expected output filename');
 my $file = check_file( "$name.ps", $dir );
 ok($file);
 ok(-e $file);
+
+# PNG output is disabled
+
+eval { PostScript::File->new(png => 1) };
+like($@, qr/^PNG output is no longer supported/, 'no PNG');

@@ -297,8 +297,8 @@ sub new {
     bless $o, $class;
 
     ## Paper layout
-    $o->{png}   = defined($opt->{png})  ? $opt->{png}  : 0;
-    $o->{gs}    = defined($opt->{gs})   ? $opt->{gs}   : 'gs';
+    croak "PNG output is no longer supported.  Use PostScript::Convert instead"
+        if $opt->{png};
     $o->{eps}   = defined($opt->{eps})  ? $opt->{eps}  : 0;
     $o->{file_ext} = $opt->{file_ext};
     $o->set_filename(@$opt{qw(file dir)});
@@ -483,16 +483,6 @@ If no C<file> is specified, C<dir> is ignored.
 =head3 eps
 
 Set to 1 to produce Encapsulated PostScript.  B<get_eps> returns the value set here.  (Default: 0)
-
-=head3 png
-
-Set to 1 to produce a PNG image instead of PostScript code.  (Default: 0)
-Requires Ghostscript (L<http://pages.cs.wisc.edu/~ghost/>).
-
-=head3 gs
-
-The pathname of the Ghostscript application.  (Default: gs)
-Relevant only if PNG output is selected.
 
 =head3 file
 
@@ -1286,33 +1276,13 @@ sub print_file
   my $filename = shift;
 
   if ($filename) {
-    my $outfile;
-    if ($o->{png}) {
-      # Write PostScript to temporary file:
-      require File::Temp;
-      $outfile = File::Temp->new;
-    } else {
-      open($outfile, ">", $filename)
-          or die "Unable to write to \'$filename\' : $!\nStopped";
-    } # end else not PNG output
+    open(my $outfile, ">", $filename)
+        or die "Unable to write to \'$filename\' : $!\nStopped";
 
     print $outfile $_[0];
 
-    if ($o->{png}) {
-      # Process the temporary file through Ghostscript to get PNG:
-      my $gs = $o->get_ghostscript();
-      $filename =~ s/\.\w+$/.png/ unless defined $o->{file_ext};
-      seek($outfile, 0,0) or die "Can't seek: $!";
+    close $outfile;
 
-      open(my $oldin, '<&STDIN')  or die "Can't dup STDIN: $!";
-      open(STDIN, '<&', $outfile) or die "Can't redirect STDIN: $!";
-      my @cmd = ($gs, qw(-q -dBATCH -sDEVICE=png16m),
-                 "-sOutputFile=$filename",  '-');
-      system @cmd;
-      open(STDIN, '<&', $oldin)   or die "Can't restore STDIN: $!";
-    } else {
-      close $outfile;
-    } # end else not PNG output
     return $filename;
   } else {
     return $_[0];
@@ -2037,17 +2007,6 @@ Retrieve a user defined value.
 
 =cut
 
-
-sub get_ghostscript {
-    my $o = shift;
-    return defined($o->{gs}) ? $o->{gs} : 'gs';
-}
-
-=head2 get_ghostscript
-
-Return the ghostscript interpreter that would be used to output a Portable Network Graphics file.
-
-=cut
 
 =head1 CONTENT METHODS
 
@@ -2874,6 +2833,8 @@ the same terms as the Perl 5 programming language system itself.
 I<PostScript Language Document Structuring Conventions Specification
 Version 3.0> and I<Encapsulated PostScript File Format Specification
 Version 3.0> published by Adobe, 1992.  L<http://partners.adobe.com/asn/developer/technotes/postscript.html>
+
+L<PostScript::Convert>, for PDF or PNG output.
 
 L<PostScript::Graph::Paper>,
 L<PostScript::Graph::Style>,

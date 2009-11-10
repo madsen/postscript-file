@@ -1,6 +1,9 @@
 Revision history for Perl extension PostScript::File.
 
 2.00   NOT
+	- Numerous API changes, mostly minor, but there could be
+	  problems with backwards compatibility.
+
 	- Changed ISOLatin1Encoding to match PostScript's
 	  The HYPHEN-MINUS (\x2D) is now /minus instead of /hyphen.
 	  Use SOFT-HYPHEN (\xAD) to get a proper hyphen.
@@ -12,6 +15,7 @@ Revision history for Perl extension PostScript::File.
 	- Added PostScript::File::Metrics, which includes the metrics
 	  for the standard PostScript fonts.  No more trying to
 	  configure Font::AFM!!!
+	- PNG output has been removed.  Use PostScript::Convert instead.
 	- Don't reencode Symbol; it doesn't use the StandardEncoding.
 	  This is not backwards compatible, but I doubt anyone was
 	  using Symbol-iso, as it's not very useful.
