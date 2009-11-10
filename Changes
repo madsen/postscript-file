@@ -26,6 +26,7 @@ Revision history for Perl extension PostScript::File.
 	- embed_document now handles & removes TIFF, WMF, or EPSI preview
 	- get_strip now returns 'none', 'space', or 'comments'
 	  instead of the regular expression being used
+	- output accepts an open filehandle as a filename alternative
 	- In eps mode, output now returns a list of pages
 	- Multiple calls to output no longer cause duplicate resources
 	- Include a Local Variables section for Emacs in the %%Trailer

@@ -5,6 +5,7 @@ use strict;
 use warnings;
 use Carp 'croak';
 use File::Spec;
+use Scalar::Util 'openhandle';
 use Sys::Hostname;
 use Exporter 'import';
 
@@ -1131,7 +1132,8 @@ sub post_pages {
 
 sub output {
     my ($o, $filename, $dir) = @_;
-    $o->set_filename($filename, $dir) if (defined $filename);
+    my $fh = openhandle $filename;
+    $o->set_filename($filename, $dir) if defined $filename and not $fh;
 
     my ($debugbegin, $debugend) = ("", "");
     if (defined $o->{debug}) {
@@ -1180,7 +1182,7 @@ END_DEBUG_END
             $postscript .= "$debugend\n";
             $postscript .= $o->post_pages();
 
-            push @pages, $o->print_file( $epsfile, $postscript );
+            push @pages, $o->print_file( $fh || $epsfile, $postscript );
 
             $p++;
         } while ($p < $o->{pagecount});
@@ -1229,11 +1231,14 @@ END_PAGE_SETUP
 END_PAGE_TRAILER
         }
         $postscript .= $o->post_pages();
-        return $o->print_file( $psfile, $postscript );
+        return $o->print_file( $fh || $psfile, $postscript );
     }
 }
 
 =head2 output( [filename [, dir]] )
+
+If C<filename> is an open filehandle, write the PostScript document to
+that filehandle and return nothing.
 
 If a filename has been given either here, to C<new>, or to
 C<set_filename>, write the PostScript document to that file and return
@@ -1244,7 +1249,9 @@ If no filename has been given, return the PostScript document as a string.
 In C<eps> mode, each page of the document becomes a separate EPS file.
 In list context, returns a list of these files (either the pathname or
 the PostScript code as explained above).  In scalar context, only the
-first page is returned (but all pages will still be processed).
+first page is returned (but all pages will still be processed).  If
+you pass a filehandle when you have multiple pages, all the documents
+are written to that filehandle, which is probably not what you want.
 
 Use this option whenever output is required to disk. The current PostScript document in memory is not cleared, and
 can still be extended or output again.
@@ -1276,7 +1283,13 @@ sub print_file
   my $filename = shift;
 
   if ($filename) {
-    open(my $outfile, ">", $filename)
+    my $outfile = openhandle $filename;
+    if ($outfile) {
+      print $outfile $_[0];
+      return;
+    } # end if passed a filehandle
+
+    open($outfile, ">", $filename)
         or die "Unable to write to \'$filename\' : $!\nStopped";
 
     print $outfile $_[0];

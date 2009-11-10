@@ -37,7 +37,7 @@ if (@ARGV and $ARGV[0] eq 'gen') {
   open(OUT, '>', '/tmp/60-content.t') or die $!;
   printf OUT "#%s\n\n__DATA__\n", '=' x 69;
 } else {
-  plan tests => 12 * 2;
+  plan tests => 12 * 3;
 }
 
 my ($name, %param, @methods);
@@ -75,10 +75,12 @@ while (<DATA>) {
       eq_or_diff($ps->output, $expected, $name); # if Test::Differences
       # Calling output again should produce exactly the same output:
       eq_or_diff($ps->output, $expected, "repeat $name");
+      eq_or_diff(output_to_fh($ps), $expected, "$name to filehandle");
     } else {
       is($ps->output, $expected, $name); # fall back to Test::More
       # Calling output again should produce exactly the same output:
       is($ps->output, $expected, "repeat $name");
+      is(output_to_fh($ps), $expected, "$name to filehandle");
     }
 
     # Clean up:
@@ -93,6 +95,21 @@ while (<DATA>) {
     die "Unrecognized line $_" if /\S/;
   }
 } # end while <DATA>
+
+#---------------------------------------------------------------------
+# Test output to a filehandle:
+
+sub output_to_fh
+{
+  my ($ps) = @_;
+
+  my $buffer;
+  open(my $fh, '>', \$buffer) or return undef;
+
+  $ps->output($fh);
+
+  return $buffer;
+} # end output_to_fh
 
 #=====================================================================
 
