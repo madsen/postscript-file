@@ -4,7 +4,11 @@ MANIFEST
 META.yml
 Makefile.PL
 README
+examples/UASquared.afm
+examples/UASquared.pfb
+examples/UASquared.txt
 examples/cp1252.pl
+examples/embed_font.pl
 examples/generate_metrics.pl
 examples/hello_world.pl
 examples/iso-8859-1.pl
