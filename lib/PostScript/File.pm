@@ -443,7 +443,8 @@ Enable PostScript comments such as the date of creation and user's name.
 =head3 reencode
 
 Requests that a font re-encode function be added and that the 13
-standard PostScript fonts get re-encoded in the specified encoding.
+standard PostScript fonts get re-encoded in the specified encoding,
+as well as any fonts added using L<embed_font> or L<add_resource>.
 The only allowed values are C<cp1252>, C<iso-8859-1>, and
 C<ISOLatin1Encoding>.  In most cases, you should set this to
 C<cp1252>, even if you are not using Windows.
@@ -2110,7 +2111,7 @@ PageCustomColors: or PageRequirements:.
 
 sub get_resources {
     my $o = shift;
-    return $o->{Resources};
+    return $o->{Fonts} . $o->{Resources};
 }
 
 our %supplied_type = (qw(
@@ -2159,7 +2160,8 @@ Feature (case sensitive).
 
 =item C<name>
 
-An arbitrary identifier of this resource.
+An arbitrary identifier of this resource.  (For a Font, it must be the
+PostScript name of the font, without a leading slash.)
 
 =item C<params>
 
@@ -2171,7 +2173,8 @@ A string containing the postscript code. Probably best provided a 'here' documen
 
 =back
 
-Use this to add fonts or images.  B<add_function> is provided for functions.
+Use this to add fonts or images (although you may prefer L<embed_font>
+or L<embed_document>).  B<add_function> is provided for functions.
 
 Example
 
@@ -2298,9 +2301,8 @@ sub embed_document
 =head2 embed_font( filename, [type] )
 
 This reads the contents of C<filename>, which must contain a
-PostScript font.  It reads the file, calls L<add_resource> to add its
-contents to the document, and returns the name of the font (without a
-leading slash).
+PostScript font.  It calls L<add_resource> to add the font to the
+document, and returns the name of the font (without a leading slash).
 
 If C<type> is omitted, the C<filename>'s extension is used as the
 type.  Type names are not case sensitive.  The currently supported
