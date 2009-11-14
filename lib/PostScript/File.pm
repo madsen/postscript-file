@@ -2287,13 +2287,13 @@ sub embed_document
     $content = substr($content, $pos, $len);
   } # end if EPS file with TIFF or WMF preview image
 
+  # Do CR or CRLF -> LF processing, since we read in RAW mode:
+  $content =~ s/\r\n?/\n/g;
+
   # Remove EPSI preview:
   $content =~ s/^\s*%%BeginPreview:.*\n
                 (?:\s*%(?!%).*\n)*
                 \s*%%EndPreview.*\n//gmx;
-
-  # Do CRLF processing, since we read in RAW mode:
-  $content =~ s/\r\n/\n/g;
 
   return "\%\%BeginDocument: $id\n$content\n\%\%EndDocument\n";
 } # end embed_document
@@ -2348,12 +2348,12 @@ sub embed_font
 
   my $in;
   if ($type eq 'PFA') {
-    open($in, '<:raw:crlf', $filename) or croak "Unable to open $filename: $!";
+    open($in, '<:raw', $filename) or croak "Unable to open $filename: $!";
   } elsif ($type eq 'PFB') {
-    open($in, '-|:raw:crlf', $t1ascii, $filename)
+    open($in, '-|:raw', $t1ascii, $filename)
         or croak "Unable to run $t1ascii $filename: $!";
   } elsif ($type eq 'TTF') {
-    open($in, '-|:raw:crlf', $ttftotype42, $filename)
+    open($in, '-|:raw', $ttftotype42, $filename)
         or croak "Unable to run $ttftotype42 $filename: $!";
     # Type 42 was introduced in LanguageLevel 2:
     $o->{langlevel} = 2 unless ($o->{langlevel} || 0) >= 2;
@@ -2361,6 +2361,8 @@ sub embed_font
 
   my $content = do { local $/; <$in> }; # Read entire file
   close $in;
+
+  $content =~ s/\r\n?/\n/g;     # CR or CRLF to LF
 
   $content =~ m!/FontName\s+/(\S+)\s+def\b!
       or croak "Unable to find font name in $filename";
