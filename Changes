@@ -13,10 +13,16 @@ Revision history for Perl extension PostScript::File.
 
 	- Added auto_hyphen attribute with get/set methods
 	- Added embed_font method
+	- Reencode fonts added using embed_font or add_resource
 	- Added PostScript::File::Metrics, which includes the metrics
 	  for the standard PostScript fonts.  No more trying to
 	  configure Font::AFM!!!
 	- PNG output has been removed.  Use PostScript::Convert instead.
+	- embed_document now handles & removes TIFF, WMF, or EPSI preview
+	- output accepts an open filehandle as a filename alternative
+
+	Minor changes in 2.00:
+
 	- Don't reencode Symbol; it doesn't use the StandardEncoding.
 	  This is not backwards compatible, but I doubt anyone was
 	  using Symbol-iso, as it's not very useful.
@@ -24,10 +30,8 @@ Revision history for Perl extension PostScript::File.
 	  add_page_trailer, & add_trailer now append instead of
 	  overwriting previous value
 	- add_function is now a no-op if has_function returns true
-	- embed_document now handles & removes TIFF, WMF, or EPSI preview
 	- get_strip now returns 'none', 'space', or 'comments'
 	  instead of the regular expression being used
-	- output accepts an open filehandle as a filename alternative
 	- In eps mode, output now returns a list of pages
 	- Multiple calls to output no longer cause duplicate resources
 	- Include a Local Variables section for Emacs in the %%Trailer

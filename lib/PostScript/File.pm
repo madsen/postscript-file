@@ -283,6 +283,7 @@ sub new {
         DocSupplied => "",
         Preview     => "",
         Defaults    => "",
+        Fonts       => "",
         Resources   => "",
         Functions   => "",
         Setup       => "",
@@ -299,6 +300,7 @@ sub new {
         pageclip    => [],  # clip to pagebbox
         pagebbox    => [],  # array of bbox, indexed by $o->{p}
         bbox        => [],  # [ x0, y0, x1, y1 ]
+        extra_fonts => [],  # additional fonts to reencode
 
         vars        => {},  # permanent user variables
         pagevars    => {},  # user variables reset with each new page
@@ -802,9 +804,9 @@ sub pre_pages {
                 definefont pop
             } bind def
 
-            % Reencode the std fonts:
+            % Reencode the fonts:
 END_FONTS
-        for my $font (@fonts) {
+        for my $font (@fonts, @{ $o->{extra_fonts} }) {
             next if $font eq 'Symbol'; # doesn't use StandardEncoding
             $fonts .= "/${font}$ext $encoding /$font REENCODEFONT\n";
         }
@@ -1108,7 +1110,7 @@ END_DEFAULTS
     $postscript .= $o->_here_doc(<<END_PROLOG);
         \%\%BeginProlog
         $supplied
-        $fonts
+        $o->{Fonts}$fonts
         $o->{Resources}
         $o->{Functions}
         \%\%EndProlog
@@ -2126,9 +2128,17 @@ sub add_resource {
         $o->{DocSupplied} .= $o->encode_text("\%\%+ $supplied_type{$type} $name\n")
             if defined $supplied_type{$type};
 
+        # Store fonts separately, because they need to come first:
+        my $storage = 'Resources';
+
+        if ($type eq 'Font') {
+          $storage = 'Fonts';
+          push @{ $o->{extra_fonts} }, $name; # Remember to reencode it
+        } # end if adding Font
+
         $name .= " $params" if defined $params and length $params;
 
-        $o->{Resources} .= $o->_here_doc(<<END_USER_RESOURCE);
+        $o->{$storage} .= $o->_here_doc(<<END_USER_RESOURCE);
             \%\%Begin${type}: $name
             $resource
             \%\%End$type
