@@ -12,6 +12,7 @@ Revision history for Perl extension PostScript::File.
 	  Please read Hyphens and Minus Signs in PostScript::File for details.
 
 	- Added auto_hyphen attribute with get/set methods
+	- Added embed_font method
 	- Added PostScript::File::Metrics, which includes the metrics
 	  for the standard PostScript fonts.  No more trying to
 	  configure Font::AFM!!!

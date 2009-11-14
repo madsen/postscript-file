@@ -32,6 +32,14 @@ our %strip_re = (
 );
 our %encoding_def; # defined near _set_reencode
 
+our ($t1ascii, $ttftotype42);
+BEGIN {
+  # Program to convert .pfb fonts to .pfa on STDOUT:
+  $t1ascii     = 't1ascii'     unless defined $t1ascii;
+  # Program to convert .ttf fonts to .pfa on STDOUT:
+  $ttftotype42 = 'ttftotype42' unless defined $ttftotype42;
+}
+
 # ABSTRACT: Base class for creating Adobe PostScript files
 
 =head1 SYNOPSIS
@@ -2256,7 +2264,7 @@ sub embed_document
       unless index($o->{DocSupplied}, $supplied) >= 0;
 
   local $/;                     # Read entire file
-  open(my $in, '<:raw', $filename) or die "Unable to open $filename: $!";
+  open(my $in, '<:raw', $filename) or croak "Unable to open $filename: $!";
   my $content = <$in>;
   close $in;
 
@@ -2276,6 +2284,80 @@ sub embed_document
 
   return "\%\%BeginDocument: $id\n$content\n\%\%EndDocument\n";
 } # end embed_document
+
+=head2 embed_font( filename, [type] )
+
+This reads the contents of C<filename>, which must contain a
+PostScript font.  It reads the file, calls L<add_resource> to add its
+contents to the document, and returns the name of the font (without a
+leading slash).
+
+If C<type> is omitted, the C<filename>'s extension is used as the
+type.  Type names are not case sensitive.  The currently supported
+types are:
+
+=over
+
+=item PFA
+
+A PostScript font in ASCII format
+
+=item PFB
+
+A PostScript font in binary format.  This requires the t1ascii program
+from L<http://www.lcdf.org/type/#t1utils>.  (You can set
+C<$PostScript::File::t1ascii> to the name of the program to use.  It
+defaults to F<t1ascii>.)
+
+=item TTF
+
+A TrueType font.  This requires the ttftotype42 program from
+L<http://www.lcdf.org/type/#typetools>.  (You can set
+C<$PostScript::File::ttftotype42> to the name of the program to use.
+It defaults to F<ttftotype42>.)
+
+Since TrueType (aka Type42) font support was introduced in PostScript
+level 2, embedding a TTF font automatically sets C<langlevel> to 2
+(unless it was already set to a higher level).
+
+=back
+
+=cut
+
+sub embed_font
+{
+  my ($o, $filename, $type) = @_;
+
+  unless ($type) {
+    $filename =~ /\.([^\\\/.]+)$/ or croak "No extension in $filename";
+    $type = $1;
+  }
+  $type = uc $type;
+
+  my $in;
+  if ($type eq 'PFA') {
+    open($in, '<:raw:crlf', $filename) or croak "Unable to open $filename: $!";
+  } elsif ($type eq 'PFB') {
+    open($in, '-|:raw:crlf', $t1ascii, $filename)
+        or croak "Unable to run $t1ascii $filename: $!";
+  } elsif ($type eq 'TTF') {
+    open($in, '-|:raw:crlf', $ttftotype42, $filename)
+        or croak "Unable to run $ttftotype42 $filename: $!";
+    # Type 42 was introduced in LanguageLevel 2:
+    $o->{langlevel} = 2 unless ($o->{langlevel} || 0) >= 2;
+  }
+
+  my $content = do { local $/; <$in> }; # Read entire file
+  close $in;
+
+  $content =~ m!/FontName\s+/(\S+)\s+def\b!
+      or croak "Unable to find font name in $filename";
+  my $fontName = $1;
+
+  $o->add_resource(Font => $fontName, undef, $content);
+
+  return $fontName;
+} # end embed_font
 
 sub get_setup {
     my $o = shift;
