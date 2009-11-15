@@ -18,7 +18,7 @@ package PostScript::File::Metrics;
 #---------------------------------------------------------------------
 
 use 5.008;
-our $VERSION = '2.00';
+our $VERSION = '2.00';          ## no critic
 
 use strict;
 use warnings;
@@ -32,6 +32,7 @@ our (%Info, %Metrics);
 # Generate accessor methods:
 
 BEGIN {
+  ## no critic (ProhibitStringyEval)
   foreach my $attribute (qw(
     full_name
     family
@@ -61,6 +62,7 @@ BEGIN {
 END SUB
     die $@ if $@;
   }
+  ## use critic
 } # end BEGIN
 
 #---------------------------------------------------------------------
@@ -116,8 +118,10 @@ sub new
     # First, try to load a pre-compiled package:
     my $package = _get_package_name($font, $encoding);
 
+    ## no critic (ProhibitStringyEval)
     unless (do { local $@; eval "require $package; 1" }) {
       # No pre-compiled package, we'll have to read the AFM file:
+      ## use critic
       require PostScript::File::Metrics::Loader;
 
       PostScript::File::Metrics::Loader::load($font, [$encoding]);

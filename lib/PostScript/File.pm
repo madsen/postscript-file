@@ -1,10 +1,30 @@
+#---------------------------------------------------------------------
 package PostScript::File;
+#
+# Copyright 2002, 2003 Christopher P Willmot.
+# Copyright 2009 Christopher J. Madsen
+#
+# Author: Chris Willmot         <chris AT willmot.co.uk>
+#         Christopher J. Madsen <perl AT cjmweb.net>
+#
+# This program is free software; you can redistribute it and/or modify
+# it under the same terms as Perl 5 itself.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See either the
+# GNU General Public License or the Artistic License for more details.
+#
+# ABSTRACT: Base class for creating Adobe PostScript files
+#---------------------------------------------------------------------
+
 use 5.008;
-our $VERSION = '2.00';
+our $VERSION = '2.00';          ## no critic
+
 use strict;
 use warnings;
 use Carp 'croak';
-use File::Spec;
+use File::Spec ();
 use Scalar::Util 'openhandle';
 use Sys::Hostname;
 use Exporter 'import';
@@ -19,10 +39,12 @@ our @EXPORT_OK = (qw(check_tilde check_file incpage_label incpage_roman
                   @{ $EXPORT_TAGS{metrics_methods} });
 
 # Prototypes for functions only
+ ## no critic (ProhibitSubroutinePrototypes)
  sub incpage_label ($);
  sub incpage_roman ($);
  sub check_tilde ($);
  sub check_file ($;$$);
+ ## use critic
 
 # global constants
 our %strip_re = (
@@ -39,8 +61,6 @@ BEGIN {
   # Program to convert .ttf fonts to .pfa on STDOUT:
   $ttftotype42 = 'ttftotype42' unless defined $ttftotype42;
 }
-
-# ABSTRACT: Base class for creating Adobe PostScript files
 
 =head1 SYNOPSIS
 
@@ -2794,7 +2814,7 @@ No functions are exported by default, they must be named as required.
 
 =cut
 
-sub incpage_label ($) {
+sub incpage_label ($) { ## no critic (ProhibitSubroutinePrototypes)
     my $page = shift;
     return ++$page;
 }
@@ -2815,7 +2835,7 @@ for (my $i = 1; $i <= $roman_max; $i++) {
     $roman{$roman[$i]} = $i;
 }
 
-sub incpage_roman ($) {
+sub incpage_roman ($) { ## no critic (ProhibitSubroutinePrototypes)
     my $page = shift;
     my $pos = $roman{$page};
     return $roman[++$pos];
@@ -2828,7 +2848,7 @@ values from "i" to "xxxix", but that should be quite enough for numbering the od
 
 =cut
 
-sub check_file ($;$$) {
+sub check_file ($;$$) { ## no critic (ProhibitSubroutinePrototypes)
     my ($filename, $dir, $create) = @_;
     $create = 0 unless (defined $create);
 
@@ -2861,9 +2881,9 @@ sub check_file ($;$$) {
         $filename = File::Spec->catfile($path, $file);
         if ($create) {
             unless (-e $filename) {
-                open(FILE, ">", $filename)
+                open(my $file, ">", $filename)
                     or die "Unable to open \'$filename\' for writing : $!\nStopped";
-                close FILE;
+                close $file;
             }
         }
     }
@@ -2901,7 +2921,7 @@ B<File::Spec|File::Spec> is used throughout so file access should be portable.
 
 =cut
 
-sub check_tilde ($) {
+sub check_tilde ($) { ## no critic (ProhibitSubroutinePrototypes)
     my ($dir) = @_;
     $dir = "" unless $dir;
     $dir =~ s{^~([^/]*)}{$1 ? (getpwnam($1))[7] : ($ENV{HOME} || $ENV{LOGDIR} || (getpwuid($>))[7]) }ex;
@@ -2914,7 +2934,7 @@ Expands any leading '~' to the home directory.
 
 =cut
 
-sub array_as_string (@) {
+sub array_as_string (@) { ## no critic (ProhibitSubroutinePrototypes)
     my $array = "[ ";
     foreach my $f (@_) { $array .= "$f "; }
     $array .= "]";
@@ -2927,7 +2947,7 @@ Converts a perl array to its postscript representation.
 
 =cut
 
-sub str ($) {
+sub str ($) { ## no critic (ProhibitSubroutinePrototypes)
     my $arg = shift;
     if (ref($arg) eq "ARRAY") {
         return array_as_string( @$arg );

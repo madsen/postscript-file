@@ -79,5 +79,6 @@ t/recycle-i.epsi
 t/recycle-tiff4.eps
 t/recycle-wmf.epsf
 t/recycle.eps
+t/release-perlcritic.t
 t/release-pod-coverage.t
 t/release-pod-syntax.t
