@@ -1607,6 +1607,9 @@ END ISOLatin1Encoding
   Win1252Encoding => <<'END Win1252Encoding',
 % Define Windows Latin1 encoding
 /Win1252Encoding StandardEncoding STARTDIFFENC
+    % LanguageLevel 1 may require these to be mapped somewhere:
+    17 /dotlessi /dotaccent /ring /caron
+    % Restore glyphs for standard ASCII characters:
     45 /minus
     96 /grave
     % Here are the CP1252 extensions to ISO-8859-1:

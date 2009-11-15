@@ -27,6 +27,8 @@ Revision history for Perl extension PostScript::File.
 	- Don't reencode Symbol; it doesn't use the StandardEncoding.
 	  This is not backwards compatible, but I doubt anyone was
 	  using Symbol-iso, as it's not very useful.
+	- Mapped some control characters as accents in Win1252Encoding,
+	  since the Red Book suggests they are required in langlevel 1
 	- add_default, add_resource, add_setup, add_page_setup,
 	  add_page_trailer, & add_trailer now append instead of
 	  overwriting previous value
