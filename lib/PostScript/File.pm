@@ -14,7 +14,7 @@ our %EXPORT_TAGS = (metrics_methods => [qw(
 )]);
 
 our @EXPORT_OK = (qw(check_tilde check_file incpage_label incpage_roman
-                    array_as_string pstr str),
+                    array_as_string pstr quote_text str),
                   # These are only for PostScript::File::Metrics:
                   @{ $EXPORT_TAGS{metrics_methods} });
 
@@ -85,6 +85,7 @@ An 'hello world' program:
         headings => 1,
         reencode => 'cp1252',
         font_suffix => '-iso',
+        need_fonts  => [qw(Helvetica Helvetica-Bold)],
 
         errors => 1,
         errmsg => 'Failed:',
@@ -300,7 +301,8 @@ sub new {
         pageclip    => [],  # clip to pagebbox
         pagebbox    => [],  # array of bbox, indexed by $o->{p}
         bbox        => [],  # [ x0, y0, x1, y1 ]
-        extra_fonts => [],  # additional fonts to reencode
+        embed_fonts => [],  # fonts that have been embedded
+        needed      => {},  # DocumentNeededResources
 
         vars        => {},  # permanent user variables
         pagevars    => {},  # user variables reset with each new page
@@ -363,6 +365,7 @@ sub new {
     $o->set_strip( $opt->{strip} );
     $o->_set_reencode( $opt->{reencode} );
     $o->set_auto_hyphen(defined($opt->{auto_hyphen}) ? $opt->{auto_hyphen} : 1);
+    $o->need_resource(font => @{ $opt->{need_fonts} }) if $opt->{need_fonts};
 
     $o->newpage( $o->get_page_label() );
 
@@ -442,12 +445,16 @@ Enable PostScript comments such as the date of creation and user's name.
 
 =head3 reencode
 
-Requests that a font re-encode function be added and that the 13
-standard PostScript fonts get re-encoded in the specified encoding,
-as well as any fonts added using L<embed_font> or L<add_resource>.
+Requests that a font re-encode function be added and that the fonts
+used by this document get re-encoded in the specified encoding.
 The only allowed values are C<cp1252>, C<iso-8859-1>, and
 C<ISOLatin1Encoding>.  In most cases, you should set this to
 C<cp1252>, even if you are not using Windows.
+
+The list of fonts to re-encode comes from the L<need_fonts> parameter,
+the L<need_resource> method, and all fonts added using L<embed_font>
+or L<add_resource>.  The Symbol font is never re-encoded, because it
+uses a non-standard character set.
 
 Setting this to C<cp1252> or C<iso-8859-1> also causes the document to
 be encoded in that character set.  Any strings you add to the document
@@ -508,9 +515,7 @@ The extension for the output file.  See </set_file_ext>.
 
 This string is appended to each font name as it is reencoded.  (Default: "-iso")
 
-The standard fonts are named Courier, Courier-Bold, Courier-BoldOblique, Courier-Oblique, Helvetica,
-Helvetica-Bold, Helvetica-BoldOblique, Helvetica-Oblique, Times-Roman, Times-Bold, Times-BoldItalic, Times-Italic,
-and Symbol.  The string value is appended to these to make the new names.
+The string value is appended to these to make the new names.
 
 Example
 
@@ -538,6 +543,12 @@ coordinate system appears the same to the user, with the origin at the bottom le
 
 The margin in from the paper's left edge, specifying the non-printable area.
 Remember to specify C<clipping> if that is what is wanted.  (Default: 28)
+
+=head3 need_fonts
+
+An arrayref of font names required by this document.  This is
+equivalent to calling C<< $ps->need_resource(fonts => @$arrayref) >>.
+See L<need_resource> for details.
 
 =head3 paper
 
@@ -743,12 +754,9 @@ sub pre_pages {
     my $fonts = "";
     if ($o->{reencode}) {
         my $encoding = $o->{reencode};
-        my $resource = $encoding;
-        $resource =~ s/(?:Encoding)?$/_Encoded_Fonts/;
-        $docSupplied .= "\%\%+ $resource\n";
         my $ext = $o->{font_suffix};
+        $fonts = "% Handle font encoding:\n";
         $fonts .= $o->_here_doc(<<"END_FONTS");
-        \%\%BeginResource: $resource
             /STARTDIFFENC { mark } bind def
             /ENDDIFFENC {
 
@@ -804,15 +812,18 @@ sub pre_pages {
                 end
                 definefont pop
             } bind def
-
-            % Reencode the fonts:
 END_FONTS
-        for my $font (@fonts, @{ $o->{extra_fonts} }) {
+        $fonts .= "\n% Reencode the fonts:\n";
+        # If no fonts listed, assume the standard ones:
+        $o->{needed}{font} ||= { map { $_ => 1 } @fonts };
+
+        for my $font (sort(keys(%{ $o->{needed}{font} }),
+                           @{ $o->{embed_fonts} })) {
             next if $font eq 'Symbol'; # doesn't use StandardEncoding
             $fonts .= "/${font}$ext $encoding /$font REENCODEFONT\n";
         }
-        $fonts .= "\%\%EndResource";
-    }
+        $fonts .= "% end font encoding\n";
+    } # end if reencode
 
     # Prepare the postscript file
     my $user = getlogin() || (getpwuid($<))[0] || "Unknown";
@@ -1077,20 +1088,23 @@ END_DEBUG_OFF
 
     my $supplied = "";
     if ($landscapefn or $clipfn or $errorfn or $debugfn) {
-        $docSupplied .= "\%\%+ procset PostScript_File\n";
+        $docSupplied .= "\%\%+ procset PostScript_File $VERSION 0\n";
         $supplied .= $o->_here_doc(<<END_DOC_SUPPLIED);
-            \%\%BeginProcSet: PostScript_File
+            \%\%BeginResource: procset PostScript_File $VERSION 0
             $landscapefn
             $clipfn
             $errorfn
             $debugfn
-            \%\%EndProcSet
+            \%\%EndResource
 END_DOC_SUPPLIED
     }
+
+    my $docNeeded = $o->_build_needed;
 
     $o->{title} = "($filename)" unless $o->{title};
     $postscript .= $o->{Comments} if ($o->{Comments});
     $postscript .= "\%\%Orientation: ${\( $o->{landscape} ? 'Landscape' : 'Portrait' )}\n";
+    $postscript .= $docNeeded if $docNeeded;
     $postscript .= "\%\%DocumentSuppliedResources:\n$docSupplied" if $docSupplied;
     $postscript .= $o->encode_text("\%\%Title: $o->{title}\n");
     $postscript .= "\%\%Version: $o->{version}\n" if ($o->{version});
@@ -1111,20 +1125,51 @@ END_DEFAULTS
     $postscript .= $o->_here_doc(<<END_PROLOG);
         \%\%BeginProlog
         $supplied
-        $o->{Fonts}$fonts
-        $o->{Resources}
         $o->{Functions}
         \%\%EndProlog
 END_PROLOG
 
-    $postscript .= $o->_here_doc(<<END_SETUP) if ($o->{Setup});
-        \%\%BeginSetup
-        $o->{Setup}
-        \%\%EndSetup
-END_SETUP
+    my $setup = "$o->{Fonts}$fonts$o->{Resources}$o->{Setup}";
+    $postscript .= "%%BeginSetup\n$setup%%EndSetup\n" if $setup;
+
     return $postscript;
 }
 # Internal method, used by output()
+
+sub _build_needed
+{
+  my $o = shift;
+
+  my $needed = $o->{needed};
+
+  return unless %$needed;
+
+  my $comment = "%%DocumentNeededResources:\n";
+
+  foreach my $type (sort keys %$needed) {
+    if ($type eq 'font') {
+      # Remove any embedded fonts from the needed fonts:
+      delete $needed->{$type}{$_} for @{ $o->{embed_fonts} };
+    } # end if fonts
+
+    next unless %{ $needed->{$type} };
+
+    my $prefix = "%%+ $type";
+    my $maxLen = 79 - length $prefix;
+    my @list   = '';
+
+    foreach my $resource (sort keys %{ $needed->{$type} }) {
+      push @list, ''
+          if length $list[-1]
+             and length($resource) + length($list[-1]) >= $maxLen;
+      $list[-1] .= " $resource";
+    } # end foreach $resource
+
+    $comment .= "$prefix$_\n" for @list;
+  } # end foreach $type
+
+  $comment;
+} # end _build_needed
 
 sub post_pages {
     my $o = shift;
@@ -2051,16 +2096,17 @@ sub add_comment {
 =head2 add_comment( comment )
 
 Most of the required and recommended comments are set directly, so this function should rarely be needed.  It is
-provided for completeness so that comments such as C<DocumentNeededResources:> can be added.  The comment should
+provided for completeness so that comments not otherwise supported can be added.  The comment should
 be the bare PostScript DSC name and value, with additional lines merely prefixed by C<+>.
+
+Programs written for older versions of PostScript::File might use this
+to add a C<DocumentNeededResources> comment.  That is now deprecated;
+you should use L<need_resource> instead.
 
 Example
 
     $ps->add_comment("ProofMode: NotifyMe");
     $ps->add_comment("Requirements: manualfeed");
-    $ps->add_comment("DocumentNeededResources:");
-    $ps->add_comment("+ Paladin");
-    $ps->add_comment("+ Paladin-Bold");
 
 =cut
 
@@ -2134,7 +2180,7 @@ sub add_resource {
 
         if ($type eq 'Font') {
           $storage = 'Fonts';
-          push @{ $o->{extra_fonts} }, $name; # Remember to reencode it
+          push @{ $o->{embed_fonts} }, $name; # Remember to reencode it
         } # end if adding Font
 
         $name .= " $params" if defined $params and length $params;
@@ -2193,10 +2239,12 @@ sub get_functions {
 }
 
 sub add_function {
-    my ($o, $name, $entry) = @_;
+    my ($o, $name, $entry, $version, $revision) = @_;
     if (defined($name) and defined($entry)) {
         return if $o->has_function($name);
         $entry =~ s/$o->{strip}//gm;
+        $name = sprintf('%s %g %d', $o->quote_text($name),
+                        $version||0, $revision||0);
         $o->{DocSupplied} .= $o->encode_text("\%\%+ procset $name\n");
         $o->{Functions} .= $o->_here_doc(<<END_USER_FUNCTIONS);
             \%\%BeginProcSet: $name
@@ -2210,7 +2258,7 @@ END_USER_FUNCTIONS
 
 =head2 get_functions()
 
-=head2 add_function( name, code )
+=head2 add_function( name, code, [version, [revision]] )
 
 Add a ProcSet containing user defined functions to the PostScript
 prolog.  Despite the name, it is better to add related functions in
@@ -2218,6 +2266,12 @@ the same code section. C<name> is an arbitrary identifier of this
 resource.  Best used with a 'here' document.  If the document already
 contains ProcSet C<name> (as reported by C<has_function>, then
 C<add_function> does nothing.
+
+C<version> is a real number, and C<revision> is an integer.  They both
+default to 0.  PostScript::File does not make any use of these, but a
+PostScript document manager may assume that a procset with a higher
+revision number may be substituted for a procset with the same name
+and version but a lower revision.
 
 Returns true if the ProcSet was added, or false if it already existed.
 
@@ -2246,7 +2300,8 @@ including those added by other classes.
 
 sub has_function {
     my ($o, $name) = @_;
-    return ($o->{DocSupplied} =~ /^\%\%\+ procset \Q$name\E$/m);
+    $name = $o->quote_text($name);
+    return ($o->{DocSupplied} =~ /^\%\%\+ procset \Q$name\E /m);
 }
 
 =head2 has_function( name )
@@ -2375,6 +2430,39 @@ sub embed_font
 
   return $fontName;
 } # end embed_font
+
+=head2 need_resource( type, name... )
+
+This adds a resource to the DocumentNeededResources comment.  C<type>
+is the same as L<add_resource>.  Any number of resources (of a single
+type) may added in one call.  Names that contain special characters
+such as spaces must be quoted using the L<quote_text> method.
+
+If C<need_resource> is never called for the C<font> type (and
+C<need_fonts> is not used), it assumes the document requires all 13 of
+the standard PostScript fonts: Courier, Courier-Bold,
+Courier-BoldOblique, Courier-Oblique, Helvetica, Helvetica-Bold,
+Helvetica-BoldOblique, Helvetica-Oblique, Times-Roman, Times-Bold,
+Times-BoldItalic, Times-Italic, and Symbol.  But this behaviour is
+deprecated; a document should explicitly list the fonts it requires.
+If you don't use any of the standard fonts, pass C<< need_fonts => [] >>
+to the constructor (or call C<< $ps->need_resource('font') >>) to
+indicate that.
+
+=cut
+
+sub need_resource
+{
+  my $o    = shift;
+  my $type = shift;
+
+  # For compatibility with add_resource:
+  $type = $supplied_type{$type} if $supplied_type{$type};
+
+  my $hash = $o->{needed}{$type} ||= {};
+
+  $hash->{$o->encode_text($_)} = 1 for @_;
+} # end need_resource
 
 sub get_setup {
     my $o = shift;
@@ -2898,7 +2986,27 @@ side-effect of setting the UTF8 flag on the returned string.  (If the
 UTF8 flag was not set on the input string, it will be decoded using
 the document's character set.)  See L</"Hyphens and Minus Signs">.
 
+=head2 quote_text( string )
+
+Quotes the string if it contains special characters, making it
+suitable for a DSC comment.  Strings without special characters are
+returned unchanged.
+
+This may also be called as a class or object method.
+
 =cut
+
+sub quote_text
+{
+  my $o;
+  $o = shift if @_ > 1;         # We were called as a method
+
+  my $string = shift;
+
+  return $string if $string =~ /^[-_[:alnum:]]+\z/;
+
+  __PACKAGE__->pstr($string, 1);
+} # end quote_text
 
 #=============================================================================
 1;

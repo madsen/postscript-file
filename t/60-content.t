@@ -29,6 +29,8 @@ BEGIN { $diff = eval "use Test::Differences; 1" }
 
 use PostScript::File ();
 
+my $psVer = PostScript::File->VERSION;
+
 my $generateResults;
 
 if (@ARGV and $ARGV[0] eq 'gen') {
@@ -61,6 +63,9 @@ while (<DATA>) {
       $expected .= $_;
     }
 
+    $expected =~ s{procset PostScript_File 0 0}
+                  {procset PostScript_File $psVer 0}g;
+
     # Run the test:
     my $ps = PostScript::File->new(%param);
 
@@ -70,7 +75,13 @@ while (<DATA>) {
     } # end foreach $call in @methods
 
     if ($generateResults) {
-      printf OUT "%s---\n", $ps->output;
+      $expected = $ps->output;
+
+      # Suppress version numbers:
+      $expected =~ s{procset PostScript_File \Q$psVer\E 0}
+                    {procset PostScript_File 0 0}g;
+
+      print OUT "$expected---\n";
     } elsif ($diff) {
       eq_or_diff($ps->output, $expected, $name); # if Test::Differences
       # Calling output again should produce exactly the same output:
@@ -120,11 +131,11 @@ __DATA__
 %!PS-Adobe-3.0
 %%Orientation: Portrait
 %%DocumentSuppliedResources:
-%%+ procset PostScript_File
+%%+ procset PostScript_File 0 0
 %%Title: ()
 %%EndComments
 %%BeginProlog
-%%BeginProcSet: PostScript_File
+%%BeginResource: procset PostScript_File 0 0
 /errx 72 def
 /erry 72 def
 /errmsg (ERROR:) def
@@ -154,7 +165,7 @@ errorname 80 string cvs show
 stop
 } def
 end
-%%EndProcSet
+%%EndResource
 %%EndProlog
 %%Page: 1 1
 %%PageBoundingBox: 28 28 568 814
@@ -177,11 +188,11 @@ strip: 'none'
 %!PS-Adobe-3.0
 %%Orientation: Portrait
 %%DocumentSuppliedResources:
-%%+ procset PostScript_File
+%%+ procset PostScript_File 0 0
 %%Title: ()
 %%EndComments
 %%BeginProlog
-%%BeginProcSet: PostScript_File
+%%BeginResource: procset PostScript_File 0 0
 
 
 /errx 72 def
@@ -216,9 +227,7 @@ stop
 end
 
 
-%%EndProcSet
-
-
+%%EndResource
 
 
 %%EndProlog
@@ -251,11 +260,11 @@ paper: 'US-Letter'
 %!PS-Adobe-3.0
 %%Orientation: Portrait
 %%DocumentSuppliedResources:
-%%+ procset PostScript_File
+%%+ procset PostScript_File 0 0
 %%Title: ()
 %%EndComments
 %%BeginProlog
-%%BeginProcSet: PostScript_File
+%%BeginResource: procset PostScript_File 0 0
 /errx 72 def
 /erry 72 def
 /errmsg (ERROR:) def
@@ -281,7 +290,7 @@ errorname 80 string cvs show
 stop
 } def
 end
-%%EndProcSet
+%%EndResource
 %%EndProlog
 %%Page: 1 1
 %%PageBoundingBox: 28 28 584 764
@@ -304,11 +313,11 @@ paper: '123x456'
 %!PS-Adobe-3.0
 %%Orientation: Portrait
 %%DocumentSuppliedResources:
-%%+ procset PostScript_File
+%%+ procset PostScript_File 0 0
 %%Title: ()
 %%EndComments
 %%BeginProlog
-%%BeginProcSet: PostScript_File
+%%BeginResource: procset PostScript_File 0 0
 /errx 72 def
 /erry 72 def
 /errmsg (ERROR:) def
@@ -338,7 +347,7 @@ errorname 80 string cvs show
 stop
 } def
 end
-%%EndProcSet
+%%EndResource
 %%EndProlog
 %%Page: 1 1
 %%PageBoundingBox: 28 28 95 428
@@ -357,23 +366,20 @@ showpage
 :: multiple comments
 paper: 'Letter'
 order: 'ascend'
+need_fonts: [qw( Paladin Paladin-Bold )]
 ->add_comment("ProofMode: NotifyMe");
 ->add_comment("Requirements: manualfeed");
-->add_comment("DocumentNeededResources:");
-->add_comment("+ font Paladin");
-->add_comment("+ font Paladin-Bold");
 ->add_default("PageResources: font Paladin");
 ->add_default("+ font Paladin-Bold");
 ===
 %!PS-Adobe-3.0
 %%ProofMode: NotifyMe
 %%Requirements: manualfeed
-%%DocumentNeededResources:
-%%+ font Paladin
-%%+ font Paladin-Bold
 %%Orientation: Portrait
+%%DocumentNeededResources:
+%%+ font Paladin Paladin-Bold
 %%DocumentSuppliedResources:
-%%+ procset PostScript_File
+%%+ procset PostScript_File 0 0
 %%Title: ()
 %%PageOrder: Ascend
 %%EndComments
@@ -382,7 +388,7 @@ order: 'ascend'
 %%+ font Paladin-Bold
 %%EndDefaults
 %%BeginProlog
-%%BeginProcSet: PostScript_File
+%%BeginResource: procset PostScript_File 0 0
 /errx 72 def
 /erry 72 def
 /errmsg (ERROR:) def
@@ -412,7 +418,7 @@ errorname 80 string cvs show
 stop
 } def
 end
-%%EndProcSet
+%%EndResource
 %%EndProlog
 %%Page: 1 1
 %%PageBoundingBox: 28 28 584 764
@@ -436,13 +442,16 @@ reencode: 'cp1252'
 ===
 %!PS-Adobe-3.0
 %%Orientation: Portrait
+%%DocumentNeededResources:
+%%+ font Courier Courier-Bold Courier-BoldOblique Courier-Oblique Helvetica
+%%+ font Helvetica-Bold Helvetica-BoldOblique Helvetica-Oblique Symbol
+%%+ font Times-Bold Times-BoldItalic Times-Italic Times-Roman
 %%DocumentSuppliedResources:
-%%+ Win1252_Encoded_Fonts
-%%+ procset PostScript_File
+%%+ procset PostScript_File 0 0
 %%Title: ()
 %%EndComments
 %%BeginProlog
-%%BeginProcSet: PostScript_File
+%%BeginResource: procset PostScript_File 0 0
 /errx 72 def
 /erry 72 def
 /errmsg (ERROR:) def
@@ -468,8 +477,10 @@ errorname 80 string cvs show
 stop
 } def
 end
-%%EndProcSet
-%%BeginResource: Win1252_Encoded_Fonts
+%%EndResource
+%%EndProlog
+%%BeginSetup
+% Handle font encoding:
 /STARTDIFFENC { mark } bind def
 /ENDDIFFENC {
 counttomark 2 add -1 roll 256 array copy
@@ -538,6 +549,8 @@ currentdict
 end
 definefont pop
 } bind def
+
+% Reencode the fonts:
 /Courier-iso Win1252Encoding /Courier REENCODEFONT
 /Courier-Bold-iso Win1252Encoding /Courier-Bold REENCODEFONT
 /Courier-BoldOblique-iso Win1252Encoding /Courier-BoldOblique REENCODEFONT
@@ -546,12 +559,12 @@ definefont pop
 /Helvetica-Bold-iso Win1252Encoding /Helvetica-Bold REENCODEFONT
 /Helvetica-BoldOblique-iso Win1252Encoding /Helvetica-BoldOblique REENCODEFONT
 /Helvetica-Oblique-iso Win1252Encoding /Helvetica-Oblique REENCODEFONT
-/Times-Roman-iso Win1252Encoding /Times-Roman REENCODEFONT
 /Times-Bold-iso Win1252Encoding /Times-Bold REENCODEFONT
 /Times-BoldItalic-iso Win1252Encoding /Times-BoldItalic REENCODEFONT
 /Times-Italic-iso Win1252Encoding /Times-Italic REENCODEFONT
-%%EndResource
-%%EndProlog
+/Times-Roman-iso Win1252Encoding /Times-Roman REENCODEFONT
+% end font encoding
+%%EndSetup
 %%Page: 1 1
 %%PageBoundingBox: 28 28 584 764
 %%BeginPageSetup
@@ -581,11 +594,11 @@ paper: 'Letter'
 %%DocumentSuppliedResources:
 %%+ font Random
 %%+ file SomeFile
-%%+ procset PostScript_File
+%%+ procset PostScript_File 0 0
 %%Title: ()
 %%EndComments
 %%BeginProlog
-%%BeginProcSet: PostScript_File
+%%BeginResource: procset PostScript_File 0 0
 /errx 72 def
 /erry 72 def
 /errmsg (ERROR:) def
@@ -615,14 +628,16 @@ errorname 80 string cvs show
 stop
 } def
 end
-%%EndProcSet
+%%EndResource
+%%EndProlog
+%%BeginSetup
 %%BeginFont: Random printer
 % The Random font would go here
 %%EndFont
 %%BeginFile: SomeFile
 % SomeFile would go here
 %%EndFile
-%%EndProlog
+%%EndSetup
 %%Page: 1 1
 %%PageBoundingBox: 28 28 584 764
 %%BeginPageSetup
@@ -651,11 +666,11 @@ paper: 'Letter'
 %!PS-Adobe-3.0
 %%Orientation: Portrait
 %%DocumentSuppliedResources:
-%%+ procset PostScript_File
+%%+ procset PostScript_File 0 0
 %%Title: ()
 %%EndComments
 %%BeginProlog
-%%BeginProcSet: PostScript_File
+%%BeginResource: procset PostScript_File 0 0
 /errx 72 def
 /erry 72 def
 /errmsg (ERROR:) def
@@ -685,7 +700,7 @@ errorname 80 string cvs show
 stop
 } def
 end
-%%EndProcSet
+%%EndResource
 %%EndProlog
 %%BeginSetup
 % Setup line 1
@@ -721,11 +736,11 @@ paper: 'US-Letter'
 %%Orientation: Portrait
 %%DocumentSuppliedResources:
 %%+ file (recycle.eps)
-%%+ procset PostScript_File
+%%+ procset PostScript_File 0 0
 %%Title: ()
 %%EndComments
 %%BeginProlog
-%%BeginProcSet: PostScript_File
+%%BeginResource: procset PostScript_File 0 0
 /errx 72 def
 /erry 72 def
 /errmsg (ERROR:) def
@@ -751,7 +766,7 @@ errorname 80 string cvs show
 stop
 } def
 end
-%%EndProcSet
+%%EndResource
 %%EndProlog
 %%Page: 1 1
 %%PageBoundingBox: 28 28 584 764
@@ -875,11 +890,11 @@ paper: 'US-Letter'
 %%Orientation: Portrait
 %%DocumentSuppliedResources:
 %%+ file (recycle-i.epsi)
-%%+ procset PostScript_File
+%%+ procset PostScript_File 0 0
 %%Title: ()
 %%EndComments
 %%BeginProlog
-%%BeginProcSet: PostScript_File
+%%BeginResource: procset PostScript_File 0 0
 /errx 72 def
 /erry 72 def
 /errmsg (ERROR:) def
@@ -905,7 +920,7 @@ errorname 80 string cvs show
 stop
 } def
 end
-%%EndProcSet
+%%EndResource
 %%EndProlog
 %%Page: 1 1
 %%PageBoundingBox: 28 28 584 764
@@ -1029,11 +1044,11 @@ paper: 'US-Letter'
 %%Orientation: Portrait
 %%DocumentSuppliedResources:
 %%+ file (recycle-tiff4.eps)
-%%+ procset PostScript_File
+%%+ procset PostScript_File 0 0
 %%Title: ()
 %%EndComments
 %%BeginProlog
-%%BeginProcSet: PostScript_File
+%%BeginResource: procset PostScript_File 0 0
 /errx 72 def
 /erry 72 def
 /errmsg (ERROR:) def
@@ -1059,7 +1074,7 @@ errorname 80 string cvs show
 stop
 } def
 end
-%%EndProcSet
+%%EndResource
 %%EndProlog
 %%Page: 1 1
 %%PageBoundingBox: 28 28 584 764
@@ -1183,11 +1198,11 @@ paper: 'US-Letter'
 %%Orientation: Portrait
 %%DocumentSuppliedResources:
 %%+ file (recycle-wmf.epsf)
-%%+ procset PostScript_File
+%%+ procset PostScript_File 0 0
 %%Title: ()
 %%EndComments
 %%BeginProlog
-%%BeginProcSet: PostScript_File
+%%BeginResource: procset PostScript_File 0 0
 /errx 72 def
 /erry 72 def
 /errmsg (ERROR:) def
@@ -1213,7 +1228,7 @@ errorname 80 string cvs show
 stop
 } def
 end
-%%EndProcSet
+%%EndResource
 %%EndProlog
 %%Page: 1 1
 %%PageBoundingBox: 28 28 584 764

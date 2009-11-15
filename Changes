@@ -12,7 +12,8 @@ Revision history for Perl extension PostScript::File.
 	  Please read Hyphens and Minus Signs in PostScript::File for details.
 
 	- Added auto_hyphen attribute with get/set methods
-	- Added embed_font method
+	- Added need_fonts attribute
+	- Added embed_font & need_resource methods
 	- Reencode fonts added using embed_font or add_resource
 	- Added PostScript::File::Metrics, which includes the metrics
 	  for the standard PostScript fonts.  No more trying to
@@ -34,6 +35,8 @@ Revision history for Perl extension PostScript::File.
 	  instead of the regular expression being used
 	- In eps mode, output now returns a list of pages
 	- Multiple calls to output no longer cause duplicate resources
+	- Fonts & resources appear in the document Setup section
+	  instead of the Prolog
 	- Include a Local Variables section for Emacs in the %%Trailer
 	  describing the file's encoding
 
