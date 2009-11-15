@@ -26,7 +26,6 @@ use warnings;
 use Carp 'croak';
 use File::Spec ();
 use Scalar::Util 'openhandle';
-use Sys::Hostname;
 use Exporter 'import';
 
 our %EXPORT_TAGS = (metrics_methods => [qw(
@@ -846,13 +845,14 @@ END_FONTS
     } # end if reencode
 
     # Prepare the postscript file
-    my $user = getlogin() || (getpwuid($<))[0] || "Unknown";
-    my $hostname = hostname();
     my $postscript = $o->{eps} ? "\%!PS-Adobe-3.0 EPSF-3.0\n" : "\%!PS-Adobe-3.0\n";
     if ($o->{eps}) {
         $postscript .= $o->bbox_comment('', $o->{bbox});
     }
     if ($o->{headings}) {
+        require Sys::Hostname;
+        my $user = getlogin() || (getpwuid($<))[0] || "Unknown";
+        my $hostname = Sys::Hostname::hostname();
         $postscript .= $o->_here_doc(<<END_TITLES);
         \%\%For: $user\@$hostname
         \%\%Creator: Perl module ${\( ref $o )} v$PostScript::File::VERSION
