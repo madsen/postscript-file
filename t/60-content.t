@@ -27,6 +27,9 @@ use Test::More;
 my $diff;
 BEGIN { $diff = eval "use Test::Differences; 1" }
 
+# Not all versions of Test::Differences support changing the style:
+eval { Test::Differences::unified_diff() };
+
 use PostScript::File ();
 
 my $psVer = PostScript::File->VERSION;
