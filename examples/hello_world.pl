@@ -14,6 +14,7 @@ use PostScript::File 1.05;      # Need cp1252 support
 my $ps = PostScript::File->new(
   paper    => 'letter',
   reencode => 'cp1252', # Best available Unicode support (still not much)
+  need_fonts => ['Helvetica'],
 );
 
 # These characters are not in Latin-1, but they are in CP1252:

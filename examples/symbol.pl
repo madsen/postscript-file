@@ -15,6 +15,7 @@ my $ps = PostScript::File->new(
   paper    => 'letter',
   reencode => 'cp1252',
   auto_hyphen => 0,             # We don't want any hyphen translation
+  need_fonts  => [qw(Helvetica Symbol)],
   left     => 72,
   top      => 72,
 );

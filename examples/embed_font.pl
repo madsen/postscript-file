@@ -20,6 +20,7 @@ use PostScript::File 1.05;      # Need cp1252 support
 my $ps = PostScript::File->new(
   paper    => 'letter',
   reencode => 'cp1252', # Best available Unicode support (still not much)
+  need_fonts => [],     # Not using the standard fonts at all
 );
 
 # Use catfile $Bin just in case we're not in the examples directory:
