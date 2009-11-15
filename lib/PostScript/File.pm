@@ -2330,7 +2330,10 @@ It defaults to F<ttftotype42>.)
 
 Since TrueType (aka Type42) font support was introduced in PostScript
 level 2, embedding a TTF font automatically sets C<langlevel> to 2
-(unless it was already set to a higher level).
+(unless it was already set to a higher level).  Be aware that not all
+printers can handle Type42 fonts.  (Even PostScript level 2 printers
+need not support them.)  Ghostscript does support Type42 fonts (when
+compiled with the C<ttfont> option).
 
 =back
 
