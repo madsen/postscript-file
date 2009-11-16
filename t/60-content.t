@@ -600,11 +600,22 @@ showpage
 paper: 'Letter'
 ->add_resource(Font => 'Random', '', "% The Random font would go here\n");
 ->add_resource(File => 'SomeFile', '', "% SomeFile would go here\n");
+->need_resource(pattern => qw(Pattern1 Pattern2));
+->need_resource(procset => [qw(SomeProcset 1.2 0)]);
+->need_resource(font => qw(SomeFont OtherFont));
+->need_resource(file => 'AFile', 'filename with spaces.txt');
+->need_resource(form => qw(SomeForm));
+->need_resource(encoding => qw(SomeEncoding));
 ===
 %!PS-Adobe-3.0
 %%Orientation: Portrait
 %%DocumentNeededResources:
-%%+ font Courier-Bold
+%%+ encoding SomeEncoding
+%%+ file (filename with spaces.txt) AFile
+%%+ font Courier-Bold OtherFont SomeFont
+%%+ form SomeForm
+%%+ pattern Pattern1 Pattern2
+%%+ procset SomeProcset 1.2 0
 %%DocumentSuppliedResources:
 %%+ font Random
 %%+ file SomeFile
