@@ -2185,23 +2185,40 @@ sub get_resources {
 
 our %supplied_type = (qw(
   Document  file
-  File      file
-  Font      font
-  ProcSet   procset
-  Resource) => ''
+  Feature) => ''
 );
+
+our %add_resource_accepts = map { $_ => 1 } qw(
+  encoding file font form pattern
+);
+# add_resource does not accept procset, but need_resource does:
+$add_resource_accepts{procset} = undef;
 
 sub add_resource {
     my ($o, $type, $name, $params, $resource) = @_;
+
+    my $suptype = $supplied_type{$type};
+    my $restype = '';
+
+    croak "add_resource does not accept type $type"
+        unless defined($suptype) or $add_resource_accepts{lc $type};
+
+    unless (defined $suptype) {
+      $suptype = lc $type;
+      $restype = "$suptype ";
+      $type    = 'Resource';
+    } # end unless Document or Feature
+
     if (defined($resource)) {
         $resource =~ s/$o->{strip}//gm;
-        $o->{DocSupplied} .= $o->encode_text("\%\%+ $supplied_type{$type} $name\n")
-            if defined $supplied_type{$type};
+        $name = $o->quote_text($name);
+        $o->{DocSupplied} .= $o->encode_text("\%\%+ $suptype $name\n")
+            if $suptype;
 
         # Store fonts separately, because they need to come first:
         my $storage = 'Resources';
 
-        if ($type eq 'Font') {
+        if ($suptype eq 'font') {
           $storage = 'Fonts';
           push @{ $o->{embed_fonts} }, $name; # Remember to reencode it
         } # end if adding Font
@@ -2209,7 +2226,7 @@ sub add_resource {
         $name .= " $params" if defined $params and length $params;
 
         $o->{$storage} .= $o->_here_doc(<<END_USER_RESOURCE);
-            \%\%Begin${type}: $name
+            \%\%Begin${type}: $restype$name
             $resource
             \%\%End$type
 END_USER_RESOURCE
@@ -2224,8 +2241,9 @@ END_USER_RESOURCE
 
 =item C<type>
 
-A string indicating the DSC type of the resource.  It should be one of Document, Resource, File, Font, ProcSet or
-Feature (case sensitive).
+A string indicating the DSC type of the resource.  It should be one of
+C<Document>, C<Feature>, C<encoding>, C<file>, C<font>, C<form>, or
+C<pattern> (case sensitive).
 
 =item C<name>
 
@@ -2348,8 +2366,7 @@ sub embed_document
 {
   my ($o, $filename) = @_;
 
-  # Call pstr as class method to prevent auto_hyphen processing:
-  my $id = ref($o)->pstr(substr($filename, -234), 1); # in case it's long
+  my $id = $o->quote_text(substr($filename, -234)); # in case it's long
   my $supplied = $o->encode_text("%%+ file $id\n");
   $o->{DocSupplied} .= $supplied
       unless index($o->{DocSupplied}, $supplied) >= 0;
@@ -2454,12 +2471,17 @@ sub embed_font
   return $fontName;
 } # end embed_font
 
-=head2 need_resource( type, name... )
+=head2 need_resource( type, resource... )
 
 This adds a resource to the DocumentNeededResources comment.  C<type>
-is the same as L<add_resource>.  Any number of resources (of a single
-type) may added in one call.  Names that contain special characters
-such as spaces must be quoted using the L<quote_text> method.
+is one of C<encoding>, C<file>, C<font>, C<form>, C<pattern>, or
+C<procset> (case sensitive).
+
+Any number of resources (of a single type) may added in one call.  For
+most types, C<resource> is just the resource name.  But for
+C<procset>, each C<resource> should be an arrayref of 3 elements:
+C<[name, version, revision]>.  Names that contain special characters
+such as spaces will be quoted automatically.
 
 If C<need_resource> is never called for the C<font> type (and
 C<need_fonts> is not used), it assumes the document requires all 13 of
@@ -2479,12 +2501,17 @@ sub need_resource
   my $o    = shift;
   my $type = shift;
 
-  # For compatibility with add_resource:
-  $type = $supplied_type{$type} if $supplied_type{$type};
+  croak "Unknown resource type $type"
+      unless exists $add_resource_accepts{$type};
 
   my $hash = $o->{needed}{$type} ||= {};
 
-  $hash->{$o->encode_text($_)} = 1 for @_;
+  foreach my $res (@_) {
+
+    $hash->{ $o->encode_text(
+      join(' ', map { $o->quote_text($_) } (ref $res ? @$res : $res))
+    )} = 1;
+  } # end foreach $res
 } # end need_resource
 
 sub get_setup {
@@ -3026,7 +3053,7 @@ sub quote_text
 
   my $string = shift;
 
-  return $string if $string =~ /^[-_[:alnum:]]+\z/;
+  return $string if $string =~ m(^[-+_./*A-Za-z0-9]+\z);
 
   __PACKAGE__->pstr($string, 1);
 } # end quote_text

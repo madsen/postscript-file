@@ -14,6 +14,8 @@ Revision history for Perl extension PostScript::File.
 	- Added auto_hyphen attribute with get/set methods
 	- Added need_fonts attribute
 	- Added embed_font & need_resource methods
+	- add_resource accepts all DSC 3.0 resource types,
+	  but no longer accepts generic 'Resource' type
 	- Reencode fonts added using embed_font or add_resource
 	- Added PostScript::File::Metrics, which includes the metrics
 	  for the standard PostScript fonts.  No more trying to
@@ -33,6 +35,7 @@ Revision history for Perl extension PostScript::File.
 	  add_page_trailer, & add_trailer now append instead of
 	  overwriting previous value
 	- add_function is now a no-op if has_function returns true
+	- add_resource uses BeginResource instead of deprecated comments
 	- get_strip now returns 'none', 'space', or 'comments'
 	  instead of the regular expression being used
 	- In eps mode, output now returns a list of pages

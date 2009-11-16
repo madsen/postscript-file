@@ -590,7 +590,7 @@ showpage
 
 :: multiple resources
 paper: 'Letter'
-->add_resource(Font => 'Random', 'printer', "% The Random font would go here\n");
+->add_resource(Font => 'Random', '', "% The Random font would go here\n");
 ->add_resource(File => 'SomeFile', '', "% SomeFile would go here\n");
 ===
 %!PS-Adobe-3.0
@@ -635,12 +635,12 @@ end
 %%EndResource
 %%EndProlog
 %%BeginSetup
-%%BeginFont: Random printer
+%%BeginResource: font Random
 % The Random font would go here
-%%EndFont
-%%BeginFile: SomeFile
+%%EndResource
+%%BeginResource: file SomeFile
 % SomeFile would go here
-%%EndFile
+%%EndResource
 %%EndSetup
 %%Page: 1 1
 %%PageBoundingBox: 28 28 584 764
@@ -739,7 +739,7 @@ paper: 'US-Letter'
 %!PS-Adobe-3.0
 %%Orientation: Portrait
 %%DocumentSuppliedResources:
-%%+ file (recycle.eps)
+%%+ file recycle.eps
 %%+ procset PostScript_File 0 0
 %%Title: ()
 %%EndComments
@@ -778,7 +778,7 @@ end
 /pagelevel save def
 userdict begin
 %%EndPageSetup
-%%BeginDocument: (recycle.eps)
+%%BeginDocument: recycle.eps
 %!PS-Adobe-3.0 EPSF-3.0
 %%Creator: inkscape 0.46
 %%Pages: 1
@@ -893,7 +893,7 @@ paper: 'US-Letter'
 %!PS-Adobe-3.0
 %%Orientation: Portrait
 %%DocumentSuppliedResources:
-%%+ file (recycle-i.epsi)
+%%+ file recycle-i.epsi
 %%+ procset PostScript_File 0 0
 %%Title: ()
 %%EndComments
@@ -932,7 +932,7 @@ end
 /pagelevel save def
 userdict begin
 %%EndPageSetup
-%%BeginDocument: (recycle-i.epsi)
+%%BeginDocument: recycle-i.epsi
 %!PS-Adobe-3.0 EPSF-3.0
 %%Creator: inkscape 0.46
 %%Pages: 1
@@ -1047,7 +1047,7 @@ paper: 'US-Letter'
 %!PS-Adobe-3.0
 %%Orientation: Portrait
 %%DocumentSuppliedResources:
-%%+ file (recycle-tiff4.eps)
+%%+ file recycle-tiff4.eps
 %%+ procset PostScript_File 0 0
 %%Title: ()
 %%EndComments
@@ -1086,7 +1086,7 @@ end
 /pagelevel save def
 userdict begin
 %%EndPageSetup
-%%BeginDocument: (recycle-tiff4.eps)
+%%BeginDocument: recycle-tiff4.eps
 %!PS-Adobe-3.0 EPSF-3.0
 %%Creator: inkscape 0.46
 %%Pages: 1
@@ -1201,7 +1201,7 @@ paper: 'US-Letter'
 %!PS-Adobe-3.0
 %%Orientation: Portrait
 %%DocumentSuppliedResources:
-%%+ file (recycle-wmf.epsf)
+%%+ file recycle-wmf.epsf
 %%+ procset PostScript_File 0 0
 %%Title: ()
 %%EndComments
@@ -1240,7 +1240,7 @@ end
 /pagelevel save def
 userdict begin
 %%EndPageSetup
-%%BeginDocument: (recycle-wmf.epsf)
+%%BeginDocument: recycle-wmf.epsf
 %!PS-Adobe-3.0 EPSF-3.0
 %%Creator: inkscape 0.46
 %%Pages: 1
