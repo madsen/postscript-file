@@ -2294,9 +2294,9 @@ sub add_function {
                         $version||0, $revision||0);
         $o->{DocSupplied} .= $o->encode_text("\%\%+ procset $name\n");
         $o->{Functions} .= $o->_here_doc(<<END_USER_FUNCTIONS);
-            \%\%BeginProcSet: $name
+            \%\%BeginResource: procset $name
             $entry
-            \%\%EndProcSet
+            \%\%EndResource
 END_USER_FUNCTIONS
         return 1;
     }
