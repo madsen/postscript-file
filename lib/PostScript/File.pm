@@ -892,7 +892,9 @@ END_LANDSCAPE
 END_CLIPPING
 
     my $errorfn = "";
-    $errorfn .= $o->_here_doc(<<END_ERRORS) if ($o->{errors});
+    if ($o->{errors}) {
+      $o->need_resource(font => $o->{errfont});
+      $errorfn .= $o->_here_doc(<<END_ERRORS);
         /errx $o->{errx} def
         /erry $o->{erry} def
         /errmsg ($o->{errmsg}) def
@@ -924,9 +926,12 @@ END_CLIPPING
             } def
         end
 END_ERRORS
+    } # end if $o->{errors}
 
     my $debugfn = "";
-    $debugfn .= $o->_here_doc(<<END_DEBUG_ON) if ($o->{debug});
+    if ($o->{debug}) {
+      $o->need_resource(font => $o->{db_font});
+      $debugfn .= $o->_here_doc(<<END_DEBUG_ON);
         /debugdict 25 dict def
         debugdict begin
 
@@ -1088,6 +1093,7 @@ END_ERRORS
         /db_ypos  $o->{db_ytop} def
         end
 END_DEBUG_ON
+    } # end if $o->{debug}
 
     $debugfn .= $o->_here_doc(<<END_DEBUG_OFF) if (defined($o->{debug}) and not $o->{debug});
         % Define out the db_ functions

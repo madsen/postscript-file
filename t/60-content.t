@@ -133,6 +133,8 @@ __DATA__
 ===
 %!PS-Adobe-3.0
 %%Orientation: Portrait
+%%DocumentNeededResources:
+%%+ font Courier-Bold
 %%DocumentSuppliedResources:
 %%+ procset PostScript_File 0 0
 %%Title: ()
@@ -190,6 +192,8 @@ strip: 'none'
 ===
 %!PS-Adobe-3.0
 %%Orientation: Portrait
+%%DocumentNeededResources:
+%%+ font Courier-Bold
 %%DocumentSuppliedResources:
 %%+ procset PostScript_File 0 0
 %%Title: ()
@@ -262,6 +266,8 @@ paper: 'US-Letter'
 ===
 %!PS-Adobe-3.0
 %%Orientation: Portrait
+%%DocumentNeededResources:
+%%+ font Courier-Bold
 %%DocumentSuppliedResources:
 %%+ procset PostScript_File 0 0
 %%Title: ()
@@ -315,6 +321,8 @@ paper: '123x456'
 ===
 %!PS-Adobe-3.0
 %%Orientation: Portrait
+%%DocumentNeededResources:
+%%+ font Courier-Bold
 %%DocumentSuppliedResources:
 %%+ procset PostScript_File 0 0
 %%Title: ()
@@ -380,7 +388,7 @@ need_fonts: [qw( Paladin Paladin-Bold )]
 %%Requirements: manualfeed
 %%Orientation: Portrait
 %%DocumentNeededResources:
-%%+ font Paladin Paladin-Bold
+%%+ font Courier-Bold Paladin Paladin-Bold
 %%DocumentSuppliedResources:
 %%+ procset PostScript_File 0 0
 %%Title: ()
@@ -595,6 +603,8 @@ paper: 'Letter'
 ===
 %!PS-Adobe-3.0
 %%Orientation: Portrait
+%%DocumentNeededResources:
+%%+ font Courier-Bold
 %%DocumentSuppliedResources:
 %%+ font Random
 %%+ file SomeFile
@@ -669,6 +679,8 @@ paper: 'Letter'
 ===
 %!PS-Adobe-3.0
 %%Orientation: Portrait
+%%DocumentNeededResources:
+%%+ font Courier-Bold
 %%DocumentSuppliedResources:
 %%+ procset PostScript_File 0 0
 %%Title: ()
@@ -738,6 +750,8 @@ paper: 'US-Letter'
 ===
 %!PS-Adobe-3.0
 %%Orientation: Portrait
+%%DocumentNeededResources:
+%%+ font Courier-Bold
 %%DocumentSuppliedResources:
 %%+ file recycle.eps
 %%+ procset PostScript_File 0 0
@@ -892,6 +906,8 @@ paper: 'US-Letter'
 ===
 %!PS-Adobe-3.0
 %%Orientation: Portrait
+%%DocumentNeededResources:
+%%+ font Courier-Bold
 %%DocumentSuppliedResources:
 %%+ file recycle-i.epsi
 %%+ procset PostScript_File 0 0
@@ -1046,6 +1062,8 @@ paper: 'US-Letter'
 ===
 %!PS-Adobe-3.0
 %%Orientation: Portrait
+%%DocumentNeededResources:
+%%+ font Courier-Bold
 %%DocumentSuppliedResources:
 %%+ file recycle-tiff4.eps
 %%+ procset PostScript_File 0 0
@@ -1200,6 +1218,8 @@ paper: 'US-Letter'
 ===
 %!PS-Adobe-3.0
 %%Orientation: Portrait
+%%DocumentNeededResources:
+%%+ font Courier-Bold
 %%DocumentSuppliedResources:
 %%+ file recycle-wmf.epsf
 %%+ procset PostScript_File 0 0
