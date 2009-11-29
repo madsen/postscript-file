@@ -22,7 +22,8 @@ our $VERSION = '2.00';          ## no critic
 
 use strict;
 use warnings;
-use Encode qw(encode is_utf8);
+use Carp 'croak';
+use Encode qw(find_encoding);
 
 use PostScript::File ':metrics_methods'; # Import some methods
 
@@ -134,7 +135,9 @@ sub new
     metrics  => $Metrics{$font}{$encoding},
   }, $class;
 
-  $self->{encoding} = $encoding unless $encoding =~ /^(?:std|sym)$/;
+  $self->{encoding} = find_encoding($encoding)
+      or croak "Unknown encoding $encoding"
+          unless $encoding =~ /^(?:std|sym)$/;
   $self->set_auto_hyphen(1);
   $self->set_size($size);
 } # end new

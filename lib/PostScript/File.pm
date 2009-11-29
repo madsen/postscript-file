@@ -1202,7 +1202,8 @@ sub post_pages {
     my $postscript = "";
 
     my $trailer = $o->{Trailer};
-    $trailer .= "% Local\ Variables:\n% coding: $o->{encoding}\n% End:\n"
+    $trailer .= "% Local\ Variables:\n% coding: " .
+                $o->{encoding}->mime_name . "\n% End:\n"
         if $o->{encoding};
 
     $postscript .= "%%Trailer\n$trailer" if $trailer;
@@ -1684,8 +1685,9 @@ sub _set_reencode
   $o->{reencode} = $encoding_name{$encoding}
       or croak "Invalid reencode setting $encoding";
 
-  $o->{encoding} = $encoding;
   require Encode;  Encode->VERSION(2.12); # Need coderef for CHECK
+  $o->{encoding} = Encode::find_encoding($encoding)
+      or croak "Can't find encoding $encoding";
 } # end _set_reencode
 
 our %encode_char = (
@@ -1699,14 +1701,16 @@ sub encode_text
 {
   my $o = shift;
 
-  if ($o->{encoding} and Encode::is_utf8( $_[0] )) {
-    Encode::encode($o->{encoding}, $_[0], sub {
+  my $encoding = $o->{encoding};
+
+  if ($encoding and Encode::is_utf8( $_[0] )) {
+    $encoding->encode($_[0], sub {
       $encode_char{$_[0]} || do {
         if ($_[0] < 0x100) {
           pack C => $_[0];      # Unmapped chars stay themselves
         } else {
           warn sprintf("PostScript::File can't convert U+%04X to %s\n",
-                       $_[0], $o->{encoding});
+                       $_[0], $encoding->name);
           '?'
         }
       }; # end invalid character
@@ -1720,8 +1724,10 @@ sub decode_text
 {
   my $o = shift; # $text, $preserve_minus
 
-  if ($o->{encoding} and not Encode::is_utf8( $_[0] )) {
-    my $text = Encode::decode($o->{encoding}, $_[0], sub { pack U => shift });
+  my $encoding = $o->{encoding};
+
+  if ($encoding and not Encode::is_utf8( $_[0] )) {
+    my $text = $encoding->decode($_[0], sub { pack U => shift });
     # Protect - from hyphen-minus processing if $preserve_minus:
     $text =~ s/-/\x{2212}/g if $_[1];
     $text;
@@ -1781,7 +1787,7 @@ sub get_metrics
       $encoding = 'sym';
     }
     elsif ($o->{reencode} and $font =~ s/\Q$o->{font_suffix}\E$//) {
-      $encoding = $o->{encoding} || 'iso-8859-1';
+      $encoding = $o->{encoding}->name || 'iso-8859-1';
     } else {
       $encoding = 'std';
     }

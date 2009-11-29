@@ -590,7 +590,7 @@ pagelevel restore
 showpage
 %%Trailer
 % Local Variables:
-% coding: cp1252
+% coding: windows-1252
 % End:
 %%EOF
 ---
