@@ -566,7 +566,7 @@ Remember to specify C<clipping> if that is what is wanted.  (Default: 28)
 =head3 need_fonts
 
 An arrayref of font names required by this document.  This is
-equivalent to calling C<< $ps->need_resource(fonts => @$arrayref) >>.
+equivalent to calling C<< $ps->need_resource(font => @$arrayref) >>.
 See L<need_resource> for details.
 
 =head3 paper
@@ -2489,8 +2489,8 @@ This adds a resource to the DocumentNeededResources comment.  C<type>
 is one of C<encoding>, C<file>, C<font>, C<form>, C<pattern>, or
 C<procset> (case sensitive).
 
-Any number of resources (of a single type) may added in one call.  For
-most types, C<resource> is just the resource name.  But for
+Any number of resources (of a single type) may be added in one call.
+For most types, C<resource> is just the resource name.  But for
 C<procset>, each C<resource> should be an arrayref of 3 elements:
 C<[name, version, revision]>.  Names that contain special characters
 such as spaces will be quoted automatically.
