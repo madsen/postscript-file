@@ -9,7 +9,7 @@ BEGIN {
   eval "use File::Temp 0.15 'tempdir';";
   plan skip_all => "File::Temp 0.15 required for testing" if $@;
 
-  plan tests => 5;
+  plan tests => 6;
 }
 
 use charnames qw(:full);
@@ -54,6 +54,8 @@ END_PAGE2
 my $dir  = $ARGV[0] || tempdir(CLEANUP => 1);
 my $name = "fi04pages";
 my $out  = $ps->output( $name, $dir );
+
+is($ps->get_filename, '', 'Did not set filename');
 
 is($out, File::Spec->catfile( $dir, "$name.ps" ), 'expected output filename');
 

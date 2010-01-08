@@ -1216,6 +1216,8 @@ sub post_pages {
 sub output {
     my ($o, $filename, $dir) = @_;
     my $fh = openhandle $filename;
+    # Don't permanently change filename:
+    local $o->{filename} = $o->{filename};
     $o->set_filename($filename, $dir) if defined $filename and not $fh;
 
     my ($debugbegin, $debugend) = ("", "");

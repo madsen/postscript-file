@@ -40,6 +40,7 @@ Revision history for Perl extension PostScript::File.
 	  instead of the regular expression being used
 	- In eps mode, output now returns a list of pages
 	- Multiple calls to output no longer cause duplicate resources
+	- Passing a filename to output does not permanently set the filename
 	- Fonts & resources appear in the document Setup section
 	  instead of the Prolog
 	- Include a Local Variables section for Emacs in the %%Trailer

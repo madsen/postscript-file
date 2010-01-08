@@ -9,10 +9,10 @@ BEGIN {
   eval "use File::Temp 0.15 'tempdir';";
   plan skip_all => "File::Temp 0.15 required for testing" if $@;
 
-  plan tests => 7;
+  plan tests => 8;
 }
 
-use PostScript::File 0.08 qw(check_file);
+use PostScript::File 2.00 qw(check_file);
 ok(1); # module found
 
 my $ps = PostScript::File->new();
@@ -22,6 +22,8 @@ my $dir  = $ARGV[0] || tempdir(CLEANUP => 1);
 my $name = "fi01simple";
 my $out  = $ps->output( $name, $dir );
 ok(1); # survived so far
+
+is($ps->get_filename, '', 'Did not set filename');
 
 is($out, File::Spec->catfile( $dir, "$name.ps" ), 'expected output filename');
 
