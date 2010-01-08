@@ -155,7 +155,7 @@ errmsg errx erry moveto show
 80 string cvs errx erry errsize sub moveto show
 stop
 } bind def
-% postscript errors printed on page
+% PostScript errors printed on page
 % not called directly
 errordict begin
 /handleerror {
@@ -217,7 +217,7 @@ strip: 'none'
     stop
 } bind def
 
-% postscript errors printed on page
+% PostScript errors printed on page
 % not called directly
 errordict begin
     /handleerror {
@@ -343,7 +343,7 @@ errmsg errx erry moveto show
 80 string cvs errx erry errsize sub moveto show
 stop
 } bind def
-% postscript errors printed on page
+% PostScript errors printed on page
 % not called directly
 errordict begin
 /handleerror {
@@ -414,7 +414,7 @@ errmsg errx erry moveto show
 80 string cvs errx erry errsize sub moveto show
 stop
 } bind def
-% postscript errors printed on page
+% PostScript errors printed on page
 % not called directly
 errordict begin
 /handleerror {
@@ -638,7 +638,7 @@ errmsg errx erry moveto show
 80 string cvs errx erry errsize sub moveto show
 stop
 } bind def
-% postscript errors printed on page
+% PostScript errors printed on page
 % not called directly
 errordict begin
 /handleerror {
@@ -712,7 +712,7 @@ errmsg errx erry moveto show
 80 string cvs errx erry errsize sub moveto show
 stop
 } bind def
-% postscript errors printed on page
+% PostScript errors printed on page
 % not called directly
 errordict begin
 /handleerror {

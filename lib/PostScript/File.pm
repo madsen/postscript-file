@@ -138,15 +138,15 @@ something useful, see
 
 An outline Adobe PostScript file is constructed.  Functions allow access to each of Adobe's Document
 Structuring Convention (DSC) sections and control how the pages are constructed.  It is possible to
-construct and output files in either normal PostScript (*.ps files) or as Encapsulated Postscript (*.epsf or
-*.epsi files).  By default a minimal file is output, but support for font encoding, postscript error reporting and
+construct and output files in either normal PostScript (*.ps files) or as Encapsulated PostScript (*.epsf or
+*.epsi files).  By default a minimal file is output, but support for font encoding, PostScript error reporting and
 debugging can be built in if required.
 
 Documents can typically be built using only these functions:
 
     new           The constructor, with many options
-    add_function  Add postscript functions to the prolog
-    add_to_page   Add postscript to construct each page
+    add_function  Add PostScript functions to the prolog
+    add_to_page   Add PostScript to construct each page
     newpage       Begins a new page in the document
     output        Construct the file and saves it
 
@@ -298,7 +298,7 @@ sub new {
 
     ## Initialization
     my $o = {
-        # postscript DSC sections
+        # PostScript DSC sections
         Comments    => "",  # must include leading '%%' and end with '\n'
         DocSupplied => "",
         Preview     => "",
@@ -395,7 +395,7 @@ sub new {
 =head2 new( options )
 
 Create a new PostScript::File object, either a set of pages or an Encapsulated PostScript (EPS) file. Options are
-hash keys and values.  All values should be in the native postscript units of 1/72 inch.
+hash keys and values.  All values should be in the native PostScript units of 1/72 inch.
 
 Example
 
@@ -408,7 +408,7 @@ Example
                 right => 44,
                 clipping => 1 );
 
-This creates an encapsulated postscript document, 4 by 3 inch pages printing landscape with left and right margins of
+This creates an Encapsulated PostScript document, 4 by 3 inch pages printing landscape with left and right margins of
 around half an inch.  The width is always the shortest side, even in landscape mode.  3*72=216 and 4*72=288.
 Being in landscape mode, these would be swapped.  The bounding box used for clipping would then be from
 (50,0) to (244,216).
@@ -428,7 +428,7 @@ There are four options which control how much gets put into the resulting file.
 
 =item undef
 
-No debug code is added to the file.  Of course there must be no calls to debug functions in the postscript code.
+No debug code is added to the file.  Of course there must be no calls to debug functions in the PostScript code.
 
 =item 0
 
@@ -436,8 +436,8 @@ B<db_> functions are replaced by dummy functions which do nothing.
 
 =item 1
 
-A range of functions are added to the file to support debugging postscript.  This switch is similar to the 'C'
-C<NDEBUG> macro in that debugging statements may be left in the postscript code but their effect is removed.
+A range of functions are added to the file to support debugging PostScript.  This switch is similar to the 'C'
+C<NDEBUG> macro in that debugging statements may be left in the PostScript code but their effect is removed.
 
 Of course, being an interpreted language, it is not quite the same as the calls still takes up space - they just
 do nothing.  See L</"POSTSCRIPT DEBUGGING SUPPORT"> for details of the functions.
@@ -455,7 +455,7 @@ when debugging is turned off.
 =head3 errors
 
 PostScript has a nasty habit of failing silently. Setting this to 1 prints fatal error messages on the bottom left
-of the paper.  For user functions, a postscript function B<report_error> is defined.  This expects a message
+of the paper.  For user functions, a PostScript function B<report_error> is defined.  This expects a message
 string on the stack, which it prints before stopping.  (Default: 1)
 
 =head3 headings
@@ -598,7 +598,7 @@ Set the page width, the shortest edge of the paper.  (Default taken from C<paper
 
 =head2 Debugging support keys
 
-This makes most sense in the postscript code rather than perl.  However, it is convenient to be able to set
+This makes most sense in the PostScript code rather than perl.  However, it is convenient to be able to set
 defaults for the output position and so on.  See L</"POSTSCRIPT DEBUGGING SUPPORT"> for further details.
 
 =head3 db_active
@@ -615,7 +615,7 @@ The size of string buffers used.  Output must be no longer than this.  (Default:
 
 =head3 db_color
 
-This is the whole postscript command (with any parameters) to specify the colour of the text printed by the debug
+This is the whole PostScript command (with any parameters) to specify the colour of the text printed by the debug
 routines.  (Default: "0 setgray")
 
 =head3 db_font
@@ -638,7 +638,7 @@ The name of the font to use.  (Default: "Courier")
 
 =head3 db_fontsize
 
-The size of the font.  Postscript uses its own units, but they are almost points.  (Default: 10)
+The size of the font.  PostScript uses its own units, but they are almost points.  (Default: 10)
 
 =head3 db_xgap
 
@@ -660,7 +660,7 @@ The top line of debugging output.  Defaults to 6 below the top of the page.
 =head2 Error handling keys
 
 If C<errors> is set, the position of any fatal error message can be controlled with the following options.  Each
-value is placed into a postscript variable of the same name, so they can be overridden from within the code if
+value is placed into a PostScript variable of the same name, so they can be overridden from within the code if
 necessary.
 
 =head3 errfont
@@ -669,7 +669,7 @@ The name of the font used to show the error message.  (Default: "Courier-Bold")
 
 =head3 errmsg
 
-The error message comprises two lines.  The second is the name of the postscript error.  This sets the first line.
+The error message comprises two lines.  The second is the name of the PostScript error.  This sets the first line.
 (Default: "ERROR:")
 
 =head3 errsize
@@ -844,7 +844,7 @@ END_FONTS
         $fonts .= "% end font encoding\n";
     } # end if reencode
 
-    # Prepare the postscript file
+    # Prepare the PostScript file
     my $postscript = $o->{eps} ? "\%!PS-Adobe-3.0 EPSF-3.0\n" : "\%!PS-Adobe-3.0\n";
     if ($o->{eps}) {
         $postscript .= $o->bbox_comment('', $o->{bbox});
@@ -910,7 +910,7 @@ END_CLIPPING
             stop
         } bind def
 
-        % postscript errors printed on page
+        % PostScript errors printed on page
         % not called directly
         errordict begin
             /handleerror {
@@ -1443,7 +1443,7 @@ C<file>.  If no C<file> was specified, C<dir> is ignored.
 =back
 
 Specify the root file name for the output file(s) and ensure the resulting absolute path exists.  This should not
-include any extension. C<.ps> will be added for ordinary postscript files.  EPS files have an extension of
+include any extension. C<.ps> will be added for ordinary PostScript files.  EPS files have an extension of
 C<.epsf> without or C<.epsi> with a preview image.
 (Unless you set the extension manually; see L</set_file_ext>.)
 
@@ -1827,7 +1827,7 @@ sub set_strip {
 
 =head2 set_strip( "none" | "space" | "comments" )
 
-Determine whether the postscript code is filtered.  C<space> strips leading spaces so the user can indent freely
+Determine whether the PostScript code is filtered.  C<space> strips leading spaces so the user can indent freely
 without increasing the file size.  C<comments> remove lines beginning with '%' as well.
 
 =cut
@@ -2270,7 +2270,7 @@ Some resource types require parameters.  See the Adobe documentation for details
 
 =item C<resource>
 
-A string containing the postscript code. Probably best provided a 'here' document.
+A string containing the PostScript code. Probably best provided a 'here' document.
 
 =back
 
@@ -2281,7 +2281,7 @@ Example
 
     $ps->add_resource( "File", "My_File1",
                        "", <<END_FILE1 );
-        ...postscript resource definition
+        ...PostScript resource definition
     END_FILE1
 
 Note that B<get_resources> returns I<all> resources added, including those added by any inheriting modules.
@@ -2333,7 +2333,7 @@ Returns true if the ProcSet was added, or false if it already existed.
 Example
 
     $ps->add_function( "My_Functions", <<END_FUNCTIONS );
-        % postscript code can be freely indented
+        % PostScript code can be freely indented
         % as leading spaces and blank lines
         % (and comments, if desired) are stripped
 
@@ -2598,7 +2598,7 @@ sub add_to_page {
 
 =head2 add_to_page( [page], code )
 
-The main function for building the postscript output.  C<page> can be any label, typically one given to
+The main function for building the PostScript output.  C<page> can be any label, typically one given to
 B<set_page_label>.  (Default: current page)
 
 If C<page> is not recognized, a new page is added with that label.  Note that this is added on the end, not in the
@@ -2608,11 +2608,11 @@ after "v".
 Examples
 
     $ps->add_to_page( <<END_PAGE );
-        ...postscript building this page
+        ...PostScript building this page
     END_PAGE
 
     $ps->add_to_page( "3", <<END_PAGE );
-        ...postscript building page 3
+        ...PostScript building page 3
     END_PAGE
 
 The first example adds code onto the end of the current page.  The second one either adds additional code to page
@@ -2663,7 +2663,7 @@ Add code to the PostScript C<%%Trailer> section.  Use this for any tidying up af
 
 =head1 POSTSCRIPT DEBUGGING SUPPORT
 
-This section documents the postscript functions which provide debugging output.  Please note that any clipping or
+This section documents the PostScript functions which provide debugging output.  Please note that any clipping or
 bounding boxes will also hide the debugging output which by default starts at the top left of the page.  Typical
 B<new> options required for debugging would include the following.
 
@@ -2673,7 +2673,7 @@ B<new> options required for debugging would include the following.
             clipcmd => "stroke" );
 
 The debugging output is printed on the page being drawn.  In practice this works fine, especially as it is
-possible to move the output around.  Where the text appears is controlled by a number of postscript variables,
+possible to move the output around.  Where the text appears is controlled by a number of PostScript variables,
 most of which may also be given as options to B<new>.
 
 The main controller is C<db_active> which needs to be non-zero for any output to be seen.  It might be useful to
@@ -2695,7 +2695,7 @@ The positioning of the debug output is changed by setting C<db_xpos> and C<db_yt
 position, with C<db_ybase> guarding the bottom.  Extending to the right is controlled by not printing too much!
 Judicious use of C<db_active> can help there.
 
-=head2 Postscript functions
+=head2 PostScript functions
 
 =head3 x0 y0 x1 y1 B<cliptobox>
 
@@ -2712,7 +2712,7 @@ resetting with B<clip_bounding_box>) it is possible to use this to identify area
 
 =head3 msg B<report_error>
 
-If 'errors' is enabled, this call allows you to report a fatal error from within your postscript code.  It expects
+If 'errors' is enabled, this call allows you to report a fatal error from within your PostScript code.  It expects
 a string on the stack and it does not return.
 
 All the C<db_> variables (including function names) are defined within their own dictionary (C<debugdict>).  But
@@ -2984,7 +2984,7 @@ sub array_as_string (@) { ## no critic (ProhibitSubroutinePrototypes)
 
 =head2 array_as_string( array )
 
-Converts a perl array to its postscript representation.
+Converts a perl array to its PostScript representation.
 
 =cut
 
@@ -2999,9 +2999,9 @@ sub str ($) { ## no critic (ProhibitSubroutinePrototypes)
 
 =head2 str( arrayref )
 
-Converts the referenced array to a string representation suitable for postscript code.  If C<arrayref> is not an
+Converts the referenced array to a string representation suitable for PostScript code.  If C<arrayref> is not an
 array reference, it is passed through unchanged.  This function was designed to simplify passing colours for the
-postscript function b<gpapercolor> which expects either an RGB array or a greyscale decimal.  See
+PostScript function b<gpapercolor> which expects either an RGB array or a greyscale decimal.  See
 L<PostScript::Graph::Paper/gpapercolor>.
 
 =cut
