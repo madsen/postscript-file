@@ -39,7 +39,7 @@ my $name = "fi02eps";
 my $out  = $ps->output( $name, $dir );
 ok(1); # survived so far
 
-is($ps->get_filename, '', 'Did not set filename');
+is($ps->get_filename, undef, 'Did not set filename');
 
 is($out, File::Spec->catfile( $dir, "$name.epsf" ), 'expected output filename');
 

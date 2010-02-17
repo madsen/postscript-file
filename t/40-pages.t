@@ -55,7 +55,7 @@ my $dir  = $ARGV[0] || tempdir(CLEANUP => 1);
 my $name = "fi04pages";
 my $out  = $ps->output( $name, $dir );
 
-is($ps->get_filename, '', 'Did not set filename');
+is($ps->get_filename, undef, 'Did not set filename');
 
 is($out, File::Spec->catfile( $dir, "$name.ps" ), 'expected output filename');
 

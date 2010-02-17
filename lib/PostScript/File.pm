@@ -399,7 +399,7 @@ hash keys and values.  All values should be in the native PostScript units of 1/
 
 Example
 
-    $ref = new PostScript::File (
+    $ps = PostScript::File->new(
                 eps => 1,
                 landscape => 1,
                 width => 216,
@@ -1127,12 +1127,15 @@ END_DOC_SUPPLIED
 
     my $docNeeded = $o->_build_needed;
 
-    $o->{title} = "($filename)" unless $o->{title};
+    my $title = $o->{title};
+    $title = $o->quote_text($filename)
+        if not defined $title and defined $filename;
+
     $postscript .= $o->{Comments} if ($o->{Comments});
     $postscript .= "\%\%Orientation: ${\( $o->{landscape} ? 'Landscape' : 'Portrait' )}\n";
     $postscript .= $docNeeded if $docNeeded;
     $postscript .= "\%\%DocumentSuppliedResources:\n$docSupplied" if $docSupplied;
-    $postscript .= $o->encode_text("\%\%Title: $o->{title}\n");
+    $postscript .= $o->encode_text("\%\%Title: $title\n") if defined $title;
     $postscript .= "\%\%Version: $o->{version}\n" if ($o->{version});
     $postscript .= "\%\%Pages: $o->{pagecount}\n" if ((not $o->{eps}) and ($o->{pagecount} > 1));
     $postscript .= "\%\%PageOrder: $o->{order}\n" if ((not $o->{eps}) and ($o->{order}));
@@ -1218,7 +1221,7 @@ sub output {
     my $fh = openhandle $filename;
     # Don't permanently change filename:
     local $o->{filename} = $o->{filename};
-    $o->set_filename($filename, $dir) if defined $filename and not $fh;
+    $o->set_filename($filename, $dir) if @_ > 1 and not $fh;
 
     my ($debugbegin, $debugend) = ("", "");
     if (defined $o->{debug}) {
@@ -1248,8 +1251,8 @@ END_DEBUG_END
         my @pages;
         my $p = 0;
         do {
-            my $epsfile = "";
-            if ($o->{filename}) {
+            my $epsfile;
+            if (defined $o->{filename}) {
                 $epsfile = ($o->{pagecount} > 1) ? "$o->{filename}-$o->{page}[$p]"
                                            : "$o->{filename}";
                 $epsfile .= defined($o->{file_ext}) ? $o->{file_ext}
@@ -1282,7 +1285,8 @@ END_DEBUG_END
             $clipping |= $cl;
         }
         my $psfile = $o->{filename};
-        $psfile .= defined($o->{file_ext}) ? $o->{file_ext} : '.ps' if $psfile;
+        $psfile .= defined($o->{file_ext}) ? $o->{file_ext} : '.ps'
+            if defined $psfile;
         my $postscript = $o->pre_pages($landscape, $clipping, $psfile);
         for (my $p = 0; $p < $o->{pagecount}; $p++) {
             my $page = $o->{page}->[$p];
@@ -1329,7 +1333,8 @@ If a filename has been given either here, to C<new>, or to
 C<set_filename>, write the PostScript document to that file and return
 its pathname.
 
-If no filename has been given, return the PostScript document as a string.
+If no filename has been given, or C<filename> is undef, return the
+PostScript document as a string.
 
 In C<eps> mode, each page of the document becomes a separate EPS file.
 In list context, returns a list of these files (either the pathname or
@@ -1341,7 +1346,14 @@ are written to that filehandle, which is probably not what you want.
 Use this option whenever output is required to disk. The current PostScript document in memory is not cleared, and
 can still be extended or output again.
 
+=head2 as_string
+
+This returns the PostScript document as a string.  It is equivalent to
+C<< $ps->output(undef) >>.
+
 =cut
+
+sub as_string { shift->output(undef) }
 
 #---------------------------------------------------------------------
 # Create a BoundingBox: comment,
@@ -1367,7 +1379,7 @@ sub print_file
   my $o        = shift;
   my $filename = shift;
 
-  if ($filename) {
+  if (defined $filename) {
     my $outfile = openhandle $filename;
     if ($outfile) {
       print $outfile $_[0];
@@ -1421,7 +1433,9 @@ sub get_filename {
 
 sub set_filename {
     my ($o, $filename, $dir) = @_;
-    $o->{filename} = $filename ? check_file($filename, $dir) : "";
+    $o->{filename} = ((defined($filename) and length($filename))
+                      ? check_file($filename, $dir)
+                      : undef);
 }
 
 =head2 get_filename()
@@ -2893,7 +2907,7 @@ sub check_file ($;$$) { ## no critic (ProhibitSubroutinePrototypes)
     my ($filename, $dir, $create) = @_;
     $create = 0 unless (defined $create);
 
-    if (not $filename) {
+    if (not defined $filename or not length $filename) {
         $filename = File::Spec->devnull();
     } else {
         $filename = check_tilde($filename);

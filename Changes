@@ -13,7 +13,7 @@ Revision history for Perl extension PostScript::File.
 
 	- Added auto_hyphen attribute with get/set methods
 	- Added need_fonts attribute
-	- Added embed_font & need_resource methods
+	- Added as_string, embed_font, & need_resource methods
 	- add_resource accepts all DSC 3.0 resource types,
 	  but no longer accepts generic 'Resource' type
 	- Reencode fonts added using embed_font or add_resource
@@ -23,6 +23,7 @@ Revision history for Perl extension PostScript::File.
 	- PNG output has been removed.  Use PostScript::Convert instead.
 	- embed_document now handles & removes TIFF, WMF, or EPSI preview
 	- output accepts an open filehandle as a filename alternative
+	- Passing undef to output always returns the PostScript as a string
 
 	Minor changes in 2.00:
 

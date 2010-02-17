@@ -137,7 +137,6 @@ __DATA__
 %%+ font Courier-Bold
 %%DocumentSuppliedResources:
 %%+ procset PostScript_File 0 0
-%%Title: ()
 %%EndComments
 %%BeginProlog
 %%BeginResource: procset PostScript_File 0 0
@@ -196,7 +195,6 @@ strip: 'none'
 %%+ font Courier-Bold
 %%DocumentSuppliedResources:
 %%+ procset PostScript_File 0 0
-%%Title: ()
 %%EndComments
 %%BeginProlog
 %%BeginResource: procset PostScript_File 0 0
@@ -270,7 +268,6 @@ paper: 'US-Letter'
 %%+ font Courier-Bold
 %%DocumentSuppliedResources:
 %%+ procset PostScript_File 0 0
-%%Title: ()
 %%EndComments
 %%BeginProlog
 %%BeginResource: procset PostScript_File 0 0
@@ -325,7 +322,6 @@ paper: '123x456'
 %%+ font Courier-Bold
 %%DocumentSuppliedResources:
 %%+ procset PostScript_File 0 0
-%%Title: ()
 %%EndComments
 %%BeginProlog
 %%BeginResource: procset PostScript_File 0 0
@@ -391,7 +387,6 @@ need_fonts: [qw( Paladin Paladin-Bold )]
 %%+ font Courier-Bold Paladin Paladin-Bold
 %%DocumentSuppliedResources:
 %%+ procset PostScript_File 0 0
-%%Title: ()
 %%PageOrder: Ascend
 %%EndComments
 %%BeginDefaults
@@ -459,7 +454,6 @@ reencode: 'cp1252'
 %%+ font Times-Bold Times-BoldItalic Times-Italic Times-Roman
 %%DocumentSuppliedResources:
 %%+ procset PostScript_File 0 0
-%%Title: ()
 %%EndComments
 %%BeginProlog
 %%BeginResource: procset PostScript_File 0 0
@@ -620,7 +614,6 @@ paper: 'Letter'
 %%+ font Random
 %%+ file SomeFile
 %%+ procset PostScript_File 0 0
-%%Title: ()
 %%EndComments
 %%BeginProlog
 %%BeginResource: procset PostScript_File 0 0
@@ -694,7 +687,6 @@ paper: 'Letter'
 %%+ font Courier-Bold
 %%DocumentSuppliedResources:
 %%+ procset PostScript_File 0 0
-%%Title: ()
 %%EndComments
 %%BeginProlog
 %%BeginResource: procset PostScript_File 0 0
@@ -766,7 +758,6 @@ paper: 'US-Letter'
 %%DocumentSuppliedResources:
 %%+ file recycle.eps
 %%+ procset PostScript_File 0 0
-%%Title: ()
 %%EndComments
 %%BeginProlog
 %%BeginResource: procset PostScript_File 0 0
@@ -922,7 +913,6 @@ paper: 'US-Letter'
 %%DocumentSuppliedResources:
 %%+ file recycle-i.epsi
 %%+ procset PostScript_File 0 0
-%%Title: ()
 %%EndComments
 %%BeginProlog
 %%BeginResource: procset PostScript_File 0 0
@@ -1078,7 +1068,6 @@ paper: 'US-Letter'
 %%DocumentSuppliedResources:
 %%+ file recycle-tiff4.eps
 %%+ procset PostScript_File 0 0
-%%Title: ()
 %%EndComments
 %%BeginProlog
 %%BeginResource: procset PostScript_File 0 0
@@ -1234,7 +1223,6 @@ paper: 'US-Letter'
 %%DocumentSuppliedResources:
 %%+ file recycle-wmf.epsf
 %%+ procset PostScript_File 0 0
-%%Title: ()
 %%EndComments
 %%BeginProlog
 %%BeginResource: procset PostScript_File 0 0
