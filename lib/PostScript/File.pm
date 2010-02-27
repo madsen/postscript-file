@@ -1351,9 +1351,38 @@ can still be extended or output again.
 This returns the PostScript document as a string.  It is equivalent to
 C<< $ps->output(undef) >>.
 
+=head2 testable_output( [verbatim] )
+
+This returns the PostScript document as a string, but with the
+PostScript::File generated code removed (unless C<verbatim> is true).
+This is intended for use in test scripts, so they won't see changes in
+the output caused by different versions of PostScript::File.  The
+PostScript code returned by this method will probably not work in a
+PostScript interpreter.
+
+If C<verbatim> is true, this is equivalent to C<< $ps->output(undef) >>.
+
 =cut
 
 sub as_string { shift->output(undef) }
+
+sub testable_output
+{
+  my ($o, $verbatim) = @_;
+
+  my $ps = $o->output(undef);
+
+  unless ($verbatim) {
+    # Remove PostScript::File generated code:
+    $ps =~ s/^%%BeginResource: procset PostScript_File.*?^%%EndResource\n//msg;
+    $ps =~ s/^%%\+ procset PostScript_File.*\n//mg;
+    $ps =~ s/^% Handle font encoding:\n.*?^% end font encoding\n//ms;
+    $ps =~ s/^% Local Variables:\n.*?^% End:\n//ms;
+    $ps =~ s/^%%Trailer\n(?=%%EOF\n)//m;
+  } # end unless $verbatim
+
+  $ps;
+} # end testable_output
 
 #---------------------------------------------------------------------
 # Create a BoundingBox: comment,
