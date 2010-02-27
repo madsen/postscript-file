@@ -1,6 +1,6 @@
 Revision history for Perl extension PostScript::File.
 
-2.00   NOT
+2.00   February 26, 2010
 	- Numerous API changes, mostly minor, but there could be
 	  problems with backwards compatibility.
 
