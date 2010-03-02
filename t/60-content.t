@@ -117,7 +117,7 @@ sub output_to_fh
 {
   my ($ps) = @_;
 
-  my $buffer;
+  my $buffer = '';
   open(my $fh, '>', \$buffer) or return undef;
 
   $ps->output($fh);
