@@ -1,5 +1,9 @@
 Revision history for Perl extension PostScript::File.
 
+2.01   NOT
+	- Fixed some warnings in the test suite
+	- Version 2.00 actually needs Encode 2.21, but only specified 2.12
+
 2.00   February 26, 2010
 	- Numerous API changes, mostly minor, but there could be
 	  problems with backwards compatibility.
