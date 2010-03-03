@@ -1,6 +1,9 @@
 Revision history for Perl extension PostScript::File.
 
-2.01   NOT
+2.01   March 3, 2010
+	- The metrics for the cp1252 encoding did not reflect the
+	  accents mapped to control characters (but those characters
+	  are not normally used, anyway).
 	- Fixed some warnings in the test suite
 	- Version 2.00 actually needs Encode 2.21, but only specified 2.12
 
