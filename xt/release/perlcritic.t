@@ -22,7 +22,7 @@ plan skip_all => "Test::Perl::Critic required for testing PBP compliance" if $@;
 
 my $skipRE = File::Spec->catfile(qw(lib PostScript File Metrics x));
 chop $skipRE;                   # Remove the x
-$skipRE = qr/\Q$skipRE\E/;
+$skipRE = qr/\Q$skipRE\E(?!Loader)/;
 
 my @files = grep { not $_ =~ $skipRE } all_perl_files('lib');
 
