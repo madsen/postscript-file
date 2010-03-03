@@ -5,7 +5,8 @@
 #---------------------------------------------------------------------
 package PostScript::File::Metrics::cp1252::Helvetica::Bold;
 
-our $VERSION = '2.00';
+our $VERSION = '2.01';
+# This file is part of {{$dist}} {{$dist_version}} ({{$date}})
 
 $PostScript::File::Metrics::Info{'Helvetica-Bold'} ||= {
   'ascender' => 718,
@@ -25,7 +26,7 @@ $PostScript::File::Metrics::Info{'Helvetica-Bold'} ||= {
 
 $PostScript::File::Metrics::Metrics{'Helvetica-Bold'}{'cp1252'} = [
   0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
-  0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+  0,278,333,333,333,0,0,0,0,0,0,0,0,0,0,0,
   278,333,474,556,556,889,722,278,333,333,389,584,278,584,278,278,
   556,556,556,556,556,556,556,556,556,556,333,333,584,584,584,611,
   975,722,722,722,722,667,611,778,722,278,556,722,611,833,722,778,

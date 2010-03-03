@@ -18,7 +18,8 @@ package PostScript::File::Metrics;
 #---------------------------------------------------------------------
 
 use 5.008;
-our $VERSION = '2.00';          ## no critic
+our $VERSION = '2.01';          ## no critic
+# This file is part of {{$dist}} {{$dist_version}} ({{$date}})
 
 use strict;
 use warnings;

@@ -103,6 +103,7 @@ sub dump_font
 package $package;
 
 our \$VERSION = '$PostScript::File::VERSION';
+# This file is part of {{\$dist}} {{\$dist_version}} ({{\$date}})
 
 \$PostScript::File::Metrics::Info{$D{$font}} ||= $info;
 

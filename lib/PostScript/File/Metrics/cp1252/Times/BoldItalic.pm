@@ -5,7 +5,8 @@
 #---------------------------------------------------------------------
 package PostScript::File::Metrics::cp1252::Times::BoldItalic;
 
-our $VERSION = '2.00';
+our $VERSION = '2.01';
+# This file is part of {{$dist}} {{$dist_version}} ({{$date}})
 
 $PostScript::File::Metrics::Info{'Times-BoldItalic'} ||= {
   'ascender' => 699,
@@ -25,7 +26,7 @@ $PostScript::File::Metrics::Info{'Times-BoldItalic'} ||= {
 
 $PostScript::File::Metrics::Metrics{'Times-BoldItalic'}{'cp1252'} = [
   0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
-  0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+  0,278,333,333,333,0,0,0,0,0,0,0,0,0,0,0,
   250,389,555,500,500,833,778,333,333,333,500,570,250,606,250,278,
   500,500,500,500,500,500,500,500,500,500,333,333,570,570,570,500,
   832,667,667,667,722,667,667,722,778,389,500,667,611,889,722,722,

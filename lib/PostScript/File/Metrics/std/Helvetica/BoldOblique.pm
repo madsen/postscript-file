@@ -5,7 +5,8 @@
 #---------------------------------------------------------------------
 package PostScript::File::Metrics::std::Helvetica::BoldOblique;
 
-our $VERSION = '2.00';
+our $VERSION = '2.01';
+# This file is part of {{$dist}} {{$dist_version}} ({{$date}})
 
 $PostScript::File::Metrics::Info{'Helvetica-BoldOblique'} ||= {
   'ascender' => 718,
