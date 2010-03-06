@@ -2,7 +2,7 @@
 #---------------------------------------------------------------------
 # Copyright 2009 Christopher J. Madsen
 #
-# Author: Christopher J. Madsen <perl@pobox.com>
+# Author: Christopher J. Madsen <perl@cjmweb.net>
 # Created: 26 Feb 2010
 #
 # This program is free software; you can redistribute it and/or modify
