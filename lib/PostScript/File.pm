@@ -19,7 +19,7 @@ package PostScript::File;
 #---------------------------------------------------------------------
 
 use 5.008;
-our $VERSION = '2.01';          ## no critic
+our $VERSION = '2.02';          ## no critic
 # This file is part of {{$dist}} {{$dist_version}} ({{$date}})
 
 use strict;
@@ -215,9 +215,9 @@ method will automatically translate HYPHEN-MINUS to either HYPHEN or
 MINUS SIGN.  (This happens only when C<pstr> is called as an object method.)
 
 The rule is that if a HYPHEN-MINUS is surrounded by whitespace, or
-surrounded by digits, or it's preceded by whitespace and followed by a
-digit, it's translated to MINUS SIGN.  Otherwise, it's translated to
-HYPHEN.
+surrounded by digits, or it's preceded by whitespace or punctuation
+and followed by a digit, or it's followed by a currency symbol, it's
+translated to MINUS SIGN.  Otherwise, it's translated to HYPHEN.
 
 =cut
 
@@ -1794,8 +1794,13 @@ sub convert_hyphens
     # it's a minus sign (U+2212):
     $text =~ s/(?: ^ | (?<=\s) ) - (?= \d | \s | $ ) /\x{2212}/gx;
 
-    # If it's surrounded by digits, it's a minus sign (U+2212):
-    $text =~ s/ (?<=\d) - (?=\d) /\x{2212}/gx;
+    # If it's surrounded by digits, or
+    # it's preceded by punctuation and followed by a digit,
+    # it's a minus sign (U+2212):
+    $text =~ s/ (?<=[\d[:punct:]]) - (?=\d) /\x{2212}/gx;
+
+    # If it's followed by a currency symbol, it's a minus sign (U+2212):
+    $text =~ s/ - (?=\p{Sc}) /\x{2212}/gx;
 
     # Otherwise, it's a hyphen (U+2010):
     $text =~ s/-/\x{2010}/gx;

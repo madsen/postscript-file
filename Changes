@@ -1,5 +1,10 @@
 Revision history for Perl extension PostScript::File.
 
+2.02   NOT
+	- Revised the rules for hyphen-minus processing:
+	  If it's preceded by punctuation and followed by a digit, or
+	  it's followed by a currency symbol, it's a minus sign (U+2212).
+
 2.01   March 3, 2010
 	- The metrics for the cp1252 encoding did not reflect the
 	  accents mapped to control characters (but those characters
