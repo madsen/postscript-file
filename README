@@ -1,8 +1,8 @@
 PostScript::File version {{$version}}, released {{$date}}
 
 This module produces the outline for an Adobe PostScript file. It provides
-convenient routines for writing postscript directly, including reporting
-postscript errors and debugging support.  Although it may be used independently,
+convenient routines for writing PostScript directly, including reporting
+PostScript errors and debugging support.  Although it may be used independently,
 the functions provided are also suitable for use in other modules.  See one of
 these modules for a top-level object.
 
@@ -12,30 +12,22 @@ these modules for a top-level object.
     PostScript::Graph::Bar
     Finance::Shares::Chart
 
-It is considered beta code as the interface has remained stable over many months
-of use.  However, not all the features have been tested properly so experiment
-with caution.
-
 
 
 INSTALLATION
 
 To install this module type the following:
 
-   perl Makefile.PL
-   make
-   make test
-   make install
+{{ $t->build_instructions('    ') }}
 
 
 
 DEPENDENCIES
 
-This module requires these other modules and libraries, although they are both
-part of the standard distribution:
+This module requires these other modules and libraries, although they are all
+part of the standard Perl distribution:
 
-  File::Spec
-  Sys::Hostname
+{{ $t->dependency_list }}
 
 
 
@@ -44,6 +36,7 @@ CHANGES
     (See the file "Changes" for the full revision history.)
 
 {{$changes}}
+
 
 
 COPYRIGHT AND LICENCE
