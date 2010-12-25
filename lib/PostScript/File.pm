@@ -3155,7 +3155,7 @@ L<{{ $meta{resources}{repository}{web} }}>.
 
 Copyright 2002, 2003 Christopher P Willmot.  All rights reserved.
 
-Copyright 2009 Christopher J. Madsen. All rights reserved.
+Copyright {{$zilla->copyright_year}} Christopher J. Madsen. All rights reserved.
 
 This is free software; you can redistribute it and/or modify it under
 the same terms as the Perl 5 programming language system itself.
