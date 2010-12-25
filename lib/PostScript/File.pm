@@ -3136,20 +3136,20 @@ Most of these functions have only had a couple of tests, so please feel free to 
 
 =head1 AUTHOR
 
-Chris Willmot   C<< <chris AT willmot.co.uk> >>
+Chris Willmot   S<C<< <chris AT willmot.co.uk> >>>
 
 Thanks to Johan Vromans for the ISOLatin1Encoding.
 
 As of September 2009, PostScript::File is now being maintained by
-Christopher J. Madsen  C<< <perl AT cjmweb.net> >>.
+Christopher J. Madsen  S<C<< <perl AT cjmweb.net> >>>.
 
 Please report any bugs or feature requests to
-C<< <bug-{{$dist}} AT rt.cpan.org> >>,
+S<C<< <bug-{{$dist}} AT rt.cpan.org> >>>,
 or through the web interface at
 L<http://rt.cpan.org/Public/Bug/Report.html?Queue={{$dist}}>
 
 You can follow or contribute to PostScript::File's development at
-L<{{ $meta{resources}{repository} }}>.
+L<{{ $meta{resources}{repository}{web} }}>.
 
 =head1 COPYRIGHT AND LICENSE
 
