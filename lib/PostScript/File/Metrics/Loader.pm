@@ -18,7 +18,7 @@ package PostScript::File::Metrics::Loader;
 #---------------------------------------------------------------------
 
 use 5.008;
-our $VERSION = '2.01';          ## no critic
+our $VERSION = '2.02';          ## no critic
 # This file is part of {{$dist}} {{$dist_version}} ({{$date}})
 
 use strict;
@@ -184,7 +184,8 @@ searched.  See L</"CONFIGURATION AND ENVIRONMENT">.
   unless ($PostScript::File::Metrics::Info{$font}) {
     my %info;
     while (my ($method, $key) = each %attribute) {
-      $info{$key} = eval { $afm->$method };
+      # Font::AFM croaks instead of returning undef:
+      $info{$key} = do { local $@; eval { $afm->$method } };
     }
 
     # Ensure Data::Dumper will dump numbers as such:

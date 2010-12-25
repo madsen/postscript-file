@@ -18,7 +18,7 @@ package PostScript::File::Metrics;
 #---------------------------------------------------------------------
 
 use 5.008;
-our $VERSION = '2.01';          ## no critic
+our $VERSION = '2.02';          ## no critic
 # This file is part of {{$dist}} {{$dist_version}} ({{$date}})
 
 use strict;
@@ -34,7 +34,7 @@ our (%Info, %Metrics);
 # Generate accessor methods:
 
 BEGIN {
-  ## no critic (ProhibitStringyEval)
+  my ($code, $error, $success) = '';
   foreach my $attribute (qw(
     full_name
     family
@@ -43,8 +43,7 @@ BEGIN {
     italic_angle
     version
   )) {
-    eval "sub $attribute { shift->{info}{$attribute} };";
-    die $@ if $@;
+    $code .= "sub $attribute { shift->{info}{$attribute} };\n";
   }
 
   foreach my $attribute (qw(
@@ -55,16 +54,24 @@ BEGIN {
     ascender
     descender
   )) {
-    eval <<"END SUB";
+    $code .= <<"END SUB";
       sub $attribute {
         my \$self = shift;
         my \$v = \$self->{info}{$attribute};
         defined \$v ? \$v * \$self->{factor} : \$v;
       }
 END SUB
-    die $@ if $@;
   }
-  ## use critic
+
+  { local $@;
+    $success = eval "$code ; 'OK'"; ## no critic ProhibitStringyEval
+    $error   = $@;
+  } # end local $@
+
+  unless ($success and $success eq 'OK') {
+    $error ||= 'eval died with false $@';
+    die "$code\n$error";
+  }
 } # end BEGIN
 
 #---------------------------------------------------------------------
@@ -121,7 +128,8 @@ sub new
     my $package = _get_package_name($font, $encoding);
 
     ## no critic (ProhibitStringyEval)
-    unless (do { local $@; eval "require $package; 1" }) {
+    unless (do { local $@; eval "require $package; 1" }
+            and $Metrics{$font}{$encoding}) {
       # No pre-compiled package, we'll have to read the AFM file:
       ## use critic
       require PostScript::File::Metrics::Loader;
@@ -133,7 +141,8 @@ sub new
   # Create the Metrics object:
   my $self = bless {
     info     => $Info{$font},
-    metrics  => $Metrics{$font}{$encoding},
+    metrics  => $Metrics{$font}{$encoding}
+      || croak "Failed to load metrics for $font in encoding $encoding",
   }, $class;
 
   $self->{encoding} = find_encoding($encoding)
@@ -378,7 +387,8 @@ An arrayref of four numbers giving the lower-left x, lower-left y,
 upper-right x, and upper-right y of the font bounding box. The font
 bounding box is the smallest rectangle enclosing the shape that would
 result if all the characters of the font were placed with their
-origins coincident at (0,0), and then painted.
+origins coincident at (0,0), and then painted.  You must not modify
+the returned arrayref.
 
 =attr cap_height
 
@@ -412,4 +422,3 @@ Recommended stroke width for underlining.
 =attr version
 
 Version number of the font.
-
