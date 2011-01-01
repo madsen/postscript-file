@@ -390,7 +390,7 @@ sub new {
     $o->set_auto_hyphen(_def($opt->{auto_hyphen}, 1));
     $o->need_resource(font => @{ $opt->{need_fonts} }) if $opt->{need_fonts};
 
-    $o->newpage( $o->get_page_label() );
+    $o->newpage if _def($opt->{newpage}, 1);
 
     ## Finish
     return $o;
@@ -724,6 +724,27 @@ A few options that may be changed between pages or set here for the first page.
 
 Set the initial value for the function which increments page labels.  See L</set_incpage_handler>.
 
+=head3 newpage
+
+Normally, an initial page is created automatically (using the label
+specified by C<page>).  But starting with PostScript::File 2.10, you
+can pass S<C<< newpage => 0 >>> to override this.  This makes for more
+natural loops:
+
+    use PostScript::File 2.10;
+    my $ps = PostScript::File->new(newpage => 0);
+    for (@pages) {
+      $ps->newpage;  # don't need "unless first page"
+      ...
+    }
+
+It's important to require PostScript::File 2.10 if you do this, because
+older versions would produce an initial blank page.
+
+If you don't pass a page label to the first call to C<newpage>, it
+will be taken from the C<page> option.  After the first page, the page
+label will increment as specified by L</incpage_handler>.
+
 =head3 page
 
 Set the label (text or number) for the initial page.  See L</set_page_label>.  (Default: "1")
@@ -748,7 +769,14 @@ when the document is using character set translation.  (Default: 1).
 sub newpage {
     my ($o, $page) = @_;
     my $oldpage = $o->{page}[$o->{p}];
-    my $newpage = _def($page, &{$o->{incpage}}($oldpage));
+    # Don't use _def here, because we don't want to call
+    # incpage_handler if the user supplied a page label:
+    my $newpage = defined $page
+        ? $page
+        # If this is the very first page, don't increment the page number:
+        : ($o->{pagecount}
+           ? $o->{incpage}->($oldpage)
+           : $oldpage);
     my $p = $o->{p} = $o->{pagecount}++;
     $o->{page}[$p] = $newpage;
     $o->{pagebbox}[$p] = [ @{$o->{bbox}} ];
@@ -1315,6 +1343,7 @@ END_DEBUG_END
                 \%\%EndPageSetup
 END_PAGE_SETUP
             $postscript .= $o->{Pages}->[$p];
+            $postscript =~ s/\n?\z/\n/; # Ensure LF at end
             $postscript .= $o->_here_doc(<<END_PAGE_TRAILER);
                 \%\%PageTrailer
                     $o->{PageTrailer}

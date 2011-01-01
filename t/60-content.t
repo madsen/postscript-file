@@ -1,6 +1,6 @@
 #! /usr/bin/perl
 #---------------------------------------------------------------------
-# Copyright 2009 Christopher J. Madsen
+# Copyright 2011 Christopher J. Madsen
 #
 # Author: Christopher J. Madsen <perl@cjmweb.net>
 # Created: 21 Oct 2009
@@ -42,7 +42,7 @@ if (@ARGV and $ARGV[0] eq 'gen') {
   open(OUT, '>', '/tmp/60-content.t') or die $!;
   printf OUT "#%s\n\n__DATA__\n", '=' x 69;
 } else {
-  plan tests => 12 * 3;
+  plan tests => 14 * 3;
 }
 
 my ($name, %param, @methods);
@@ -109,6 +109,8 @@ while (<DATA>) {
     die "Unrecognized line $_" if /\S/;
   }
 } # end while <DATA>
+
+done_testing unless $generateResults;
 
 #---------------------------------------------------------------------
 # Test output to a filehandle:
@@ -314,47 +316,13 @@ showpage
 
 
 :: custom paper
+errors: 0
 paper: '123x456'
 ===
 %!PS-Adobe-3.0
 %%Orientation: Portrait
-%%DocumentNeededResources:
-%%+ font Courier-Bold
-%%DocumentSuppliedResources:
-%%+ procset PostScript_File 0 0
 %%EndComments
 %%BeginProlog
-%%BeginResource: procset PostScript_File 0 0
-/errx 72 def
-/erry 72 def
-/errmsg (ERROR:) def
-/errfont /Courier-Bold def
-/errsize 12 def
-% Report fatal error on page
-% _ str => _
-/report_error {
-0 setgray
-errfont findfont errsize scalefont setfont
-errmsg errx erry moveto show
-80 string cvs errx erry errsize sub moveto show
-stop
-} bind def
-% PostScript errors printed on page
-% not called directly
-errordict begin
-/handleerror {
-$error begin
-false binary
-0 setgray
-errfont findfont errsize scalefont setfont
-errx erry moveto
-errmsg show
-errx erry errsize sub moveto
-errorname 80 string cvs show
-stop
-} def
-end
-%%EndResource
 %%EndProlog
 %%Page: 1 1
 %%PageBoundingBox: 28 28 95 428
@@ -1358,6 +1326,90 @@ grestore
 showpage
 %%EOF
 %%EndDocument
+%%PageTrailer
+end
+pagelevel restore
+showpage
+%%EOF
+---
+
+
+:: newpage 0
+errors: 0
+newpage: 0
+->newpage();
+->add_to_page("(Hello) show");
+->newpage();
+->add_to_page("(World) show");
+===
+%!PS-Adobe-3.0
+%%Orientation: Portrait
+%%Pages: 2
+%%EndComments
+%%BeginProlog
+%%EndProlog
+%%Page: 1 1
+%%PageBoundingBox: 28 28 568 814
+%%PageHiResBoundingBox: 28 28 567.27559 813.88976
+%%BeginPageSetup
+/pagelevel save def
+userdict begin
+%%EndPageSetup
+(Hello) show
+%%PageTrailer
+end
+pagelevel restore
+showpage
+%%Page: 2 2
+%%PageBoundingBox: 28 28 568 814
+%%PageHiResBoundingBox: 28 28 567.27559 813.88976
+%%BeginPageSetup
+/pagelevel save def
+userdict begin
+%%EndPageSetup
+(World) show
+%%PageTrailer
+end
+pagelevel restore
+showpage
+%%EOF
+---
+
+
+:: newpage alpha
+errors: 0
+newpage: 0
+->newpage('alpha');
+->add_to_page("(Hello) show");
+->newpage('beta');
+->add_to_page("(World) show");
+===
+%!PS-Adobe-3.0
+%%Orientation: Portrait
+%%Pages: 2
+%%EndComments
+%%BeginProlog
+%%EndProlog
+%%Page: alpha 1
+%%PageBoundingBox: 28 28 568 814
+%%PageHiResBoundingBox: 28 28 567.27559 813.88976
+%%BeginPageSetup
+/pagelevel save def
+userdict begin
+%%EndPageSetup
+(Hello) show
+%%PageTrailer
+end
+pagelevel restore
+showpage
+%%Page: beta 2
+%%PageBoundingBox: 28 28 568 814
+%%PageHiResBoundingBox: 28 28 567.27559 813.88976
+%%BeginPageSetup
+/pagelevel save def
+userdict begin
+%%EndPageSetup
+(World) show
 %%PageTrailer
 end
 pagelevel restore

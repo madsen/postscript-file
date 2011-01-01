@@ -1,6 +1,13 @@
 Revision history for Perl extension PostScript::File.
 
 2.10   NOT
+	API improvements:
+
+	- You can pass "newpage => 0" to  constructor to prevent it
+	  from creating the first page.	 This leads to more natural
+	  loops, because you call newpage before each page (instead of
+	  "before each page except the first").
+
 	- Fixed bug: errx parameter was not handled correctly in new
 	- Documentation fixes
 
