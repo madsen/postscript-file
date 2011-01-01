@@ -1,5 +1,8 @@
 Revision history for Perl extension PostScript::File.
 
+2.10   NOT
+	- Documentation fixes
+
 2.02   December 24, 2010
 	- Revised the rules for hyphen-minus processing:
 	  If it's preceded by punctuation and followed by a digit, or

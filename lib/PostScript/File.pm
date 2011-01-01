@@ -2,7 +2,7 @@
 package PostScript::File;
 #
 # Copyright 2002, 2003 Christopher P Willmot.
-# Copyright 2009 Christopher J. Madsen
+# Copyright 2011 Christopher J. Madsen
 #
 # Author: Chris Willmot         <chris AT willmot.co.uk>
 #         Christopher J. Madsen <perl AT cjmweb.net>
@@ -19,7 +19,7 @@ package PostScript::File;
 #---------------------------------------------------------------------
 
 use 5.008;
-our $VERSION = '2.02';          ## no critic
+our $VERSION = '2.10';          ## no critic
 # This file is part of {{$dist}} {{$dist_version}} ({{$date}})
 
 use strict;
@@ -2017,7 +2017,8 @@ sub set_bounding_box {
 
 Inspect or change the bounding box for the whole document, showing only the area inside.
 
-Clipping is enabled.  Call with B<set_clipping> with 0 to stop clipping.
+Setting the bounding box enables clipping.  Call L</set_clipping> with
+0 afterwards to undo that.
 
 =cut
 
@@ -2045,8 +2046,9 @@ Inspect or change the bounding box for a specified page.  If C<page> is not spec
 assumed, otherwise it should be a page label already given to B<newpage> or B<set_page_label>.  The page bounding
 box defaults to the paper area.
 
-Note that this automatically enables clipping for the page.  If this isn't what you want, call
-B<set_page_clipping> with 0.
+Note that calling C<set_page_bounding_box> automatically enables
+clipping for the page.  If this isn't what you want, call
+L</set_page_clipping> with 0 afterwards.
 
 =cut
 
