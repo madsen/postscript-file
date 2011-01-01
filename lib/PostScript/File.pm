@@ -335,7 +335,7 @@ sub new {
     ## Paper layout
     croak "PNG output is no longer supported.  Use PostScript::Convert instead"
         if $opt->{png};
-    $o->{eps}      = $opt->{eps} || 0;
+    $o->{eps}      = !!$opt->{eps} + 0;
     $o->{file_ext} = $opt->{file_ext};
     $o->set_filename(@$opt{qw(file dir)});
     $o->set_paper( $opt->{paper} );
@@ -364,7 +364,7 @@ sub new {
     my $x1 = $o->{bbox}[2] - _def($opt->{right},  28);
     my $y1 = $o->{bbox}[3] - _def($opt->{top},  28);
     $o->set_bounding_box( $x0, $y0, $x1, $y1 );
-    $o->set_clipping( $opt->{clipping} || 0 );
+    $o->set_clipping( $opt->{clipping} );
 
     ## Other options
     $o->{title}      = $opt->{title};
@@ -906,22 +906,25 @@ END_PS_ONLY
 END_LANDSCAPE
 
     my $clipfn = "";
-    $clipfn .= $o->_here_doc(<<END_CLIPPING) if ($clipping);
+    if ($clipping) {
+      my $clipcmd = $o->{clipcmd};
+      $clipcmd = "gsave 0 setgray 0.5 setlinewidth $clipcmd grestore newpath"
+          if $clipcmd eq 'stroke';
+
+      $clipfn .= $o->_here_doc(<<END_CLIPPING);
                 % Draw box as clipping path
                 % x0 y0 x1 y1 => _
                 /cliptobox {
                     4 dict begin
-                    gsave
-                    0 setgray
-                    0.5 setlinewidth
                     /y1 exch def /x1 exch def /y0 exch def /x0 exch def
                     newpath
                     x0 y0 moveto x0 y1 lineto x1 y1 lineto x1 y0 lineto
-                    closepath $o->{clipcmd}
-                    grestore
+                    closepath
+                    $clipcmd
                     end
                 } bind def
 END_CLIPPING
+    } # end if $clipping
 
     my $errorfn = "";
     if ($o->{errors}) {
@@ -1649,7 +1652,7 @@ sub get_landscape {
 
 sub set_landscape {
     my $o = shift;
-    my $landscape = shift || 0;
+    my $landscape = (!!shift) + 0;
     $o->{landscape} = 0 unless (defined $o->{landscape});
     if ($o->{landscape} != $landscape) {
         $o->{landscape} = $landscape;
@@ -1665,7 +1668,7 @@ sub get_clipping {
 
 sub set_clipping {
     my $o = shift;
-    $o->{clipping} = shift || 0;
+    $o->{clipping} = (!!shift) + 0;
 }
 
 our %encoding_name = qw(
@@ -1922,7 +1925,7 @@ sub get_page_landscape {
 sub set_page_landscape {
     my $o = shift;
     my $p = (@_ == 2) ? $o->get_ordinal(shift) : $o->{p};
-    my $landscape = shift || 0;
+    my $landscape = (!!shift) + 0;
     $o->{pagelandsc}[$p] = 0 unless (defined $o->{pagelandsc}[$p]);
     if ($o->{pagelandsc}[$p] != $landscape) {
         ($o->{pagebbox}[$p][0], $o->{pagebbox}[$p][1]) = ($o->{pagebbox}[$p][1], $o->{pagebbox}[$p][0]);
@@ -1949,7 +1952,7 @@ sub get_page_clipping {
 sub set_page_clipping {
     my $o = shift;
     my $p = (@_ == 2) ? $o->get_ordinal(shift) : $o->{p};
-    $o->{pageclip}[$p] = shift || 0;
+    $o->{pageclip}[$p] = (!!shift) + 0;
 }
 
 =head2 get_page_clipping( [page] )

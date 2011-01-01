@@ -42,7 +42,7 @@ if (@ARGV and $ARGV[0] eq 'gen') {
   open(OUT, '>', '/tmp/60-content.t') or die $!;
   printf OUT "#%s\n\n__DATA__\n", '=' x 69;
 } else {
-  plan tests => 14 * 3;
+  plan tests => 20 * 3;
 }
 
 my ($name, %param, @methods);
@@ -1410,6 +1410,248 @@ showpage
 userdict begin
 %%EndPageSetup
 (World) show
+%%PageTrailer
+end
+pagelevel restore
+showpage
+%%EOF
+---
+
+
+:: landscape
+errors:    0
+landscape: 1
+paper:     'Letter'
+===
+%!PS-Adobe-3.0
+%%Orientation: Landscape
+%%DocumentSuppliedResources:
+%%+ procset PostScript_File 0 0
+%%EndComments
+%%BeginProlog
+%%BeginResource: procset PostScript_File 0 0
+% Rotate page 90 degrees
+% _ => _
+/landscape {
+612 0 translate
+90 rotate
+} bind def
+%%EndResource
+%%EndProlog
+%%Page: 1 1
+%%PageBoundingBox: 28 28 584 764
+%%BeginPageSetup
+/pagelevel save def
+landscape
+userdict begin
+%%EndPageSetup
+%%PageTrailer
+end
+pagelevel restore
+showpage
+%%EOF
+---
+
+
+:: normal with left/right/top/bottom
+errors:    0
+left:      10
+right:     20
+top:       30
+bottom:    40
+paper:     'Letter'
+===
+%!PS-Adobe-3.0
+%%Orientation: Portrait
+%%EndComments
+%%BeginProlog
+%%EndProlog
+%%Page: 1 1
+%%PageBoundingBox: 10 40 592 762
+%%BeginPageSetup
+/pagelevel save def
+userdict begin
+%%EndPageSetup
+%%PageTrailer
+end
+pagelevel restore
+showpage
+%%EOF
+---
+
+
+:: landscape with left/right/top/bottom
+errors:    0
+landscape: 1
+left:      10
+right:     20
+top:       30
+bottom:    40
+paper:     'Letter'
+===
+%!PS-Adobe-3.0
+%%Orientation: Landscape
+%%DocumentSuppliedResources:
+%%+ procset PostScript_File 0 0
+%%EndComments
+%%BeginProlog
+%%BeginResource: procset PostScript_File 0 0
+% Rotate page 90 degrees
+% _ => _
+/landscape {
+612 0 translate
+90 rotate
+} bind def
+%%EndResource
+%%EndProlog
+%%Page: 1 1
+%%PageBoundingBox: 40 10 582 772
+%%BeginPageSetup
+/pagelevel save def
+landscape
+userdict begin
+%%EndPageSetup
+%%PageTrailer
+end
+pagelevel restore
+showpage
+%%EOF
+---
+
+
+:: normal with clipping
+errors:    0
+clipping:  1
+left:      10
+right:     20
+top:       30
+bottom:    40
+paper:     'Letter'
+===
+%!PS-Adobe-3.0
+%%Orientation: Portrait
+%%DocumentSuppliedResources:
+%%+ procset PostScript_File 0 0
+%%EndComments
+%%BeginProlog
+%%BeginResource: procset PostScript_File 0 0
+% Draw box as clipping path
+% x0 y0 x1 y1 => _
+/cliptobox {
+4 dict begin
+/y1 exch def /x1 exch def /y0 exch def /x0 exch def
+newpath
+x0 y0 moveto x0 y1 lineto x1 y1 lineto x1 y0 lineto
+closepath
+clip
+end
+} bind def
+%%EndResource
+%%EndProlog
+%%Page: 1 1
+%%PageBoundingBox: 10 40 592 762
+%%BeginPageSetup
+/pagelevel save def
+10 40 592 762 cliptobox
+userdict begin
+%%EndPageSetup
+%%PageTrailer
+end
+pagelevel restore
+showpage
+%%EOF
+---
+
+
+:: landscape with clipping
+errors:    0
+clipping:  1
+landscape: 1
+left:      10
+right:     20
+top:       30
+bottom:    40
+paper:     'Letter'
+===
+%!PS-Adobe-3.0
+%%Orientation: Landscape
+%%DocumentSuppliedResources:
+%%+ procset PostScript_File 0 0
+%%EndComments
+%%BeginProlog
+%%BeginResource: procset PostScript_File 0 0
+% Rotate page 90 degrees
+% _ => _
+/landscape {
+612 0 translate
+90 rotate
+} bind def
+% Draw box as clipping path
+% x0 y0 x1 y1 => _
+/cliptobox {
+4 dict begin
+/y1 exch def /x1 exch def /y0 exch def /x0 exch def
+newpath
+x0 y0 moveto x0 y1 lineto x1 y1 lineto x1 y0 lineto
+closepath
+clip
+end
+} bind def
+%%EndResource
+%%EndProlog
+%%Page: 1 1
+%%PageBoundingBox: 40 10 582 772
+%%BeginPageSetup
+/pagelevel save def
+landscape
+10 40 772 582 cliptobox
+userdict begin
+%%EndPageSetup
+%%PageTrailer
+end
+pagelevel restore
+showpage
+%%EOF
+---
+
+
+:: normal with stroked bounding box
+errors:       0
+clipping:     1
+clip_command: 'stroke'
+left:         10
+right:        20
+top:          30
+bottom:       40
+paper:        'Letter'
+===
+%!PS-Adobe-3.0
+%%Orientation: Portrait
+%%DocumentSuppliedResources:
+%%+ procset PostScript_File 0 0
+%%EndComments
+%%BeginProlog
+%%BeginResource: procset PostScript_File 0 0
+% Draw box as clipping path
+% x0 y0 x1 y1 => _
+/cliptobox {
+4 dict begin
+/y1 exch def /x1 exch def /y0 exch def /x0 exch def
+newpath
+x0 y0 moveto x0 y1 lineto x1 y1 lineto x1 y0 lineto
+closepath
+gsave 0 setgray 0.5 setlinewidth stroke grestore newpath
+end
+} bind def
+%%EndResource
+%%EndProlog
+%%Page: 1 1
+%%PageBoundingBox: 10 40 592 762
+%%BeginPageSetup
+/pagelevel save def
+10 40 592 762 cliptobox
+userdict begin
+%%EndPageSetup
 %%PageTrailer
 end
 pagelevel restore
