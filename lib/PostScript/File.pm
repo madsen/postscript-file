@@ -288,6 +288,9 @@ our @fonts = qw(
 
 =cut
 
+# 5.008-compatible version of defined-or:
+sub _def { for (@_) { return $_ if defined $_ } undef }
+
 sub new {
     my ($class, @options) = @_;
     my $opt = {};
@@ -332,7 +335,7 @@ sub new {
     ## Paper layout
     croak "PNG output is no longer supported.  Use PostScript::Convert instead"
         if $opt->{png};
-    $o->{eps}   = defined($opt->{eps})  ? $opt->{eps}  : 0;
+    $o->{eps}      = $opt->{eps} || 0;
     $o->{file_ext} = $opt->{file_ext};
     $o->set_filename(@$opt{qw(file dir)});
     $o->set_paper( $opt->{paper} );
@@ -343,48 +346,48 @@ sub new {
     ## Debug options
     $o->{debug} = $opt->{debug};        # undefined is an option
     if ($o->{debug}) {
-        $o->{db_active}   = $opt->{db_active}   || 1;
-        $o->{db_bufsize}  = $opt->{db_bufsize}  || 256;
-        $o->{db_font}     = $opt->{db_font}     || "Courier";
-        $o->{db_fontsize} = $opt->{db_fontsize} || 10;
-        $o->{db_ytop}     = $opt->{db_ytop}     || ($o->{bbox}[3] - $o->{db_fontsize} - 6);
-        $o->{db_ybase}    = $opt->{db_ybase}    || 6;
-        $o->{db_xpos}     = $opt->{db_xpos}     || 6;
-        $o->{db_xtab}     = $opt->{db_xtab}     || 10;
-        $o->{db_xgap}     = $opt->{db_xgap}     || ($o->{bbox}[2] - $o->{bbox}[0] - $o->{db_xpos})/4;
-        $o->{db_color}    = $opt->{db_color}    || "0 setgray";
+        $o->{db_active}   = _def($opt->{db_active},   1);
+        $o->{db_bufsize}  = _def($opt->{db_bufsize},  256);
+        $o->{db_font}     = _def($opt->{db_font},     "Courier");
+        $o->{db_fontsize} = _def($opt->{db_fontsize}, 10);
+        $o->{db_ytop}     = _def($opt->{db_ytop},     ($o->{bbox}[3] - $o->{db_fontsize} - 6));
+        $o->{db_ybase}    = _def($opt->{db_ybase},    6);
+        $o->{db_xpos}     = _def($opt->{db_xpos},     6);
+        $o->{db_xtab}     = _def($opt->{db_xtab},     10);
+        $o->{db_xgap}     = _def($opt->{db_xgap},     ($o->{bbox}[2] - $o->{bbox}[0] - $o->{db_xpos})/4);
+        $o->{db_color}    = _def($opt->{db_color},    "0 setgray");
     }
 
     ## Bounding box
-    my $x0 = $o->{bbox}[0] + ($opt->{left} || 28);
-    my $y0 = $o->{bbox}[1] + ($opt->{bottom} || 28);
-    my $x1 = $o->{bbox}[2] - ($opt->{right} || 28);
-    my $y1 = $o->{bbox}[3] - ($opt->{top} || 28);
+    my $x0 = $o->{bbox}[0] + _def($opt->{left},  28);
+    my $y0 = $o->{bbox}[1] + _def($opt->{bottom},  28);
+    my $x1 = $o->{bbox}[2] - _def($opt->{right},  28);
+    my $y1 = $o->{bbox}[3] - _def($opt->{top},  28);
     $o->set_bounding_box( $x0, $y0, $x1, $y1 );
     $o->set_clipping( $opt->{clipping} || 0 );
 
     ## Other options
-    $o->{title}      = defined($opt->{title})        ? $opt->{title}        : undef;
-    $o->{version}    = defined($opt->{version})      ? $opt->{version}      : undef;
-    $o->{langlevel}  = defined($opt->{langlevel})    ? $opt->{langlevel}    : undef;
-    $o->{extensions} = defined($opt->{extensions})   ? $opt->{extensions}   : undef;
-    $o->{order}      = defined($opt->{order})        ? ucfirst lc $opt->{order} : undef;
+    $o->{title}      = $opt->{title};
+    $o->{version}    = $opt->{version};
+    $o->{langlevel}  = $opt->{langlevel};
+    $o->{extensions} = $opt->{extensions};
+    $o->{order}      = defined($opt->{order}) ? ucfirst lc $opt->{order} : undef;
     $o->set_page_label( $opt->{page} );
     $o->set_incpage_handler( $opt->{incpage_handler} );
 
-    $o->{errx}       = defined($opt->{errx})         ? $opt->{erry}         : 72;
-    $o->{erry}       = defined($opt->{erry})         ? $opt->{erry}         : 72;
-    $o->{errmsg}     = defined($opt->{errmsg})       ? $opt->{errmsg}       : "ERROR:";
-    $o->{errfont}    = defined($opt->{errfont})      ? $opt->{errfont}      : "Courier-Bold";
-    $o->{errsize}    = defined($opt->{errsize})      ? $opt->{errsize}      : 12;
+    $o->{errx}        = _def($opt->{errx},         72);
+    $o->{erry}        = _def($opt->{erry},         72);
+    $o->{errmsg}      = _def($opt->{errmsg},       "ERROR:");
+    $o->{errfont}     = _def($opt->{errfont},      "Courier-Bold");
+    $o->{errsize}     = _def($opt->{errsize},      12);
 
-    $o->{font_suffix} = defined($opt->{font_suffix})  ? $opt->{font_suffix}  : "-iso";
-    $o->{clipcmd}    = defined($opt->{clip_command}) ? $opt->{clip_command} : "clip";
-    $o->{errors}     = defined($opt->{errors})       ? $opt->{errors}       : 1;
-    $o->{headings}   = defined($opt->{headings})     ? $opt->{headings}     : 0;
+    $o->{font_suffix} = _def($opt->{font_suffix},  "-iso");
+    $o->{clipcmd}     = _def($opt->{clip_command}, "clip");
+    $o->{errors}      = _def($opt->{errors},       1);
+    $o->{headings}    = _def($opt->{headings},     0);
     $o->set_strip( $opt->{strip} );
     $o->_set_reencode( $opt->{reencode} );
-    $o->set_auto_hyphen(defined($opt->{auto_hyphen}) ? $opt->{auto_hyphen} : 1);
+    $o->set_auto_hyphen(_def($opt->{auto_hyphen}, 1));
     $o->need_resource(font => @{ $opt->{need_fonts} }) if $opt->{need_fonts};
 
     $o->newpage( $o->get_page_label() );
@@ -745,7 +748,7 @@ when the document is using character set translation.  (Default: 1).
 sub newpage {
     my ($o, $page) = @_;
     my $oldpage = $o->{page}[$o->{p}];
-    my $newpage = defined($page) ? $page : &{$o->{incpage}}($oldpage);
+    my $newpage = _def($page, &{$o->{incpage}}($oldpage));
     my $p = $o->{p} = $o->{pagecount}++;
     $o->{page}[$p] = $newpage;
     $o->{pagebbox}[$p] = [ @{$o->{bbox}} ];

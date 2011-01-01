@@ -1,6 +1,7 @@
 Revision history for Perl extension PostScript::File.
 
 2.10   NOT
+	- Fixed bug: errx parameter was not handled correctly in new
 	- Documentation fixes
 
 2.02   December 24, 2010
