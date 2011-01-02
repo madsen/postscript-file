@@ -2055,7 +2055,27 @@ Inspect or change the bounding box for the whole document, showing only the area
 Setting the bounding box enables clipping.  Call L</set_clipping> with
 0 afterwards to undo that.
 
+=head2 get_printable_width()
+
+=head2 get_printable_height()
+
+These return the width or height of the document's bounding box
+(S<C<x1 - x0>> or S<C<y1 - y0>>, respectively).  These methods were
+added in version 2.10.
+
 =cut
+
+sub get_printable_width
+{
+  my $bb = shift->{bbox};
+  return $bb->[2] - $bb->[0];
+} # end get_printable_width
+
+sub get_printable_height
+{
+  my $bb = shift->{bbox};
+  return $bb->[3] - $bb->[1];
+} # end get_printable_height
 
 sub get_page_bounding_box {
     my $o = shift;
@@ -2085,7 +2105,30 @@ Note that calling C<set_page_bounding_box> automatically enables
 clipping for the page.  If this isn't what you want, call
 L</set_page_clipping> with 0 afterwards.
 
+=head2 get_page_printable_width( [page] )
+
+=head2 get_page_printable_height( [page] )
+
+These return the width or height of the specified page's bounding box
+(S<C<x1 - x0>> or S<C<y1 - y0>>, respectively).  If C<page> is not
+specified, the current page is assumed.  These methods were added in
+version 2.10.
+
 =cut
+
+sub get_page_printable_width
+{
+  my $o = shift;
+  my $bb = $o->{pagebbox}[$o->get_ordinal( shift )];
+  return $bb->[2] - $bb->[0];
+} # end get_page_printable_width
+
+sub get_page_printable_height
+{
+  my $o = shift;
+  my $bb = $o->{pagebbox}[$o->get_ordinal( shift )];
+  return $bb->[3] - $bb->[1];
+} # end get_page_printable_height
 
 sub set_page_margins {
     my $o = shift;
