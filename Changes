@@ -1,14 +1,14 @@
 Revision history for Perl extension PostScript::File.
 
-2.10   NOT
+2.10   May 5, 2011
 	API improvements:
 
-	- You can pass "newpage => 0" to  constructor to prevent it
+	- You can pass "newpage => 0" to the constructor to prevent it
 	  from creating the first page.	 This leads to more natural
 	  loops, because you call newpage before each page (instead of
 	  "before each page except the first").
-	- New methods: get_printable_width, get_printable_height,
-	  get_page_printable_width, & get_page_printable_height
+	- Added get_printable_width, get_printable_height,
+	  get_page_printable_width, & get_page_printable_height methods
 
 	- Fixed bug: clipping never actually worked
 	- Fixed bug: errx parameter was not handled correctly in new
