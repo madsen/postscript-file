@@ -233,7 +233,11 @@ If the C<auto_hyphen> attribute is true, then any HYPHEN-MINUS
 
 The characters after which a line can wrap (other than space and tab,
 which are always valid line breaks) can be set with the
-C<set_wrap_chars> method.
+C<set_wrap_chars> method.  In addition, C<$text> may contain ZERO
+WIDTH SPACE (U+200B) characters to indicate potential line breaks.
+All ZWSP characters and CRs will be removed from the returned strings.
+C<$text> may also contain NO-BREAK SPACE (U+00A0) characters, which
+indicate whitespace without a potential line break.
 
 =cut
 
@@ -241,10 +245,17 @@ sub wrap
 {
   my $self  = shift;
   my $width = shift;
-  my $text  = $self->encode_text(
-    $self->{auto_hyphen} ? $self->convert_hyphens(shift) : shift
+  my $text  = shift;
+
+  # Remove CRs; convert ZWSP to CR:
+  $text =~ s/\r//g;
+  $text =~ s/\x{200B}/\r/g if Encode::is_utf8($text);
+
+  $text  = $self->encode_text(
+    $self->{auto_hyphen} ? $self->convert_hyphens($text) : $text
   );
 
+  # Do word wrapping:
   my @lines = '';
   my $re    = $self->{wrap_re};
 
@@ -270,6 +281,9 @@ sub wrap
 
     redo;                   # Only the "last" statement above can exit
   } # end for $text
+
+  # Remove any remaining CR (ZWSP) chars:
+  s/\r//g for @lines;
 
   if ($self->{auto_hyphen}) {
     # At this point, any hyphen-minus characters are unambiguously

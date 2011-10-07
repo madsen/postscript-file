@@ -117,6 +117,16 @@ my @tests = (
       "\x{2212}1234567890"
     ]
   ],
+  [
+    "zero-width space",
+    "This\x{200b}is\x{200b}a\x{200b}long\x{200b}text\x{200b}containing\x{200b}only\x{200b}zero\x{200b}width\x{200b}spaces",
+    [
+      "Thisisalongtext",
+      "containingonly",
+      "zerowidth",
+      "spaces"
+    ]
+  ],
 ); # end @tests
 
 #---------------------------------------------------------------------
