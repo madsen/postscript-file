@@ -1,5 +1,11 @@
 Revision history for Perl extension PostScript::File.
 
+2.11   NOT
+	- Added set_wrap_chars method to Metrics objects.
+	- Fixed bug: Metrics wrap method didn't wrap after hyphens.
+	  By default, it now wraps after hyphens, dashes, and forward
+	  slashes.
+
 2.10   May 5, 2011
 	API improvements:
 

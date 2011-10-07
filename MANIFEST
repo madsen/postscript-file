@@ -62,6 +62,7 @@ t/30-debug.t
 t/40-pages.t
 t/45-hyphens.t
 t/50-pstr.t
+t/55-wrapping.t
 t/60-content.t
 t/65-testable.t
 t/70-Courier.t

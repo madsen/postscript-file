@@ -18,7 +18,7 @@ package PostScript::File::Metrics;
 #---------------------------------------------------------------------
 
 use 5.008;
-our $VERSION = '2.02';          ## no critic
+our $VERSION = '2.11';          ## no critic
 # This file is part of {{$dist}} {{$dist_version}} ({{$date}})
 
 use strict;
@@ -150,6 +150,7 @@ sub new
           unless $encoding =~ /^(?:std|sym)$/;
   $self->set_auto_hyphen(1);
   $self->set_size($size);
+  $self->set_wrap_chars;
 } # end new
 #---------------------------------------------------------------------
 
@@ -230,6 +231,10 @@ If the C<auto_hyphen> attribute is true, then any HYPHEN-MINUS
 (U+002D) characters in C<$text> will be converted to either HYPHEN
 (U+2010) or MINUS SIGN (U+2212) in the returned strings.
 
+The characters after which a line can wrap (other than space and tab,
+which are always valid line breaks) can be set with the
+C<set_wrap_chars> method.
+
 =cut
 
 sub wrap
@@ -241,22 +246,24 @@ sub wrap
   );
 
   my @lines = '';
+  my $re    = $self->{wrap_re};
 
   for ($text) {
-    if (m/\G[ \t]*\n/gc) {
+    if (m/\G[ \t\r]*\n/gc) {
       push @lines, '';
     } else {
-      m/\G(\s*(?:[^-\s]+-*|\S+))/g or last;
+      m/\G($re)/g or last;
       my $word = $1;
     check_word:
       if ($self->width($lines[-1] . $word, 1) <= $width) {
         $lines[-1] .= $word;
       } elsif ($lines[-1] eq '') {
         $lines[-1] = $word;
-        warn "$word is too wide for field width $width";
+        warn sprintf("%s is too wide (%g) for field width %g",
+                     $word, $self->width($word, 1), $width);
       } else {
         push @lines, '';
-        $word =~ s/^\s+//;
+        $word =~ s/^[ \t\r]+//;
         goto check_word;
       }
     } # end else not at LF
@@ -272,6 +279,50 @@ sub wrap
     @lines;
   }
 } # end wrap
+#---------------------------------------------------------------------
+
+=method set_wrap_chars
+
+  $metrics->set_wrap_chars($new_chars)
+
+This method (introduced in version 2.11) sets the characters after
+which a word can be wrapped.  A line can wrap after any character in
+C<$new_chars>, which I<should not> include whitespace.  Whitespace is
+always a valid breakpoint.  If C<$new_chars> is omitted or C<undef>,
+restores the default wrap characters, which means C<-/> and (if using
+cp1252) both en and em dashes.  It returns the Metrics object, so you
+can chain to the next method.
+
+=cut
+
+sub set_wrap_chars
+{
+  my ($self, $chars) = @_;
+
+  if (not defined $chars) {
+    $chars = '-/';
+    if ($self->{encoding}) {
+      $chars .= "\xAD";
+      # Only cp1252 has en dash & em dash:
+      $chars .= "\x{2013}\x{2014}" if $self->{encoding}->name eq 'cp1252';
+    }
+  } # end if $chars not supplied (use default)
+
+  $chars = $self->encode_text($chars);
+
+  $chars =~ s/(.)/ sprintf '\x%02X', ord $1 /seg;
+
+  $self->{wrap_re} = qr(
+    [ \t\r]*
+    (?: [^$chars \t\r\n]+ |
+        [$chars]+ [^$chars \t\r\n]* )
+    [$chars]*
+  )x;
+
+#  print STDERR "$self->{wrap_re}\n";
+
+  $self;
+} # end set_wrap_chars
 
 #---------------------------------------------------------------------
 # Return the package in which the font's metrics are stored:
