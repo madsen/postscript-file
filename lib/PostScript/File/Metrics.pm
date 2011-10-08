@@ -23,7 +23,7 @@ our $VERSION = '2.11';          ## no critic
 
 use strict;
 use warnings;
-use Carp 'croak';
+use Carp qw(carp croak);
 use Encode qw(find_encoding);
 
 use PostScript::File ':metrics_methods'; # Import some methods
@@ -219,7 +219,7 @@ sub width
 
 =method wrap
 
-  @lines = $metrics->wrap($width, $text)
+  @lines = $metrics->wrap($width, $text, [\%param])
 
 This wraps C<$text> into lines of no more than C<$width> points.  If
 C<$text> contains newlines, they will also cause line breaks.  If
@@ -239,6 +239,24 @@ All ZWSP characters and CRs will be removed from the returned strings.
 C<$text> may also contain NO-BREAK SPACE (U+00A0) characters, which
 indicate whitespace without a potential line break.
 
+The optional C<\%param> (introduced in version 2.11) allows additional
+control over the wrapping.  It may contain the following keys:
+
+=over
+
+=item maxlines
+
+The maximum number of lines to return.  The final line will contain
+all the remaining text, even if that exceeds C<$width> or contains
+newline characters.
+
+=item quiet
+
+If true, do not warn about words that are too wide to fit in the
+specified C<$width>.
+
+=back
+
 =cut
 
 sub wrap
@@ -246,6 +264,12 @@ sub wrap
   my $self  = shift;
   my $width = shift;
   my $text  = shift;
+  my %param = @_ ? %{+shift} : ();
+
+  my $maxlines = delete $param{maxlines};
+  my $quiet    = delete $param{quiet};
+
+  carp "Unknown wrap parameter(s) @{[ keys %param ]}" if %param;
 
   # Remove CRs; convert ZWSP to CR:
   $text =~ s/\r//g;
@@ -270,8 +294,8 @@ sub wrap
         $lines[-1] .= $word;
       } elsif ($lines[-1] eq '') {
         $lines[-1] = $word;
-        warn sprintf("%s is too wide (%g) for field width %g",
-                     $word, $self->width($word, 1), $width);
+        carp sprintf("%s is too wide (%g) for field width %g",
+                     $word, $self->width($word, 1), $width) unless $quiet;
       } else {
         push @lines, '';
         $word =~ s/^[ \t\r]+//;
@@ -279,11 +303,25 @@ sub wrap
       }
     } # end else not at LF
 
+    if (defined $maxlines and @lines >= $maxlines) {
+      $lines[-1] .= $1 if m/\G(.*[^ \t\r\n])/sg;
+      unless ($quiet) {
+        my $linewidth = $self->width($lines[-1], 1);
+        carp sprintf("'%s' is too wide (%g) for field width %g",
+                     $lines[-1], $linewidth, $width)
+            if $linewidth > $width;
+      }
+      last;
+    } # end if reached maximum number of lines
+
     redo;                   # Only the "last" statement above can exit
   } # end for $text
 
   # Remove any remaining CR (ZWSP) chars:
   s/\r//g for @lines;
+
+  # Remove the last line if it's blank ($text ended with newline):
+  pop @lines unless @lines == 1 or length $lines[-1];
 
   if ($self->{auto_hyphen}) {
     # At this point, any hyphen-minus characters are unambiguously

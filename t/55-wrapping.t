@@ -127,6 +127,41 @@ my @tests = (
       "spaces"
     ]
   ],
+  [
+    "maxlines 1",
+    [
+      "This is a long text to be wrapped on only one line",
+      {
+        maxlines => 1,
+        quiet => 1
+      }
+    ],
+    [
+      "This is a long text to be wrapped on only one line"
+    ]
+  ],
+  [
+    "maxlines 3",
+    [
+      "This is a long text to be wrapped on only three lines",
+      {
+        maxlines => 3,
+        quiet => 1
+      }
+    ],
+    [
+      "This is a long",
+      "text to be",
+      "wrapped on only three lines"
+    ]
+  ],
+  [
+    "ends with newline",
+    "newline after\n",
+    [
+      "newline after"
+    ]
+  ],
 ); # end @tests
 
 #---------------------------------------------------------------------
@@ -142,7 +177,9 @@ if (@ARGV and $ARGV[0] eq 'gen') {
 my $metrics = PostScript::File::Metrics->new(qw(Helvetica 10 cp1252));
 
 for my $test (@tests) {
-  my @got = $metrics->wrap(72, $test->[iText]);
+  my @got = (ref $test->[iText]
+             ? $metrics->wrap(72, @{ $test->[iText] })
+             : $metrics->wrap(72,    $test->[iText] ));
 
   if ($generateResults) {
     $test->[iExpected] = \@got;
@@ -156,7 +193,7 @@ if ($generateResults) {
   require Data::Dumper;
 
   my $d = Data::Dumper->new([ \@tests ], ['*tests'])
-            ->Indent(1)->Useqq(1)->Dump;
+            ->Indent(1)->Useqq(1)->Quotekeys(0)->Sortkeys(1)->Dump;
   $d =~ s/\]\n\);\n\z/],\n); # end \@tests\n/;
 
   open(my $out, '>:utf8', '/tmp/55-wrapping.t') or die $!;
