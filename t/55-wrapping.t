@@ -162,6 +162,21 @@ my @tests = (
       "newline after"
     ]
   ],
+  [
+    "only at whitespace",
+    [
+      "This is-a long-text to be-wrapped with-hyphens",
+      {
+        chars => ""
+      }
+    ],
+    [
+      "This is\x{ad}a",
+      "long\x{ad}text to",
+      "be\x{ad}wrapped",
+      "with\x{ad}hyphens"
+    ]
+  ],
 ); # end @tests
 
 #---------------------------------------------------------------------

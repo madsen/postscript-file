@@ -244,6 +244,12 @@ control over the wrapping.  It may contain the following keys:
 
 =over
 
+=item chars
+
+This overrides the line-breaking characters normally set by the
+C<set_wrap_chars> method.  The value has the same meaning as for
+C<set_wrap_chars>.
+
 =item maxlines
 
 The maximum number of lines to return.  The final line will contain
@@ -268,6 +274,9 @@ sub wrap
 
   my $maxlines = delete $param{maxlines};
   my $quiet    = delete $param{quiet};
+  my $re       = (exists($param{chars})
+                  ? $self->_build_wrap_re(delete $param{chars})
+                  : $self->{wrap_re});
 
   carp "Unknown wrap parameter(s) @{[ keys %param ]}" if %param;
 
@@ -281,7 +290,6 @@ sub wrap
 
   # Do word wrapping:
   my @lines = '';
-  my $re    = $self->{wrap_re};
 
   for ($text) {
     if (m/\G[ \t\r]*\n/gc) {
@@ -349,6 +357,18 @@ can chain to the next method.
 
 sub set_wrap_chars
 {
+  my $self = shift;
+
+  $self->{wrap_re} = $self->_build_wrap_re(@_);
+
+  $self;
+} # end set_wrap_chars
+
+#---------------------------------------------------------------------
+our %_wrap_re_cache;
+
+sub _build_wrap_re
+{
   my ($self, $chars) = @_;
 
   if (not defined $chars) {
@@ -362,19 +382,21 @@ sub set_wrap_chars
 
   $chars = $self->encode_text($chars);
 
-  $chars =~ s/(.)/ sprintf '\x%02X', ord $1 /seg;
+  return $_wrap_re_cache{$chars} ||= do {
+    if (length $chars) {
+      $chars =~ s/(.)/ sprintf '\x%02X', ord $1 /seg;
 
-  $self->{wrap_re} = qr(
-    [ \t\r]*
-    (?: [^$chars \t\r\n]+ |
-        [$chars]+ [^$chars \t\r\n]* )
-    [$chars]*
-  )x;
-
-#  print STDERR "$self->{wrap_re}\n";
-
-  $self;
-} # end set_wrap_chars
+      qr(
+        [ \t\r]*
+        (?: [^$chars \t\r\n]+ |
+            [$chars]+ [^$chars \t\r\n]* )
+        [$chars]*
+      )x;
+    } else {
+      qr( [ \t\r]*  [^ \t\r\n]+ )x;
+    }
+  };
+} # end _build_wrap_re
 
 #---------------------------------------------------------------------
 # Return the package in which the font's metrics are stored:
