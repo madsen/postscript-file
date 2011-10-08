@@ -261,6 +261,13 @@ newline characters.
 If true, do not warn about words that are too wide to fit in the
 specified C<$width>.
 
+=item warnings
+
+If present, must be an arrayref.  Warning messages about words that
+are too wide to fit in the specified C<$width> will be pushed onto the
+array.  You should also pass S<C<< quiet => 1 >>> if you don't want
+the warnings printed to STDERR.
+
 =back
 
 =cut
@@ -274,6 +281,7 @@ sub wrap
 
   my $maxlines = delete $param{maxlines};
   my $quiet    = delete $param{quiet};
+  my $warnings = delete $param{warnings};
   my $re       = (exists($param{chars})
                   ? $self->_build_wrap_re(delete $param{chars})
                   : $self->{wrap_re});
@@ -302,8 +310,10 @@ sub wrap
         $lines[-1] .= $word;
       } elsif ($lines[-1] eq '') {
         $lines[-1] = $word;
-        carp sprintf("%s is too wide (%g) for field width %g",
-                     $word, $self->width($word, 1), $width) unless $quiet;
+        my $w = sprintf("%s is too wide (%g) for field width %g",
+                        $word, $self->width($word, 1), $width);
+        push @$warnings, $w if $warnings;
+        carp $w unless $quiet;
       } else {
         push @lines, '';
         $word =~ s/^[ \t\r]+//;
@@ -313,12 +323,13 @@ sub wrap
 
     if (defined $maxlines and @lines >= $maxlines) {
       $lines[-1] .= $1 if m/\G(.*[^ \t\r\n])/sg;
-      unless ($quiet) {
-        my $linewidth = $self->width($lines[-1], 1);
-        carp sprintf("'%s' is too wide (%g) for field width %g",
-                     $lines[-1], $linewidth, $width)
-            if $linewidth > $width;
-      }
+      if (($warnings or not $quiet) and
+          (my $linewidth = $self->width($lines[-1], 1)) > $width) {
+        my $w = sprintf("'%s' is too wide (%g) for field width %g",
+                        $lines[-1], $linewidth, $width);
+        push @$warnings, $w if $warnings;
+        carp $w unless $quiet;
+      } # end if issuing warning about last line
       last;
     } # end if reached maximum number of lines
 
