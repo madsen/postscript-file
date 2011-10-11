@@ -1766,7 +1766,7 @@ sub _set_reencode
   $o->{reencode} = $encoding_name{$encoding}
       or croak "Invalid reencode setting $encoding";
 
-  require Encode;  Encode->VERSION(2.12); # Need coderef for CHECK
+  require Encode;  Encode->VERSION(2.21); # Need mime_name method
   $o->{encoding} = Encode::find_encoding($encoding)
       or croak "Can't find encoding $encoding";
 } # end _set_reencode
