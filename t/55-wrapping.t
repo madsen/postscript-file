@@ -171,7 +171,7 @@ my @tests = (
       "wrapped on only three lines"
     ],
     [
-      qr/(?-xism:^\'wrapped\ on\ only\ three\ lines\'\ is\ too\ wide\ \(122\.28\)\ for\ field\ width\ 72\ at)/
+      "'wrapped on only three lines' is too wide (122.28) for field width 72"
     ]
   ],
   [
@@ -204,7 +204,7 @@ my @tests = (
       "so it warns."
     ],
     [
-      qr/(?-xism:^ThisWordIsTooLongToWrapAnywhere\ is\ too\ wide\ \(170\.05\)\ for\ field\ width\ 72\ at)/
+      "ThisWordIsTooLongToWrapAnywhere is too wide (170.05) for field width 72"
     ]
   ],
 ); # end @tests
@@ -238,10 +238,8 @@ for my $test (@tests) {
   if ($generateResults) {
     $test->[iExpected] = \@got;
     if (@warnings) {
-      $test->[iWarnings] = [ map {
-        s/ at 55-wrapping\.t.*/ at/s or die;
-        qr/^\Q$_/
-      } @warnings ];
+      s/ at \S*55-wrapping\.t.*//s or die for @warnings;
+      $test->[iWarnings] = [ @warnings ];
     } else {
       pop @$test if $test->[iWarnings];
     }
@@ -250,7 +248,7 @@ for my $test (@tests) {
     if (my $w = $test->[iWarnings]) {
       is(scalar @warnings, scalar @$w, "$test->[iName] warnings");
       for my $i (0 .. $#$w) {
-        like($warnings[$i], $w->[$i], "$test->[iName] warning $i");
+        like($warnings[$i], qr/^\Q$w->[$i] at /, "$test->[iName] warning $i");
       }
     } else {
       is(scalar @warnings, 0, "$test->[iName] no warnings");
