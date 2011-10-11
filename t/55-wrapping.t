@@ -21,6 +21,7 @@ use strict;
 use warnings;
 
 use Test::More 0.88;            # want done_testing
+use List::Util qw(sum);
 
 use PostScript::File::Metrics ();
 
@@ -28,6 +29,7 @@ use PostScript::File::Metrics ();
 sub iName     () { 0 }
 sub iText     () { 1 }
 sub iExpected () { 2 }
+sub iWarnings () { 3 }
 
 my @tests = (
   [
@@ -156,6 +158,23 @@ my @tests = (
     ]
   ],
   [
+    "maxlines 3 not quiet",
+    [
+      "This is a long text to be wrapped on only three lines",
+      {
+        maxlines => 3
+      }
+    ],
+    [
+      "This is a long",
+      "text to be",
+      "wrapped on only three lines"
+    ],
+    [
+      qr/(?-xism:^\'wrapped\ on\ only\ three\ lines\'\ is\ too\ wide\ \(122\.28\)\ for\ field\ width\ 72\ at)/
+    ]
+  ],
+  [
     "ends with newline",
     "newline after\n",
     [
@@ -177,7 +196,25 @@ my @tests = (
       "with\x{ad}hyphens"
     ]
   ],
+  [
+    "word too long",
+    "ThisWordIsTooLongToWrapAnywhere so it warns.",
+    [
+      "ThisWordIsTooLongToWrapAnywhere",
+      "so it warns."
+    ],
+    [
+      qr/(?-xism:^ThisWordIsTooLongToWrapAnywhere\ is\ too\ wide\ \(170\.05\)\ for\ field\ width\ 72\ at)/
+    ]
+  ],
 ); # end @tests
+
+#---------------------------------------------------------------------
+# Capture warning messages:
+
+my @warnings;
+
+$SIG{__WARN__} = sub { push @warnings, $_[0] };
 
 #---------------------------------------------------------------------
 my $generateResults;
@@ -186,20 +223,38 @@ if (@ARGV and $ARGV[0] eq 'gen') {
   # Just output the actual results, so they can be diffed against this file
   $generateResults = 1;
 } else {
-  plan tests => scalar @tests;
+  my $warnings = sum(map { $_ ? scalar @$_ : 0 } map { $_->[iWarnings] } @tests);
+  plan tests => 2 * @tests + $warnings;
 }
 
 my $metrics = PostScript::File::Metrics->new(qw(Helvetica 10 cp1252));
 
 for my $test (@tests) {
+  @warnings = ();
   my @got = (ref $test->[iText]
              ? $metrics->wrap(72, @{ $test->[iText] })
              : $metrics->wrap(72,    $test->[iText] ));
 
   if ($generateResults) {
     $test->[iExpected] = \@got;
+    if (@warnings) {
+      $test->[iWarnings] = [ map {
+        s/ at 55-wrapping\.t.*/ at/s or die;
+        qr/^\Q$_/
+      } @warnings ];
+    } else {
+      pop @$test if $test->[iWarnings];
+    }
   } else {
     is_deeply(\@got, @$test[iExpected, iName]);
+    if (my $w = $test->[iWarnings]) {
+      is(scalar @warnings, scalar @$w, "$test->[iName] warnings");
+      for my $i (0 .. $#$w) {
+        like($warnings[$i], $w->[$i], "$test->[iName] warning $i");
+      }
+    } else {
+      is(scalar @warnings, 0, "$test->[iName] no warnings");
+    }
   }
 } # end for each $test in @tests
 
