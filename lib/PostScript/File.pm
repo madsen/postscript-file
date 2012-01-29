@@ -19,7 +19,7 @@ package PostScript::File;
 #---------------------------------------------------------------------
 
 use 5.008;
-our $VERSION = '2.11';          ## no critic
+our $VERSION = '2.12';          ## no critic
 # This file is part of {{$dist}} {{$dist_version}} ({{$date}})
 
 use strict;
@@ -27,7 +27,7 @@ use warnings;
 use Carp 'croak';
 use File::Spec ();
 use Scalar::Util 'openhandle';
-use Exporter 'import';
+use Exporter 5.57 'import';
 
 our %EXPORT_TAGS = (metrics_methods => [qw(
   encode_text decode_text convert_hyphens set_auto_hyphen

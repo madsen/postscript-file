@@ -22,7 +22,7 @@ our $VERSION = '2.00';
 
 use strict;
 use warnings;
-use Exporter 'import';
+use Exporter 5.57 'import';
 use constant number_of_tests => 275;
 use Test::More tests => number_of_tests;
 
@@ -69,6 +69,7 @@ sub test_font
   SKIP: {
     my $testsInBlock = number_of_tests - 2;
 
+    # RECOMMEND PREREQ: Font::AFM
     # Construct the Font::AFM object, or skip the remaining tests:
     eval { require Font::AFM };
 

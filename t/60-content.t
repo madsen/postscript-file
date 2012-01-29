@@ -24,6 +24,7 @@ chdir $Bin or die "Unable to cd $Bin: $!";
 
 use Test::More;
 
+# SUGGEST PREREQ: Test::Differences
 my $diff;
 BEGIN { $diff = eval "use Test::Differences; 1" }
 

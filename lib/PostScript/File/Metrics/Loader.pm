@@ -18,12 +18,13 @@ package PostScript::File::Metrics::Loader;
 #---------------------------------------------------------------------
 
 use 5.008;
-our $VERSION = '2.02';          ## no critic
+our $VERSION = '2.12';          ## no critic
 # This file is part of {{$dist}} {{$dist_version}} ({{$date}})
 
 use strict;
 use warnings;
 use Carp 'confess';
+# RECOMMEND PREREQ: Font::AFM
 use Font::AFM;
 use PostScript::File 2.00 ();
 

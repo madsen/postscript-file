@@ -6,6 +6,7 @@ use Test::More;
 use File::Spec ();
 
 BEGIN {
+  # RECOMMEND PREREQ: File::Temp 0.15 - need tempdir
   eval "use File::Temp 0.15 'tempdir';";
   plan skip_all => "File::Temp 0.15 required for testing" if $@;
 

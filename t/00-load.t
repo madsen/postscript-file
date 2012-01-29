@@ -8,6 +8,7 @@ BEGIN {
     use_ok('PostScript::File::Metrics');
 
   SKIP: {
+    # RECOMMEND PREREQ: Font::AFM
     eval { require Font::AFM };
     skip "Font::AFM not installed", 1 if $@;
 
