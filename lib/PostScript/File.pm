@@ -1933,7 +1933,17 @@ sub strip
 {
   my $o = shift;
 
-  my $re = $o->{strip} or return;
+  my $re;
+  if (@_ > 1) {
+    my $strip = shift;
+    defined($re = $strip_re{$strip})
+        or croak "Invalid strip type $strip";
+  } else {
+    $re = $o->{strip};
+  }
+
+  return unless $re;
+
   my $pos;
 
   for (@_) {
