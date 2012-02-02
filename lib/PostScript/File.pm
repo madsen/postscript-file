@@ -47,11 +47,6 @@ our @EXPORT_OK = (qw(check_tilde check_file incpage_label incpage_roman
  ## use critic
 
 # global constants
-our %strip_re = (
-  none     => qr{\A\z},                    # remove nothing
-  space    => qr{^\s+}m,                   # remove leading spaces
-  comments => qr{^\s*(?:%(?![!%]).*\n)?}m, # remove single line comments
-);
 our %encoding_def; # defined near _set_reencode
 
 our ($t1ascii, $ttftotype42);
@@ -752,7 +747,11 @@ Set the label (text or number) for the initial page.  See L</set_page_label>.  (
 =head3 strip
 
 Set whether the PostScript code is filtered.  C<space> strips leading spaces so the user can indent freely
-without increasing the file size.  C<comments> remove lines beginning with '%' as well.  C<none> does no filtering.  (Default: "space")
+without increasing the file size.
+C<comments> removes lines beginning with '%' as well (but not lines beginning with '%%' or '%!').
+C<all_comments> (added in version 2.12) also removes comments that
+aren't at the beginning of a line.
+C<none> does no filtering.  (Default: "space")
 
 =head3 auto_hyphen
 
@@ -1896,23 +1895,74 @@ sub get_strip {
     return $o->{strip_type};
 }
 
+my $eolRE   = qr/(?>\r\n?|\n)/;
+my $noeolRE = qr/[^\r\n]/;
+my $nonwsRE = qr/[^ \t\r\n]/;
+
+my %strip_re = (
+  none     => 0,                             # remove nothing
+  space    => qr{\G^\s+}m,                   # remove leading spaces
+  # remove leading spaces and single line comments (except %% and %!):
+  comments => qr{\G^(?:\s+|%(?![!%])(?:$noeolRE)*(?:$eolRE))}mo,
+  # remove leading spaces and all comments (except %% and %!):
+  all_comments => qr{\G (?: ^\s+
+                          | ^% (?![!%]) (?:$noeolRE)* (?:$eolRE)
+                          | [ \t]*%(?![!%]) (?:$noeolRE)* )
+                    }mox,
+); # end strip_re
+
 sub set_strip {
     my ($o, $strip) = @_;
 
     if (not defined $strip) { $strip = 'space'   }
     else                    { $strip = lc $strip }
 
-    $o->{strip} = $strip_re{$strip}
+    defined($o->{strip} = $strip_re{$strip})
         or croak "Invalid strip type $strip";
     $o->{strip_type} = $strip;
 }
 
+#sub chkpt
+#{
+#  my $at = substr($_, pos(), 5);
+#  $at =~ s/([^ -~])/sprintf '\x%02X', ord $1 /eg;
+#  printf "%d: %s\n", pos(), $at;
+#} # end chkpt
+
+sub strip
+{
+  my $o = shift;
+
+  my $re = $o->{strip} or return;
+  my $pos;
+
+  for (@_) {
+    pos() = 0;
+    while (pos() < length) {
+      next if m/\G<~[^~]*~>/gc
+           or m/\G\( (?: [^\\)]+ | \\. )* \)/sgcx;
+      $pos = pos();
+      if (s/$re//m) {
+        pos() = $pos;
+      } else {
+        pos() = $pos;
+        m/\G[ \t]*(?:$eolRE|(?:$nonwsRE)+(?:$eolRE)?)/ogc;
+        die "Infinite loop" if pos() == $pos;
+      }
+    }
+  } # end for @_
+
+  return;
+} # end strip
+
 =head2 get_strip
 
-=head2 set_strip( "none" | "space" | "comments" )
+=head2 set_strip( "none" | "space" | "comments" | "all_comments")
 
 Determine whether the PostScript code is filtered.  C<space> strips leading spaces so the user can indent freely
 without increasing the file size.  C<comments> remove lines beginning with '%' as well.
+C<all_comments> (added in version 2.12) also removes comments that
+aren't at the beginning of a line.
 
 =cut
 
@@ -2284,7 +2334,7 @@ sub get_preview {
 sub add_preview {
     my ($o, $width, $height, $depth, $lines, $entry) = @_;
     if (defined $entry) {
-        $entry =~ s/$o->{strip}//gm;
+        $o->strip($entry);
         $o->{Preview} = $o->_here_doc(<<END_PREVIEW);
             \%\%BeginPreview: $width $height $depth $lines
                 $entry
@@ -2353,7 +2403,7 @@ sub add_resource {
     } # end unless Document or Feature
 
     if (defined($resource)) {
-        $resource =~ s/$o->{strip}//gm;
+        $o->strip($resource);
         $name = $o->quote_text($name);
         $o->{DocSupplied} .= $o->encode_text("\%\%+ $suptype $name\n")
             if $suptype;
@@ -2426,7 +2476,7 @@ sub add_function {
     my ($o, $name, $entry, $version, $revision) = @_;
     if (defined($name) and defined($entry)) {
         return if $o->has_function($name);
-        $entry =~ s/$o->{strip}//gm;
+        $o->strip($entry);
         $name = sprintf('%s %g %d', $o->quote_text($name),
                         $version||0, $revision||0);
         $o->{DocSupplied} .= $o->encode_text("\%\%+ procset $name\n");
@@ -2664,7 +2714,7 @@ sub get_setup {
 
 sub add_setup {
     my ($o, $entry) = @_;
-    $entry =~ s/$o->{strip}//gm;
+    $o->strip($entry);
     $o->{Setup} .= $o->encode_text($entry) if (defined $entry);
 }
 
@@ -2684,7 +2734,7 @@ sub get_page_setup {
 
 sub add_page_setup {
     my ($o, $entry) = @_;
-    $entry =~ s/$o->{strip}//gm;
+    $o->strip($entry);
     $o->{PageSetup} .= $o->encode_text($entry) if (defined $entry);
 }
 
@@ -2719,7 +2769,7 @@ sub add_to_page {
             $o->{p} = $ord;
         }
     }
-    $entry =~ s/$o->{strip}//gm;
+    $o->strip($entry);
     $o->{Pages}[$o->{p}] .= $o->encode_text($entry);
 }
 
@@ -2756,7 +2806,7 @@ sub get_page_trailer {
 
 sub add_page_trailer {
     my ($o, $entry) = @_;
-    $entry =~ s/$o->{strip}//gm;
+    $o->strip($entry);
     $o->{PageTrailer} .= $o->encode_text($entry) if (defined $entry);
 }
 
@@ -2776,7 +2826,7 @@ sub get_trailer {
 
 sub add_trailer {
     my ($o, $entry) = @_;
-    $entry =~ s/$o->{strip}//gm;
+    $o->strip($entry);
     $o->{Trailer} .= $o->encode_text($entry) if (defined $entry);
 }
 
@@ -2961,7 +3011,7 @@ sub _here_doc
   my ($o, $text) = @_;
 
   if ($o->{strip_type} ne 'none') {
-    $text =~ s/$o->{strip}//gm;
+    $o->strip($text);
   } elsif ($text =~ /^([ \t]+)/) {
     my $space = $1;
 

@@ -24,12 +24,16 @@ chdir $Bin or die "Unable to cd $Bin: $!";
 
 use Test::More;
 
-# SUGGEST PREREQ: Test::Differences
-my $diff;
-BEGIN { $diff = eval "use Test::Differences; 1" }
-
-# Not all versions of Test::Differences support changing the style:
-eval { Test::Differences::unified_diff() };
+# Load Test::Differences, if available:
+BEGIN {
+  # SUGGEST PREREQ: Test::Differences
+  if (eval "use Test::Differences; 1") {
+    # Not all versions of Test::Differences support changing the style:
+    eval { Test::Differences::unified_diff() }
+  } else {
+    *eq_or_diff = \&is;         # Just use "is" instead
+  }
+} # end BEGIN
 
 use PostScript::File ();
 
@@ -43,10 +47,11 @@ if (@ARGV and $ARGV[0] eq 'gen') {
   open(OUT, '>', '/tmp/65-testable.t') or die $!;
   printf OUT "#%s\n\n__DATA__\n", '=' x 69;
 } else {
-  plan tests => 12 * 2;
+  plan tests => 14 * 2;
 }
 
 my ($name, %param, @methods);
+my $builder = Test::More->builder;
 
 while (<DATA>) {
 
@@ -79,15 +84,16 @@ while (<DATA>) {
       $expected = $ps->testable_output;
 
       print OUT "$expected---\n";
-    } elsif ($diff) {
-      eq_or_diff($ps->testable_output, $expected, $name); # if Test::Differences
+    } else {
+      my $todo = ($name =~ s/^TODO +//);
+      $builder->todo_start('') if $todo;
+
+      eq_or_diff($ps->testable_output, $expected, $name);
       # Calling output again should produce exactly the same output:
       eq_or_diff($ps->testable_output, $expected, "repeat $name");
-    } else {
-      is($ps->testable_output, $expected, $name); # fall back to Test::More
-      # Calling output again should produce exactly the same output:
-      is($ps->testable_output, $expected, "repeat $name");
-    }
+
+      $builder->todo_end if $todo;
+    } # end else running tests
 
     # Clean up:
     @methods = ();
@@ -98,7 +104,7 @@ while (<DATA>) {
     $name = $1;
   } # end elsif test name (:: name)
   else {
-    die "Unrecognized line $_" if /\S/;
+    die "Unrecognized line $_" if /\S/ and not /^# /;
   }
 } # end while <DATA>
 
@@ -887,3 +893,67 @@ pagelevel restore
 showpage
 %%EOF
 ---
+
+
+:: do not strip whitespace in strings
+paper: 'US-Letter'
+->add_to_page("(  don't strip this\n    4 spaces\n)\n  do strip this\n");
+===
+%!PS-Adobe-3.0
+%%Orientation: Portrait
+%%DocumentNeededResources:
+%%+ font Courier-Bold
+%%DocumentSuppliedResources:
+%%EndComments
+%%BeginProlog
+%%EndProlog
+%%Page: 1 1
+%%PageBoundingBox: 28 28 584 764
+%%BeginPageSetup
+/pagelevel save def
+userdict begin
+%%EndPageSetup
+(  don't strip this
+    4 spaces
+)
+do strip this
+%%PageTrailer
+end
+pagelevel restore
+showpage
+%%EOF
+---
+
+
+:: do not strip comments in strings
+strip: 'comments'
+paper: 'US-Letter'
+->add_to_page("(% don't strip this\n % not this either\n% nor this)\n% do strip this\n");
+===
+%!PS-Adobe-3.0
+%%Orientation: Portrait
+%%DocumentNeededResources:
+%%+ font Courier-Bold
+%%DocumentSuppliedResources:
+%%EndComments
+%%BeginProlog
+%%EndProlog
+%%Page: 1 1
+%%PageBoundingBox: 28 28 584 764
+%%BeginPageSetup
+/pagelevel save def
+userdict begin
+%%EndPageSetup
+(% don't strip this
+ % not this either
+% nor this)
+%%PageTrailer
+end
+pagelevel restore
+showpage
+%%EOF
+---
+
+# Local Variables:
+# compile-command: "perl 65-testable.t gen"
+# End:

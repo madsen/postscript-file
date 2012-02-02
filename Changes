@@ -1,7 +1,9 @@
 Revision history for Perl extension PostScript::File.
 
 2.12   NOT
-	-
+	- Multi-line string literals are now protected from
+	  comment/whitespace stripping.
+	- New strip type: "all_comments".
 
 2.11   October 11, 2011
 	Improvements to word wrapping provided by Metrics objects:
