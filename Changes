@@ -1,9 +1,14 @@
 Revision history for Perl extension PostScript::File.
 
-2.12   NOT
+2.20   NOT
+	API improvements:
+
+	- New method use_functions selects functions from a library
+	  provided by new module PostScript::File::Functions.
+	- New strip type: "all_comments".
+
 	- Multi-line string literals are now protected from
 	  comment/whitespace stripping.
-	- New strip type: "all_comments".
 
 2.11   October 11, 2011
 	Improvements to word wrapping provided by Metrics objects:

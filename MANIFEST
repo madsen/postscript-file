@@ -16,6 +16,7 @@ examples/iso-8859-1.pl
 examples/minimal.pl
 examples/symbol.pl
 lib/PostScript/File.pm
+lib/PostScript/File/Functions.pm
 lib/PostScript/File/Metrics.pm
 lib/PostScript/File/Metrics/Loader.pm
 lib/PostScript/File/Metrics/cp1252/Courier.pm

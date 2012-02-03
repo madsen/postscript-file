@@ -19,7 +19,7 @@ package PostScript::File;
 #---------------------------------------------------------------------
 
 use 5.008;
-our $VERSION = '2.12';          ## no critic
+our $VERSION = '2.20';          ## no critic
 # This file is part of {{$dist}} {{$dist_version}} ({{$date}})
 
 use strict;
@@ -799,6 +799,11 @@ given to every B<newpage> call.
 
 sub pre_pages {
     my ($o, $landscape, $clipping, $filename) = @_;
+
+    if (my $use_functions = $o->{use_functions}) {
+      $use_functions->add_to_file($o);
+    }
+
     my $docSupplied = $o->{DocSupplied};
     ## Thanks to Johan Vromans for the ISOLatin1Encoding.
     my $fonts = "";
@@ -1146,11 +1151,12 @@ END_DEBUG_ON
         end
 END_DEBUG_OFF
 
+    my $ver = sprintf('%g', $VERSION);
     my $supplied = "";
     if ($landscapefn or $clipfn or $errorfn or $debugfn) {
-        $docSupplied .= "\%\%+ procset PostScript_File $VERSION 0\n";
+        $docSupplied .= "\%\%+ procset PostScript_File $ver 0\n";
         $supplied .= $o->_here_doc(<<END_DOC_SUPPLIED);
-            \%\%BeginResource: procset PostScript_File $VERSION 0
+            \%\%BeginResource: procset PostScript_File $ver 0
             $landscapefn
             $clipfn
             $errorfn
@@ -2552,6 +2558,21 @@ sub has_function {
 
 This returns true if C<name> has already been included in the file.  The name
 should identical to that given to L</"add_function">.
+
+=cut
+
+sub use_functions
+{
+  my $o = shift;
+
+  (
+    $o->{use_functions} ||= do {
+      require PostScript::File::Functions;
+
+      PostScript::File::Functions->new;
+    }
+  )->add(@_);
+} # end use_functions
 
 =head2 embed_document( filename )
 
