@@ -385,4 +385,30 @@ __DATA__
 } bind def
 
 %---------------------------------------------------------------------
+% Stroke a horizontal line:  WIDTH X Y hline
+%
+% Stroke a horizontal line with the current pen with the left endpoint
+% at position C<X, Y>, extending C<WIDTH> points rightwards.
+
+/hLine
+{
+  newpath
+  moveto
+  0 rlineto stroke
+} bind def
+
+%---------------------------------------------------------------------
+% Stroke a vertical line:  HEIGHT X Y vline
+%
+% Stroke a vertical line with the current pen with the bottom endpoint
+% at position C<X, Y>, extending C<HEIGHT> points upwards.
+
+/vLine
+{
+  newpath
+  moveto
+  0 exch rlineto stroke
+} bind def
+
+%---------------------------------------------------------------------
 %EOF
