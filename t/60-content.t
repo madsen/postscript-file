@@ -1663,7 +1663,7 @@ showpage
 :: use functions
 errors: 0
 paper: 'Letter'
-->use_functions(qw(drawbox));
+->use_functions(qw(drawBox));
 ===
 %!PS-Adobe-3.0
 %%Orientation: Portrait
@@ -1672,7 +1672,7 @@ paper: 'Letter'
 %%EndComments
 %%BeginProlog
 %%BeginResource: procset PostScript_File_Functions-BD 0 0
-/boxpath
+/boxPath
 {
 newpath
 2 copy moveto
@@ -1683,7 +1683,7 @@ lineto
 lineto
 closepath
 } bind def
-/drawbox { boxpath stroke } bind def
+/drawBox { boxPath stroke } bind def
 %%EndResource
 %%EndProlog
 %%Page: 1 1
@@ -1703,7 +1703,7 @@ showpage
 :: use more functions
 errors: 0
 paper: 'Letter'
-->use_functions(qw(clipbox));
+->use_functions(qw(clipBox));
 ->use_functions(qw(setColor));
 ===
 %!PS-Adobe-3.0
@@ -1722,7 +1722,7 @@ setrgbcolor
 setgray
 } ifelse
 } bind def
-/boxpath
+/boxPath
 {
 newpath
 2 copy moveto
@@ -1733,7 +1733,7 @@ lineto
 lineto
 closepath
 } bind def
-/clipbox { boxpath clip } bind def
+/clipBox { boxPath clip } bind def
 %%EndResource
 %%EndProlog
 %%Page: 1 1

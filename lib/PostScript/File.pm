@@ -3211,8 +3211,7 @@ sub str ($) { ## no critic (ProhibitSubroutinePrototypes)
 
 Converts the referenced array to a string representation suitable for PostScript code.  If C<arrayref> is not an
 array reference, it is passed through unchanged.  This function was designed to simplify passing colours for the
-PostScript function b<gpapercolor> which expects either an RGB array or a greyscale decimal.  See
-L<PostScript::Graph::Paper/gpapercolor>.
+PostScript function L<PostScript::File::Functions/setColor>, which expects either an RGB array or a greyscale decimal.
 
 =cut
 

@@ -27,12 +27,15 @@ our $VERSION = '2.20';
 use Carp qw(croak);
 use PostScript::File 2.12 (); # strip method
 
+# Constant indexes of the arrayrefs in the _functions hash:
 sub _id_       () { 0 } ## no critic
 sub _code_     () { 1 } ## no critic
 sub _requires_ () { 2 } ## no critic
 
 #=====================================================================
 # Initialization:
+#
+# Subclasses should call __PACKAGE__->_init_module(\*DATA);
 
 sub _init_module
 {
@@ -76,8 +79,16 @@ sub _init_module
 
   1;
 } # end _init_module
-
 #=====================================================================
+
+=method new
+
+  $funcs = PostScript::File::Functions->new;
+
+The constructor takes no parameters.
+
+=cut
+
 sub new
 {
   my ($class) = @_;
@@ -87,12 +98,31 @@ sub new
 } # end new
 
 #---------------------------------------------------------------------
+# The hash of available functions (class attribute):
+#
+# Subclasses should override this and provide their own hash.
+
 {
 my %functions;
 sub _functions { \%functions }
 }
-
 #---------------------------------------------------------------------
+
+=method add
+
+  $funcs->add('functionRequested', ...);
+
+Add one or more functions to the procset to be generated.  All
+dependencies of the requsted functions are added automatically.  See
+L</"POSTSCRIPT FUNCTIONS"> for the list of available functions.
+
+=diag C<< %s is not an available function >>
+
+You requsted a function that this version of
+PostScript::File::Functions doesn't provide.
+
+=cut
+
 sub add
 {
   my ($self, @names) = @_;
@@ -109,13 +139,32 @@ sub add
     push @names, grep { not $self->{$_} } @$need;
   } # end while @names to add
 
-  return;
+  return $self;
 } # end add
-
 #---------------------------------------------------------------------
-sub add_to_file
+
+=method generate_procset
+
+  ($name, $code, $version) = $funcs->generate_procset($basename);
+
+This collects the requsted functions into a block of PostScript code.
+
+C<$name> is a suitable name for the procset, created by appending the
+ids of the requsted functions to C<$basename>.  If C<$basename> is
+omitted, it defaults to the class name with C<::> replaced by C<_>.
+
+C<$code> is a block of PostScript code that defines the functions.  It
+contains no comments or excess whitespace.
+
+C<$version> is the version number of the procset.
+
+In scalar context, returns C<$code>.
+
+=cut
+
+sub generate_procset
 {
-  my ($self, $ps, $name) = @_;
+  my ($self, $name) = @_;
 
   my @list = sort { $a->[_id_] cmp $b->[_id_] }
                   @{ $self->_functions }{ keys %$self };
@@ -129,8 +178,31 @@ sub add_to_file
     $name =~ s/::/_/g;
   }
 
-  #print("$name-$blkid\n\n$code");
-  $ps->add_function("$name-$blkid", $code, $self->VERSION);
+  return wantarray
+      ? ("$name-$blkid", $code, $self->VERSION)
+      : $code;
+} # end generate_procset
+#---------------------------------------------------------------------
+
+=method add_to_file
+
+  $funcs->add_to_file($ps, $basename);
+
+This is short for
+
+  $ps->add_function( $funcs->generate_procset($basename) );
+
+C<$ps> should normally be a PostScript::File object.
+See L<PostScript::File/add_function>.
+
+=cut
+
+sub add_to_file
+{
+  my $self = shift;
+  my $ps   = shift;
+
+  $ps->add_function( $self->generate_procset(@_) );
 } # end add_to_file
 
 #=====================================================================
@@ -140,10 +212,47 @@ __PACKAGE__->_init_module(\*DATA);
 
 #use YAML::Tiny; print Dump(\%function);
 
+=head1 SYNOPSIS
+
+  use PostScript::File;
+
+  my $ps = PostScript::File->new;
+  $ps->use_functions(qw( setColor showCenter ));
+  $ps->add_to_page("1 setColor\n" .
+                   "400 400 (Hello, World!) showCenter\n");
+
+=head1 DESCRIPTION
+
+PostScript::File::Functions provides a library of handy PostScript
+functions that can be used in documents created with PostScript::File.
+You don't normally use this module directly; PostScript::File's
+C<use_functions> method loads it automatically.
+
+=for Pod::Loom-insert_after
+DESCRIPTION
+POSTSCRIPT FUNCTIONS
+
+=head1 METHODS
+
+While you don't normally deal with PostScript::File::Functions objects
+directly, it is possible.  The following methods are available:
+
+=for Pod::Loom-sort_method
+new
+
+=head1 POSTSCRIPT FUNCTIONS
+
+=cut
+
 __DATA__
 
 %---------------------------------------------------------------------
-% Set the color:  RGBarray|BWnumber setColor
+% Set the color:  RGB-ARRAY|BW-NUMBER setColor
+%
+% This combines C<setgray> and C<setrgbcolor> into a single function.
+% You can provide either an array of 3 numbers for C<setrgbcolor>, or
+% a single number for C<setgray>.  The L<PostScript::File/str>
+% function was designed to format the parameter to this function.
 
 /setColor
 {
@@ -158,9 +267,14 @@ __DATA__
 } bind def
 
 %---------------------------------------------------------------------
-% Create a rectangular path:  Left Top Right Bottom boxpath
+% Create a rectangular path:  LEFT TOP RIGHT BOTTOM boxPath
+%
+% Given the coordinates of the sides of a box, this creates a new,
+% closed path starting at the bottom right corner, across to the
+% bottom left, up to the top left, over to the top right, and then
+% back to the bottom right.
 
-/boxpath
+/boxPath
 {
   % stack L T R B
   newpath
@@ -177,33 +291,42 @@ __DATA__
 } bind def
 
 %---------------------------------------------------------------------
-% Clip to a rectangle:   Left Top Right Bottom clipbox
+% Clip to a rectangle:   LEFT TOP RIGHT BOTTOM clipBox
+%
+% This clips to the box defined by the coordinates.
 
-/clipbox { boxpath clip } bind def
-
-%---------------------------------------------------------------------
-% Draw a rectangle:   Left Top Right Bottom drawbox
-
-/drawbox { boxpath stroke } bind def
+/clipBox { boxPath clip } bind def
 
 %---------------------------------------------------------------------
-% Fill a box with color:  Left Top Right Bottom Color fillbox
+% Draw a rectangle:   LEFT TOP RIGHT BOTTOM drawBox
+%
+% This calls L<boxPath> to and then strokes the path using the current
+% pen.
 
-/fillbox
+/drawBox { boxPath stroke } bind def
+
+%---------------------------------------------------------------------
+% Fill a box with color:  LEFT TOP RIGHT BOTTOM COLOR fillBox
+%
+% This fills the path created by L<boxPath> with C<COLOR>, which can
+% be anything accepted by L<setColor>.
+
+/fillBox
 {
   gsave
   setColor
-  boxpath
+  boxPath
   fill
   grestore
 } bind def
 
 %---------------------------------------------------------------------
-% Print text centered at a point:  X Y STRING showcenter
+% Print text centered at a point:  X Y STRING showCenter
 %
-% Centers text horizontally.  Does not adjust vertical placement.
+% This prints C<STRING> centered horizontally at position X using
+% baseline Y and the current font.
 
-/showcenter
+/showCenter
 {
   newpath
   0 0 moveto
@@ -223,11 +346,12 @@ __DATA__
 } bind def
 
 %---------------------------------------------------------------------
-% Print left justified text:  X Y STRING showleft
+% Print left justified text:  X Y STRING showLeft
 %
-% Does not adjust vertical placement.
+% This prints C<STRING> left justified at position X using baseline Y
+% and the current font.
 
-/showleft
+/showLeft
 {
   newpath
   3 1 roll  % STRING X Y
@@ -236,11 +360,12 @@ __DATA__
 } bind def
 
 %---------------------------------------------------------------------
-% Print right justified text:  X Y STRING showright
+% Print right justified text:  X Y STRING showRight
 %
-% Does not adjust vertical placement.
+% This prints C<STRING> right justified at position X using baseline Y
+% and the current font.
 
-/showright
+/showRight
 {
   newpath
   0 0 moveto
