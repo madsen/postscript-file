@@ -190,10 +190,10 @@ sub generate_procset
 
 This is short for
 
-  $ps->add_function( $funcs->generate_procset($basename) );
+  $ps->add_procset( $funcs->generate_procset($basename) );
 
 C<$ps> should normally be a PostScript::File object.
-See L<PostScript::File/add_function>.
+See L<PostScript::File/add_procset>.
 
 =cut
 
@@ -202,7 +202,7 @@ sub add_to_file
   my $self = shift;
   my $ps   = shift;
 
-  $ps->add_function( $self->generate_procset(@_) );
+  $ps->add_procset( $self->generate_procset(@_) );
 } # end add_to_file
 
 #=====================================================================

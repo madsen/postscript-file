@@ -141,7 +141,7 @@ debugging can be built in if required.
 Documents can typically be built using only these functions:
 
     new           The constructor, with many options
-    add_function  Add PostScript functions to the prolog
+    add_procset   Add PostScript functions to the prolog
     add_to_page   Add PostScript to construct each page
     newpage       Begins a new page in the document
     output        Construct the file and saves it
@@ -167,7 +167,7 @@ counterparts.
     add_preview
     add_default
     add_resource
-    add_function
+    add_procset
     add_setup
     add_page_setup
     add_to_page
@@ -2470,7 +2470,7 @@ A string containing the PostScript code. Probably best provided a 'here' documen
 =back
 
 Use this to add fonts or images (although you may prefer L<embed_font>
-or L<embed_document>).  B<add_function> is provided for functions.
+or L<embed_document>).  B<add_procset> is provided for functions.
 
 Example
 
@@ -2483,15 +2483,17 @@ Note that B<get_resources> returns I<all> resources added, including those added
 
 =cut
 
-sub get_functions {
+sub get_procsets
+{
     my $o = shift;
     return $o->{Functions};
 }
 
-sub add_function {
+sub add_procset
+{
     my ($o, $name, $entry, $version, $revision) = @_;
     if (defined($name) and defined($entry)) {
-        return if $o->has_function($name);
+        return if $o->has_procset($name);
         $o->strip($entry);
         $name = sprintf('%s %g %d', $o->quote_text($name),
                         $version||0, $revision||0);
@@ -2506,16 +2508,15 @@ END_USER_FUNCTIONS
     return;
 }
 
-=head2 get_functions()
+=head2 get_procsets()
 
-=head2 add_function( name, code, [version, [revision]] )
+=head2 add_procset( name, code, [version, [revision]] )
 
 Add a ProcSet containing user defined functions to the PostScript
-prolog.  Despite the name, it is better to add related functions in
-the same code section. C<name> is an arbitrary identifier of this
-resource.  Best used with a 'here' document.  If the document already
-contains ProcSet C<name> (as reported by C<has_function>, then
-C<add_function> does nothing.
+prolog.  C<name> is an arbitrary identifier of this resource.  C<code>
+is a block of PostScript code, usually from a 'here' document.  If the
+document already contains ProcSet C<name> (as reported by
+C<has_procset>, then C<add_procset> does nothing.
 
 C<version> is a real number, and C<revision> is an integer.  They both
 default to 0.  PostScript::File does not make any use of these, but a
@@ -2527,7 +2528,7 @@ Returns true if the ProcSet was added, or false if it already existed.
 
 Example
 
-    $ps->add_function( "My_Functions", <<END_FUNCTIONS );
+    $ps->add_procset( "My_Functions", <<END_FUNCTIONS );
         % PostScript code can be freely indented
         % as leading spaces and blank lines
         % (and comments, if desired) are stripped
@@ -2543,21 +2544,27 @@ Example
         } bind def
     END_FUNCTIONS
 
-Note that B<get_functions> (in common with the others) will return I<all> user defined functions possibly
+Note that B<get_procsets> (in common with the others) will return I<all> user defined functions possibly
 including those added by other classes.
 
 =cut
 
-sub has_function {
+sub has_procset
+{
     my ($o, $name) = @_;
     $name = $o->quote_text($name);
     return ($o->{DocSupplied} =~ /^\%\%\+ procset \Q$name\E /m);
 }
 
-=head2 has_function( name )
+# Retain the old names for backwards compatibility:
+*add_function  = \&add_procset;
+*get_functions = \&get_procsets;
+*has_function  = \&has_procset;
+
+=head2 has_procset( name )
 
 This returns true if C<name> has already been included in the file.  The name
-should identical to that given to L</"add_function">.
+should be identical to that given to L</"add_procset">.
 
 =cut
 
@@ -2927,7 +2934,7 @@ a string on the stack and it does not return.
 
 All the C<db_> variables (including function names) are defined within their own dictionary (C<debugdict>).  But
 this can be ignored by all calls originating from within code passed to B<add_to_page> (usually including
-B<add_function> code) as the dictionary is automatically put on the stack before each page and taken off as each
+B<add_procset> code) as the dictionary is automatically put on the stack before each page and taken off as each
 finishes.
 
 =head3 any B<db_show>
