@@ -2579,6 +2579,8 @@ sub use_functions
       PostScript::File::Functions->new;
     }
   )->add(@_);
+
+  return $o;
 } # end use_functions
 
 =head2 embed_document( filename )
