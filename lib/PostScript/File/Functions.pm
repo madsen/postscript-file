@@ -58,7 +58,8 @@ sub _init_module
     $routine .= $_;
   } # end while <DATA>
 
-  my $id = 'A' x int(1 + log(@keys) / log(26));
+  my $id = 'A';
+  $id   .= 'A' while @keys > 26 ** length $id;
 
   my $re = join('|', @keys);
   $re = qr/\b($re)\b/;
