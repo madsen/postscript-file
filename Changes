@@ -3,9 +3,10 @@ Revision history for Perl extension PostScript::File.
 2.20   NOT
 	API improvements:
 
-	- New method use_functions selects functions from a library
-	  provided by new module PostScript::File::Functions.
-	- New strip type: "all_comments".
+	- Added use_functions method, which selects functions from a
+	  library provided by new module PostScript::File::Functions.
+	- Added set_min_langlevel method
+	- Added all_comments strip type
 	- Renamed methods add_function, get_functions, & has_function
 	  to add_procset, get_procsets, & has_procset.  The old names
 	  are still available for backwards compatibility, but their

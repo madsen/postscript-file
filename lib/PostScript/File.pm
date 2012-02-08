@@ -2096,6 +2096,13 @@ sub get_langlevel {
     return $o->{langlevel};
 }
 
+sub set_min_langlevel
+{
+  my ($o, $level) = @_;
+  $o->{langlevel} = $level unless ($o->{langlevel} || 0) >= $level;
+  return $o->{langlevel};
+}
+
 sub get_extensions {
     my $o = shift;
     return $o->{extensions};
@@ -2687,7 +2694,7 @@ sub embed_font
     open($in, '-|:raw', $ttftotype42, $filename)
         or croak "Unable to run $ttftotype42 $filename: $!";
     # Type 42 was introduced in LanguageLevel 2:
-    $o->{langlevel} = 2 unless ($o->{langlevel} || 0) >= 2;
+    $o->set_min_langlevel(2);
   }
 
   my $content = do { local $/; <$in> }; # Read entire file
