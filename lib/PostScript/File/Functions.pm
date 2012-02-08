@@ -386,6 +386,29 @@ __DATA__
 } bind def
 
 %---------------------------------------------------------------------
+% Print text on multiple lines:  X Y LINES SPACING FUNC showLines
+%
+% This calls C<FUNC> for each element of C<LINES>, which should be an
+% array of strings.  C<FUNC> is called with C<X Y STRING> on the
+% stack, and it must pop those off.  C<SPACING> is subtracted from
+% C<Y> after every line.  C<FUNC> will normally be C<showCenter>,
+% C<showLeft>, or C<showRight>.
+
+/showLines
+{
+  cvx                    % convert name of FUNC to executable function
+  5 2 roll               % stack SPACING FUNC X Y LINES
+  {                      % stack SPACING FUNC X Y STRING
+    2 index              % stack SPACING FUNC X Y STRING X
+    2 index              % stack SPACING FUNC X Y STRING X Y
+    6 index  sub         % subtract SPACING from Y
+    5 2 roll             % stack SPACING FUNC X Y' X Y STRING
+    5 index exec         % execute FUNC; stack SPACING FUNC X Y'
+  } forall
+  pop pop pop pop
+} bind def
+
+%---------------------------------------------------------------------
 % Stroke a horizontal line:  WIDTH X Y hline
 %
 % Stroke a horizontal line with the current pen with the left endpoint
