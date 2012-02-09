@@ -1,5 +1,5 @@
 #---------------------------------------------------------------------
-package tools::AddAttrCoverage;
+package tools::FixupPSFilePOD;
 #
 # Copyright 2012 Christopher J. Madsen
 #
@@ -26,8 +26,6 @@ use Moose::Autobox;
 with(qw(Dist::Zilla::Role::FileMunger));
 
 #=====================================================================
-# Pod::Coverage doesn't recognize the way I've documented attribute
-# accessors.  Build a Pod::Coverage section that lists them.
 
 sub munge_files
 {
@@ -40,22 +38,46 @@ sub munge_files
 
   $self->log_fatal("Can't find PostScript::File") unless $file;
 
-  # Find the attribute accessor methods:
   my $content = $file->content;
 
-  my %function;
+  #-------------------------------------------------------------------
+  # Pod::Coverage doesn't recognize the way I've documented attribute
+  # accessors.  Build a Pod::Coverage section that lists them:
+
+  my %attr;
 
   while ($content =~ m!^=attr(?:-\S+)? (\w+)\n((?:\n| .+\n)+)!mg) {
     my $name = $1;
     my $example = $2;
 
-    $function{$1} = 1 while $example =~ /\b([gs]et_$name)/g;
+    $attr{$1} = 1 while $example =~ /\b([gs]et_$name)/g;
   } # end while found an attribute
 
-  # Append the list of documented functions:
-  my $pod = join("\n", sort keys %function );
+  # Append the list of documented methods:
+  my $pod = join("\n", sort keys %attr );
 
   $content .= "\n=for Pod::Coverage\n$pod\n";
+
+  #-------------------------------------------------------------------
+  # Sort methods while ignoring prefix:
+
+  my @methods;
+
+  while ($content =~ m!^=method(?:-\S+)? (\w+)!mg) {
+    my $name = $1;
+    my $key  = $1;
+
+    $key .= "_$1" if $key =~ s/^(add_(?:to_)?|as_|[gs]et_|has_)//;
+
+    push @methods, [ $key, $name ];
+  } # end while found an attribute
+
+  $pod = join("\n", map { $_->[1] } sort { $a->[0] cmp $b->[0] } @methods);
+
+  $content .= "\n=for Pod::Loom-sort_method\n$pod\n";
+
+  #-------------------------------------------------------------------
+  # Return the modified file:
 
   $file->content( $content );
 } # end munge_files

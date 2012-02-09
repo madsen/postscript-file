@@ -75,7 +75,7 @@ A 'hello world' program:
         (hello world) show
     END_PAGE
 
-    $ps->output( "~/test" );
+    $ps->output( "test" );
 
 =head2 All options
 
@@ -120,21 +120,21 @@ A 'hello world' program:
 
 =head1 DESCRIPTION
 
-This module is designed to support other PostScript:: modules.  For top level modules that output
-something useful, see
+PostScript::File is a class that writes PostScript files following
+Adobe's Document Structuring Conventions (DSC).  You should be
+familiar with the DSC if you're using this class directly; consult the
+I<PostScript Language Document Structuring Conventions Specification>
+linked to in L</"SEE ALSO">.
 
-    PostScript::Calendar
-    PostScript::Report
-    PostScript::ScheduleGrid
-    PostScript::Graph::Bar
-    PostScript::Graph::Stock
-    PostScript::Graph::XY
+There are also a number of modules that build upon PostScript::File to
+produce various kinds of documents without requiring knowledge of
+PostScript.  These are listed in L</"SEE ALSO">.
 
-An outline Adobe PostScript file is constructed.  Functions allow access to each of Adobe's Document
-Structuring Convention (DSC) sections and control how the pages are constructed.  It is possible to
-construct and output files in either normal PostScript (*.ps files) or as Encapsulated PostScript (*.epsf or
-*.epsi files).  By default a minimal file is output, but support for font encoding, PostScript error reporting and
-debugging can be built in if required.
+It is possible to construct and output files in either normal
+PostScript (*.ps files) or as Encapsulated PostScript (*.epsf or
+*.epsi files).  By default a minimal file is output, but support for
+font encoding, PostScript error reporting and debugging can be built
+in if required.
 
 Documents can typically be built using only these functions:
 
@@ -466,21 +466,21 @@ The only allowed values are C<cp1252>, C<iso-8859-1>, and
 C<ISOLatin1Encoding>.  In most cases, you should set this to
 C<cp1252>, even if you are not using Windows.
 
-The list of fonts to re-encode comes from the L<need_fonts> parameter,
-the L<need_resource> method, and all fonts added using L<embed_font>
-or L<add_resource>.  The Symbol font is never re-encoded, because it
+The list of fonts to re-encode comes from the L</need_fonts> parameter,
+the L</need_resource> method, and all fonts added using L</embed_font>
+or L</add_resource>.  The Symbol font is never re-encoded, because it
 uses a non-standard character set.
 
 Setting this to C<cp1252> or C<iso-8859-1> also causes the document to
 be encoded in that character set.  Any strings you add to the document
-that have the UTF8 flag set will be reencoded automatically.  Strings
-that do not have the UTF8 flag are expected to be in the correct
+that have the UTF-8 flag set will be reencoded automatically.  Strings
+that do not have the UTF-8 flag are expected to be in the correct
 character set already.  This means that you should be able to set this
 to C<cp1252>, use Unicode characters in your code and the "-iso"
 versions of the fonts, and just have it do the right thing.
 
 Windows code page 1252 (aka WinLatin1) is a superset of the printable
-characters in iso-8859-1 (aka Latin1).  It adds a number of characters
+characters in ISO-8859-1 (aka Latin1).  It adds a number of characters
 that are not in Latin1, especially common punctuation marks like the
 curly quotation marks, en & em dashes, Euro sign, and ellipsis.  These
 characters exist in the standard PostScript fonts, but there's no easy
@@ -563,7 +563,7 @@ Remember to specify C<clipping> if that is what is wanted.  (Default: 28)
 
 An arrayref of font names required by this document.  This is
 equivalent to calling C<< $ps->need_resource(font => @$arrayref) >>.
-See L<need_resource> for details.
+See L</need_resource> for details.
 
 =head4 paper
 
@@ -1908,7 +1908,7 @@ our %encode_char = (
  65533 => pack(C => 0x3F), # U+FFFD REPLACEMENT CHARACTER
 );
 
-=method-main encode_text
+=method-text encode_text
 
   $encoded_text = $ps->encode_text( $text )
 
@@ -1941,15 +1941,21 @@ sub encode_text
   }
 } # end encode_text
 
-=method-main decode_text
+=method-text decode_text
 
-  $text = $ps->decode_text( $encoded_text )
+  $text = $ps->decode_text( $encoded_text, [$preserve_minus] )
 
 This is the inverse of L</encode_text>.  It converts C<$encoded_text>
 from the document's character encoding into Unicode.  If
 C<$encoded_text> already has the UTF-8 flag set, or the document is
 not using character translation, then it returns C<$encoded_text>
 as-is.
+
+If the optional argument C<$preserve_minus> is true (and
+C<$encoded_text> is not being returned as-is), then any HYPHEN-MINUS
+(U+002D) characters in C<$encoded_text> are decoded as MINUS SIGN
+(U+2212).  This ensures that C<encode_text> will treat them as minus
+signs instead of hyphens.
 
 =cut
 
@@ -1969,7 +1975,7 @@ sub decode_text
   }
 } # end decode_text
 
-=method-main convert_hyphens
+=method-text convert_hyphens
 
   $converted_text = $ps->convert_hyphens( $text )
 
@@ -2015,7 +2021,7 @@ sub convert_hyphens
   }
 } # end convert_hyphens
 
-=method-main get_metrics
+=method-access get_metrics
 
   $metrics = $ps->get_metrics( $font, [$size, [$encoding]] )
 
@@ -2400,7 +2406,7 @@ C<< $ps->set_clipping(0) >> afterwards to undo that.
 
 The default C<bounding_box> is calculated from the paper size (taken
 from the L</paper>, L</height>, and L</width> attributes) and the
-L</left>, L</right>, L</top>, and L<bottom> margins.
+L</left>, L</right>, L</top>, and L</bottom> margins.
 
 Each page also has an individual L</page_bounding_box>, which is
 initialized from the document's C<bounding_box> when the page is
@@ -2663,7 +2669,7 @@ end with a newline.
 
 Programs written for older versions of PostScript::File might use this
 to add a C<DocumentNeededResources> comment.  That is now deprecated;
-you should use L<need_resource> instead.
+you should use L</need_resource> instead.
 
 Examples:
 
@@ -2831,8 +2837,8 @@ A string containing the PostScript code. Probably best provided a 'here' documen
 
 =back
 
-Use this to add fonts or images (although you may prefer L<embed_font>
-or L<embed_document>).  C<add_procset> is provided for functions.
+Use this to add fonts or images (although you may prefer L</embed_font>
+or L</embed_document>).  L</add_procset> is provided for functions.
 
 Example
 
@@ -3107,13 +3113,13 @@ C<[$name, $version, $revision]>.  Names that contain special characters
 such as spaces will be quoted automatically.
 
 If C<need_resource> is never called for the C<font> type (and
-C<need_fonts> is not used), it assumes the document requires all 13 of
+L</need_fonts> is not used), it assumes the document requires all 13 of
 the standard PostScript fonts: Courier, Courier-Bold,
 Courier-BoldOblique, Courier-Oblique, Helvetica, Helvetica-Bold,
 Helvetica-BoldOblique, Helvetica-Oblique, Times-Roman, Times-Bold,
 Times-BoldItalic, Times-Italic, and Symbol.  But this behaviour is
 deprecated; a document should explicitly list the fonts it requires.
-If you don't use any of the standard fonts, pass C<< need_fonts => [] >>
+If you don't use any of the standard fonts, pass S<C<< need_fonts => [] >>>
 to the constructor (or call C<< $ps->need_resource('font') >>) to
 indicate that.
 
@@ -3510,17 +3516,14 @@ sub _here_doc
   $o->encode_text($text);
 } # end _here_doc
 
-=head1 EXPORTED FUNCTIONS
+=head1 EXPORTS
 
-No functions are exported by default, they must be named as required.
+No functions are exported by default.  All the functions listed in
+L</SUBROUTINES> may be exported by request.
 
-    use PostScript::File qw(
-            check_tilde check_file
-            incpage_label incpage_roman
-            array_as_string str
-        );
+In addition, the C<pstr> method may be exported as a subroutine, but
+this usage is deprecated.
 
-=cut
 
 =sub incpage_label
 
@@ -3732,28 +3735,29 @@ sub pstr {
   $string;
 } # end pstr
 
-=sub pstr
+=method-text pstr
 
-  $code = pstr( $string )
+  $code = $ps->pstr( $string, [$nowrap] )
 
   $code = PostScript::File->pstr( $string, [$nowrap] )
 
-  $code = $ps->pstr( $string, [$nowrap] )
+  $code = pstr( $string )
 
 Converts the string to a PostScript string literal.  If the result is
 more than 240 characters, it will be broken into multiple lines.  (A
 PostScript file should not contain lines with more than 255
 characters.)
 
-This may also be called as a class or object method.  In this case,
+When called as a class or object method,
 you can pass a second parameter C<$nowrap>.  If this optional parameter
 is true, then the string will not be wrapped, no matter how long it is.
 
 When called as an object method, C<pstr> will do automatic
 hyphen-minus translation if L</auto_hyphen> is true.  This has the
-side-effect of setting the UTF8 flag on the returned string.  (If the
-UTF8 flag was not set on the input string, it will be decoded using
+side-effect of setting the UTF-8 flag on the returned string.  (If the
+UTF-8 flag was not set on the input string, it will be decoded using
 the document's character set.)  See L</"Hyphens and Minus Signs">.
+For this reason, C<pstr> should normally be called as an object method.
 
 =sub quote_text
 
@@ -3821,6 +3825,8 @@ others.
 =head2 Page Attributes
 
 The following attributes can have a different value for every page.
+You can't set them directly in the constructor, but they all have a
+document default value that each page inherits when it is created.
 When accessing or setting them, C<$page> is the page label.  If
 C<$page> is omitted, it defaults to the current page.
 
@@ -3846,6 +3852,10 @@ Use these C<get_> and C<set_> methods to access a PostScript::File object's data
 =begin Pod::Loom-group_method content
 
 =head2 Content Methods
+
+=begin Pod::Loom-group_method text
+
+=head2 Text Encoding Methods
 
 
 =head1 BUGS AND LIMITATIONS
@@ -3887,18 +3897,26 @@ the same terms as the Perl 5 programming language system itself.
 
 I<PostScript Language Document Structuring Conventions Specification
 Version 3.0> and I<Encapsulated PostScript File Format Specification
-Version 3.0> published by Adobe, 1992.  L<http://partners.adobe.com/asn/developer/technotes/postscript.html>
+Version 3.0> published by Adobe, 1992.
+L<http://partners.adobe.com/asn/developer/technotes/postscript.html>
 
 L<PostScript::Convert>, for PDF or PNG output.
+
+L<PostScript::Calendar>, for creating monthly calendars.
+
+L<PostScript::Report>, for creating tabular reports.
+
+L<PostScript::ScheduleGrid>, for printing schedules in a grid format.
+
+L<PostScript::ScheduleGrid::XMLTV>, for printing TV listings in a grid format.
 
 L<PostScript::Graph::Paper>,
 L<PostScript::Graph::Style>,
 L<PostScript::Graph::Key>,
 L<PostScript::Graph::XY>,
-L<PostScript::Graph::Bar>.
+L<PostScript::Graph::Bar>,
 L<PostScript::Graph::Stock>.
-L<PostScript::Calendar>.
-L<PostScript::Report>.
+
 
 =for Pod::Loom-sections
 NAME
@@ -3909,7 +3927,7 @@ ATTRIBUTES
 METHODS
 SUBROUTINES
 POSTSCRIPT DEBUGGING SUPPORT
-EXPORTED FUNCTIONS
+EXPORTS
 BUGS AND LIMITATIONS
 AUTHOR
 COPYRIGHT AND LICENSE
