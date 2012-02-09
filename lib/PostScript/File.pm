@@ -153,7 +153,6 @@ have C<get_> counterparts.  The following provide additional support.
     get/set_page_clipping
     get/set_page_landscape
     set_page_margins
-    get_ordinal
     get_pagecount
     draw_bounding_box
     clip_bounding_box
@@ -2110,13 +2109,13 @@ document's L</landscape> attribute.
 
 sub get_page_landscape {
     my $o = shift;
-    my $p = $o->get_ordinal( shift );
+    my $p = $o->_get_ordinal( shift );
     return $o->{pagelandsc}[$p];
 }
 
 sub set_page_landscape {
     my $o = shift;
-    my $p = (@_ == 2) ? $o->get_ordinal(shift) : $o->{p};
+    my $p = (@_ == 2) ? $o->_get_ordinal(shift) : $o->{p};
     my $landscape = (!!shift) + 0;
     $o->{pagelandsc}[$p] = 0 unless (defined $o->{pagelandsc}[$p]);
     if ($o->{pagelandsc}[$p] != $landscape) {
@@ -2144,13 +2143,13 @@ document's L</clipping> attribute.
 
 sub get_page_clipping {
     my $o = shift;
-    my $p = $o->get_ordinal( shift );
+    my $p = $o->_get_ordinal( shift );
     return $o->{pageclip}[$p];
 }
 
 sub set_page_clipping {
     my $o = shift;
-    my $p = (@_ == 2) ? $o->get_ordinal(shift) : $o->{p};
+    my $p = (@_ == 2) ? $o->_get_ordinal(shift) : $o->{p};
     $o->{pageclip}[$p] = (!!shift) + 0;
 }
 
@@ -2400,7 +2399,7 @@ document's L</bounding_box> attribute.
 
 sub get_page_bounding_box {
     my $o = shift;
-    my $p = $o->get_ordinal( shift );
+    my $p = $o->_get_ordinal( shift );
     return @{$o->{pagebbox}[$p]};
 }
 
@@ -2408,7 +2407,7 @@ sub set_page_bounding_box {
     my $o = shift;
     my $page = (@_ == 5) ? shift : "";
     if (@_ == 4) {
-        my $p = $o->get_ordinal($page);
+        my $p = $o->_get_ordinal($page);
         $o->{pagebbox}[$p] = [ @_ ];
         $o->set_page_clipping($page, 1);
     }
@@ -2431,14 +2430,14 @@ sub set_page_bounding_box {
 sub get_page_printable_width
 {
   my $o = shift;
-  my $bb = $o->{pagebbox}[$o->get_ordinal( shift )];
+  my $bb = $o->{pagebbox}[$o->_get_ordinal( shift )];
   return $bb->[2] - $bb->[0];
 } # end get_page_printable_width
 
 sub get_page_printable_height
 {
   my $o = shift;
-  my $bb = $o->{pagebbox}[$o->get_ordinal( shift )];
+  my $bb = $o->{pagebbox}[$o->_get_ordinal( shift )];
   return $bb->[3] - $bb->[1];
 } # end get_page_printable_height
 
@@ -2458,7 +2457,7 @@ sub set_page_margins {
     my $page = (@_ == 5) ? shift : "";
     if (@_ == 4) {
         my ($left, $bottom, $right, $top) = @_;
-        my $p = $o->get_ordinal($page);
+        my $p = $o->_get_ordinal($page);
         if ($o->{pagelandsc}[$p]) {
             $o->{pagebbox}[$p] = [ $left, $bottom, $o->{height}-$right, $o->{width}-$top ];
         } else {
@@ -2468,24 +2467,25 @@ sub set_page_margins {
     }
 }
 
-=method-access get_ordinal
+# =method-access get_ordinal
+#
+#   $index = $ps->get_ordinal( [$page] )
+#
+# Returns the internal number for the page label specified.  (Default:
+# current page)
+#
+# Example
+#
+# Say pages are labeled "i", "ii", "iii, "iv", "1", "2", "3".
+#
+#     get_ordinal("i") == 0
+#     get_ordinal("iv") == 3
+#     get_ordinal("1") == 4
+#
+# =cut
 
-  $index = $ps->get_ordinal( [$page] )
-
-Returns the internal number for the page label specified.  (Default:
-current page)
-
-Example
-
-Say pages are labeled "i", "ii", "iii, "iv", "1", "2", "3".
-
-    get_ordinal("i") == 0
-    get_ordinal("iv") == 3
-    get_ordinal("1") == 4
-
-=cut
-
-sub get_ordinal {
+sub _get_ordinal
+{
     my ($o, $page) = @_;
     if ($page) {
         for (my $i = 0; $i <= $o->{pagecount}; $i++) {
@@ -3147,7 +3147,7 @@ Returns the PostScript code from the body of the page.
 sub get_page {
     my $o = shift;
     my $page = shift || $o->get_page_label();
-    my $ord = $o->get_ordinal($page);
+    my $ord = $o->_get_ordinal($page);
     return $o->{Pages}->[$ord];
 }
 
@@ -3184,7 +3184,7 @@ sub add_to_page {
     my $page = (@_ == 2) ? shift : "";
     my $entry = shift || "";
     if ($page) {
-        my $ord = $o->get_ordinal($page);
+        my $ord = $o->_get_ordinal($page);
         if (($ord == $o->{p}) and ($page ne $o->{page}[$ord])) {
             $o->newpage($page);
         } else {

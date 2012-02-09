@@ -8,7 +8,7 @@ Revision history for Perl extension PostScript::File.
 	- Added set_min_langlevel method
 	- Added all_comments strip type
 	- Renamed methods add_function, get_functions, & has_function
-	  to add_procset, get_procsets, & has_procset.  The old names
+	  to add_procset, get_procsets, & has_procset.	The old names
 	  are still available for backwards compatibility, but their
 	  use is deprecated.
 
@@ -19,6 +19,9 @@ Revision history for Perl extension PostScript::File.
 	- Private methods bbox_comment, pre_pages, post_pages, &
 	  print_file were renamed.  You shouldn't have been using them
 	  anyway.
+	- The get_ordinal method is now private.  While it was
+	  formerly documented, it unnecessarily exposed the internals
+	  and had no real use.
 	- The documentation has been cleaned up.
 
 2.11   October 11, 2011
