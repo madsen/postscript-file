@@ -2703,16 +2703,14 @@ file rather than EPSF.
 =cut
 
 sub add_preview {
-    my ($o, $width, $height, $depth, $lines, $entry) = @_;
-    if (defined $entry) {
-        $o->strip($entry);
-        $o->{Preview} = $o->_here_doc(<<END_PREVIEW);
-            \%\%BeginPreview: $width $height $depth $lines
-                $entry
-            \%\%EndPreview
-END_PREVIEW
-    }
-}
+  my ($o, $width, $height, $depth, $lines, $entry) = @_;
+  if (defined $entry) {
+    $entry .= "\n";
+    $o->strip(space => $entry);
+    $o->{Preview} =
+      "%%BeginPreview: $width $height $depth $lines\n$entry%%EndPreview\n";
+  }
+} # end add_preview
 
 =method-content get_defaults
 

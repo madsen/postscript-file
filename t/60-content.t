@@ -47,7 +47,7 @@ if (@ARGV and $ARGV[0] eq 'gen') {
   open(OUT, '>', '/tmp/60-content.t') or die $!;
   printf OUT "#%s\n\n__DATA__\n", '=' x 69;
 } else {
-  plan tests => 22 * 3;
+  plan tests => 24 * 3;
 }
 
 my ($name, %param, @methods);
@@ -1746,6 +1746,54 @@ userdict begin
 end
 pagelevel restore
 showpage
+%%EOF
+---
+
+
+:: preview
+errors: 0
+eps: 1
+paper: 'Letter'
+strip: 'comments'
+->add_preview(1,2,3,4, "%line1\n%line2\n");
+===
+%!PS-Adobe-3.0 EPSF-3.0
+%%BoundingBox: 28 28 584 764
+%%Orientation: Portrait
+%%EndComments
+%%BeginPreview: 1 2 3 4
+%line1
+%line2
+%%EndPreview
+%%BeginProlog
+%%EndProlog
+userdict begin
+end
+%%EOF
+---
+
+
+:: preview with all_comments
+errors: 0
+eps: 1
+strip: 'all_comments'
+paper: 'Letter'
+->add_preview(1,2,3,4, "%line1\n%line2\n");
+->add_to_page("(testing) show %comment\n");
+===
+%!PS-Adobe-3.0 EPSF-3.0
+%%BoundingBox: 28 28 584 764
+%%Orientation: Portrait
+%%EndComments
+%%BeginPreview: 1 2 3 4
+%line1
+%line2
+%%EndPreview
+%%BeginProlog
+%%EndProlog
+userdict begin
+(testing) show
+end
 %%EOF
 ---
 
