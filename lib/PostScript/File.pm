@@ -3659,7 +3659,7 @@ Expands a leading C<~> or C<~user> in C<$path> to the home directory.
 
 sub check_tilde ($) { ## no critic (ProhibitSubroutinePrototypes)
     my ($dir) = @_;
-    $dir = "" unless $dir;
+    $dir = "" unless defined $dir;
     $dir =~ s{^~([^/]*)}{$1 ? (getpwnam($1))[7] : ($ENV{HOME} || $ENV{LOGDIR} || (getpwuid($>))[7]) }ex;
     return $dir;
 }

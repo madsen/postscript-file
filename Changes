@@ -15,6 +15,7 @@ Revision history for Perl extension PostScript::File.
 	- Multi-line string literals are now protected from
 	  comment/whitespace stripping.
 	- Fixed bug: add_preview might strip the preview
+	- Fixed bug: check_tilde treated "0" like the empty string
 	- The documentation has been cleaned up.
 
 2.11   October 11, 2011
