@@ -25,7 +25,7 @@ our $VERSION = '2.20';
 # This file is part of {{$dist}} {{$dist_version}} ({{$date}})
 
 use Carp qw(croak);
-use PostScript::File 2.12 (); # strip method
+use PostScript::File 2.20 (); # strip method
 
 # Constant indexes of the arrayrefs in the _functions hash:
 sub _id_       () { 0 } ## no critic
@@ -101,12 +101,19 @@ sub new
 #---------------------------------------------------------------------
 # The hash of available functions (class attribute):
 #
-# Subclasses should override this and provide their own hash.
+# This is automatically per-class, so subclasses normally don't need
+# to override it.
 
 {
 my %functions;
-sub _functions { \%functions }
-}
+sub _functions
+{
+  my $self = shift;
+
+  $functions{ref($self) || $self} ||= {};
+} # end _functions
+} # end scope of %functions
+
 #---------------------------------------------------------------------
 
 =method add
