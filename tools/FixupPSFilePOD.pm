@@ -46,7 +46,7 @@ sub munge_files
 
   my %attr;
 
-  while ($content =~ m!^=attr(?:-\S+)? (\w+)\n((?:\n| .+\n)+)!mg) {
+  while ($content =~ m!^=attr(?:-\S+)? (\w+)(?: \(attribute\))?\n((?:\n| .+\n)+)!mg) {
     my $name = $1;
     my $example = $2;
 

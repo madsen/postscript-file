@@ -412,7 +412,15 @@ Being in landscape mode, these would be swapped.  The bounding box used for clip
 C<options> may be a single hash reference instead of an options list, but the hash must have the same structure.
 This is more convenient when used as a base class.
 
-In addition, the following keys are recognized.
+The following keys are recognized options:
+
+=head3 Attributes
+
+The following attributes can be set through the constructor:
+L</auto_hyphen>, L</clipping>, L</eps>, L</extensions>, L</file_ext>,
+L</filename>, L</height>, L</incpage_handler>, L</landscape>,
+L</langlevel>, L</order>, L</page_label>, L</paper>,
+L<strip|/"strip (attribute)">, L</title>, L</version>, and L</width>.
 
 =head3 File size keys
 
@@ -424,7 +432,8 @@ There are four options which control how much gets put into the resulting file.
 
 =item C<undef>
 
-No debug code is added to the file.  Of course there must be no calls to debug functions in the PostScript code.
+No debug code is added to the file.  Of course there must be no calls
+to debug functions in the PostScript code.  This is the default.
 
 =item C<0>
 
@@ -450,21 +459,39 @@ when debugging is turned off.
 
 =head4 errors
 
-PostScript has a nasty habit of failing silently. Setting this to 1 prints fatal error messages on the bottom left
-of the paper.  For user functions, a PostScript function B<report_error> is defined.  This expects a message
-string on the stack, which it prints before stopping.  (Default: 1)
+PostScript has a nasty habit of failing silently. If C<errors> is
+true, code that prints fatal error messages on the bottom left of the
+paper is added to the file.  For user functions, a PostScript function
+B<report_error> is defined.  This expects a message string on the
+stack, which it prints before stopping.  (Default: true)
 
 =head4 headings
 
-Enable PostScript comments such as the date of creation and user's name.
+If true, add PostScript DSC comments recording the date of creation and user's
+name.  (Default: false)
+
+The comments inserted when C<headings> is true are:
+
+  %%For: USER@HOSTNAME
+  %%Creator: Perl module PostScript::File v{{$version}}
+  %%CreationDate: Sun Jan  1 00:00:00 2012
+  %%DocumentMedia: US-Letter 612 792 80 ( ) ( )
+
+USER comes from C<getlogin() || getpwuid($<)>, and HOSTNAME comes from
+L<Sys::Hostname>.  The DocumentMedia values come from the
+L<paper size attributes|/"Paper Size and Margins">.  The
+DocumentMedia comment is omitted from EPS files.
+
+If you want different values, leave C<headings> false and use
+L</add_comment> to add whatever you want.
 
 =head4 reencode
 
 Requests that a font re-encode function be added and that the fonts
 used by this document get re-encoded in the specified encoding.
 The only allowed values are C<cp1252>, C<iso-8859-1>, and
-C<ISOLatin1Encoding>.  In most cases, you should set this to
-C<cp1252>, even if you are not using Windows.
+C<ISOLatin1Encoding>.  You should almost always set this to C<cp1252>,
+even if you are not using Windows.
 
 The list of fonts to re-encode comes from the L</need_fonts> parameter,
 the L</need_resource> method, and all fonts added using L</embed_font>
@@ -479,8 +506,8 @@ character set already.  This means that you should be able to set this
 to C<cp1252>, use Unicode characters in your code and the "-iso"
 versions of the fonts, and just have it do the right thing.
 
-Windows code page 1252 (aka WinLatin1) is a superset of the printable
-characters in ISO-8859-1 (aka Latin1).  It adds a number of characters
+Windows code page 1252 (a.k.a. WinLatin1) is a superset of the printable
+characters in ISO-8859-1 (a.k.a. Latin1).  It adds a number of characters
 that are not in Latin1, especially common punctuation marks like the
 curly quotation marks, en & em dashes, Euro sign, and ellipsis.  These
 characters exist in the standard PostScript fonts, but there's no easy
@@ -505,27 +532,6 @@ that is what is wanted.  (Default: 28)
 The bounding box is used for clipping if this is set to "clip" or is drawn with "stroke".  This also makes the
 whole page area available for debugging output.  (Default: "clip").
 
-=head4 clipping
-
-Set whether printing will be clipped to the file's bounding box. (Default: 0)
-
-=head4 dir
-
-An optional directory for the output file.  See L</filename>.
-If no C<file> is specified, C<dir> is ignored.
-
-=head4 eps
-
-Set to 1 to produce Encapsulated PostScript.  C<get_eps> returns the value set here.  (Default: 0)
-
-=head4 file
-
-The name of the output file.  See L</filename>.
-
-=head4 file_ext
-
-The extension for the output file.  See L</file_ext>.
-
 =head4 font_suffix
 
 This string is appended to each font name as it is reencoded.  (Default: "-iso")
@@ -541,19 +547,6 @@ Example:
 
 "Courier" still has the standard mapping while "Courier-iso" includes the additional European characters.
 
-=head4 height
-
-Set the page height, the longest edge of the paper.  (Default taken from C<paper>)
-
-The paper size is set to "Custom".  C<get_width> and C<get_height> return the values set here.
-
-=head4 landscape
-
-Set whether the page is oriented horizontally (C<1>) or vertically (C<0>).  (Default: 0)
-
-In landscape mode the coordinates are rotated 90 degrees and the origin moved to the bottom left corner.  Thus the
-coordinate system appears the same to the user, with the origin at the bottom left.
-
 =head4 left
 
 The margin in from the paper's left edge, specifying the non-printable area.
@@ -565,18 +558,26 @@ An arrayref of font names required by this document.  This is
 equivalent to calling C<< $ps->need_resource(font => @$arrayref) >>.
 See L</need_resource> for details.
 
-=head4 paper
+=head4 newpage
 
-Set the paper size of each page.  A document can be created using a standard paper size without
-having to remember the size of paper using PostScript points. Valid choices are currently A0, A1, A2, A3, A4, A5,
-A6, A7, A8, A9, B0, B1, B2, B3, B4, B5, B6, B7, B8, B9, B10, Executive, Folio, 'Half-Letter', Letter, 'US-Letter',
-Legal, 'US-Legal', Tabloid, 'SuperB', Ledger, 'Comm #10 Envelope', 'Envelope-Monarch', 'Envelope-DL',
-'Envelope-C5', 'EuroPostcard'.  (Default: "A4")
+(v2.10) Normally, an initial page is created automatically (using the label
+specified by C<page>).  But starting with PostScript::File 2.10, you
+can pass S<C<< newpage => 0 >>> to override this.  This makes for more
+natural loops:
 
-You can also give a string in the form 'WIDTHxHEIGHT', where WIDTH and
-HEIGHT are numbers (in points).  This sets the paper size to "Custom".
+    use PostScript::File 2.10;
+    my $ps = PostScript::File->new(newpage => 0);
+    for (@pages) {
+      $ps->newpage;  # don't need "unless first page"
+      ...
+    }
 
-This also sets C<width> and C<height>.  C<get_paper> returns the value set here.
+It's important to require PostScript::File 2.10 if you do this, because
+older versions would produce an initial blank page.
+
+If you don't pass a page label to the first call to C<newpage>, it
+will be taken from the C<page> option.  After the first page, the page
+label will increment as specified by L</incpage_handler>.
 
 =head4 right
 
@@ -587,10 +588,6 @@ margin on the right hand side of the page.  Remember to specify C<clipping> if t
 
 The margin in from the paper's top edge.  It is a positive offset, so C<top=36> will leave a half inch no-go
 margin at the top of the page.  Remember to specify C<clipping> if that is what is wanted.  (Default: 28)
-
-=head4 width
-
-Set the page width, the shortest edge of the paper.  (Default taken from C<paper>)
 
 =head3 Debugging support keys
 
@@ -680,82 +677,6 @@ X position of the error message on the page.  (Default: (72))
 
 Y position of the error message on the page.  (Default: (72))
 
-=head3 Document structure
-
-There are options which only affect the DSC comments.  They all have C<get_> functions which return the
-values set here, e.g. C<get_title> returns the value given to the title option.
-
-=head4 extensions
-
-Declare and PostScript language extensions that need to be available.  (No default)
-
-=head4 langlevel
-
-Set the PostScript language level.  (No default)
-
-=head4 order
-
-Set the order the pages are defined in the document.  It should one of
-"Ascend", "Descend" or "Special" if a document manager must not
-reorder the pages.  (No default)
-
-=head4 title
-
-Set the document's title as recorded in PostScript's Document Structuring Conventions.  (No default)
-
-=head4 version
-
-Set the document's version as recorded in PostScript's Document Structuring Conventions.  This should be a string
-with a major, minor and revision numbers.  For example "1.5 8" signifies revision 8 of version 1.5.  (No default)
-
-=head3 Miscellaneous
-
-A few options that may be changed between pages or set here for the first page.
-
-=head4 incpage_handler
-
-Set the initial value for the function which increments page labels.  See L</set_incpage_handler>.
-
-=head4 newpage
-
-(v2.10) Normally, an initial page is created automatically (using the label
-specified by C<page>).  But starting with PostScript::File 2.10, you
-can pass S<C<< newpage => 0 >>> to override this.  This makes for more
-natural loops:
-
-    use PostScript::File 2.10;
-    my $ps = PostScript::File->new(newpage => 0);
-    for (@pages) {
-      $ps->newpage;  # don't need "unless first page"
-      ...
-    }
-
-It's important to require PostScript::File 2.10 if you do this, because
-older versions would produce an initial blank page.
-
-If you don't pass a page label to the first call to C<newpage>, it
-will be taken from the C<page> option.  After the first page, the page
-label will increment as specified by L</incpage_handler>.
-
-=head4 page
-
-Set the label (text or number) for the initial page.  See L</set_page_label>.  (Default: "1")
-
-=head4 strip
-
-Set whether the PostScript code is filtered.  C<space> strips leading spaces so the user can indent freely
-without increasing the file size.
-C<comments> removes lines beginning with '%' as well (but not lines beginning with '%%' or '%!').
-C<all_comments> (v2.20) also removes comments that
-aren't at the beginning of a line.
-C<none> does no filtering.  (Default: "space")
-
-=head4 auto_hyphen
-
-Controls whether the L</pstr> method does hyphen-minus translation as
-described in L</"Hyphens and Minus Signs">.  This can only be enabled
-when the document is using character set translation.  (Default: 1).
-
 =cut
 
 sub newpage {
@@ -784,11 +705,8 @@ sub newpage {
 
 Generate a new PostScript page, unless in a EPS file when it is ignored.
 
-If C<$page> is not specified the page number is increased each time a new page is requested.
-
-C<$page> can be a string or a number.  If anything other than a simple integer, you probably should register
-your own counting function with C<set_incpage_handler>.  Of course there is no need to do this if a page string is
-given to every C<newpage> call.
+If C<$page> is not specified the previous page's label is incremented
+using the L</incpage_handler>.
 
 =cut
 
@@ -1370,7 +1288,7 @@ that filehandle and return nothing.
 If a filename has been given either here, to C<new>, or to
 C<set_filename>, write the PostScript document to that file and return
 its pathname.  (C<$file> and C<$dir> have the same meaning here as
-they do in L</set_filename>.)
+they do in L<set_filename|/filename>.)
 
 If no filename has been given, or C<$file> is undef, return the
 PostScript document as a string.
@@ -2069,7 +1987,7 @@ sub get_metrics
 } # end get_metrics
 #---------------------------------------------------------------------
 
-=attr strip
+=attr strip (attribute)
 
   $ps = PostScript::File->new( strip => $strip )
 
@@ -2083,9 +2001,25 @@ C<space> strips leading spaces so the user can indent freely without
 increasing the file size.  C<comments> removes lines beginning with
 '%' as well.  C<all_comments> (v2.20) also removes
 comments that aren't at the beginning of a line.
+See also the L<strip|/"strip (method)"> method, which actually does
+the filtering described here.
 
 Passing C<undef> or omitting C<$strip> sets it to the default value,
 C<space>.
+
+=method-text strip (method)
+
+  $ps->strip( $code )
+
+  $ps->strip( $strip => @code )
+
+The C<strip> method filters PostScript code according to the value of
+C<$strip>, which can be any valid value for the L<strip|/"strip (attribute)">
+attribute.  The code is modified in-place; there is no return value.
+If C<$code> is C<undef>, it is left unchanged.
+
+When called with a single argument, strips C<$code> according to the
+current value of the C<strip> attribute.
 
 =cut
 
@@ -2146,6 +2080,7 @@ sub strip
   my $pos;
 
   for (@_) {
+    next unless defined $_;
     pos() = 0;
     while (pos() < length) {
       next if m/\G<~[^~]*~>/gc
@@ -2233,7 +2168,7 @@ sub set_page_clipping {
 
   $ps->set_page_label( [$page] )
 
-The label for the current page (used in the %%Page comment).  (Default: "1")
+The label for the current page (used in the C<%%Page> comment).  (Default: "1")
 
 Unlike the other page attributes, you can only access C<page_label> of
 the current page.  (Since pages are specified by label, it makes no
@@ -3050,7 +2985,7 @@ L<http://www.lcdf.org/type/#typetools>.  (You can set
 C<$PostScript::File::ttftotype42> to the name of the program to use.
 It defaults to F<ttftotype42>.)
 
-Since TrueType (aka Type42) font support was introduced in PostScript
+Since TrueType (a.k.a. Type42) font support was introduced in PostScript
 level 2, embedding a TTF font automatically sets C<langlevel> to 2
 (unless it was already set to a higher level).  Be aware that not all
 printers can handle Type42 fonts.  (Even PostScript level 2 printers
@@ -3855,7 +3790,7 @@ Use these C<get_> and C<set_> methods to access a PostScript::File object's data
 
 =begin Pod::Loom-group_method text
 
-=head2 Text Encoding Methods
+=head2 Text Processing Methods
 
 
 =head1 BUGS AND LIMITATIONS
