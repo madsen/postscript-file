@@ -16,6 +16,9 @@ Revision history for Perl extension PostScript::File.
 	  comment/whitespace stripping.
 	- Fixed bug: add_preview might strip the preview
 	- Fixed bug: check_tilde treated "0" like the empty string
+	- Private methods bbox_comment, pre_pages, post_pages, &
+	  print_file were renamed.  You shouldn't have been using them
+	  anyway.
 	- The documentation has been cleaned up.
 
 2.11   October 11, 2011

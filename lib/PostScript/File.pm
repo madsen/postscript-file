@@ -710,7 +710,8 @@ using the L</incpage_handler>.
 
 =cut
 
-sub pre_pages {
+sub _pre_pages
+{
     my ($o, $landscape, $clipping, $filename) = @_;
 
     if (my $use_functions = $o->{use_functions}) {
@@ -796,7 +797,7 @@ END_FONTS
     # Prepare the PostScript file
     my $postscript = $o->{eps} ? "\%!PS-Adobe-3.0 EPSF-3.0\n" : "\%!PS-Adobe-3.0\n";
     if ($o->{eps}) {
-        $postscript .= $o->bbox_comment('', $o->{bbox});
+        $postscript .= $o->_bbox_comment('', $o->{bbox});
     }
     if ($o->{headings}) {
         require Sys::Hostname;
@@ -1153,7 +1154,8 @@ sub _build_needed
   $comment;
 } # end _build_needed
 
-sub post_pages {
+sub _post_pages
+{
     my $o = shift;
     my $postscript = "";
 
@@ -1215,15 +1217,15 @@ END_DEBUG_END
             my $page = $o->{page}->[$p];
             my @pbox = $o->get_page_bounding_box($page);
             $o->set_bounding_box(@pbox);
-            $postscript .= $o->pre_pages($o->{pagelandsc}[$p], $o->{pageclip}[$p], $epsfile);
+            $postscript .= $o->_pre_pages($o->{pagelandsc}[$p], $o->{pageclip}[$p], $epsfile);
             $postscript .= "landscape\n" if ($o->{pagelandsc}[$p]);
             $postscript .= "$pbox[0] $pbox[1] $pbox[2] $pbox[3] cliptobox\n" if ($o->{pageclip}[$p]);
             $postscript .= "$debugbegin\n";
             $postscript .= $o->{Pages}->[$p];
             $postscript .= "$debugend\n";
-            $postscript .= $o->post_pages();
+            $postscript .= $o->_post_pages();
 
-            push @pages, $o->print_file( $fh || $epsfile, $postscript );
+            push @pages, $o->_print_file( $fh || $epsfile, $postscript );
 
             $p++;
         } while ($p < $o->{pagecount});
@@ -1240,17 +1242,17 @@ END_DEBUG_END
         my $psfile = $o->{filename};
         $psfile .= defined($o->{file_ext}) ? $o->{file_ext} : '.ps'
             if defined $psfile;
-        my $postscript = $o->pre_pages($landscape, $clipping, $psfile);
+        my $postscript = $o->_pre_pages($landscape, $clipping, $psfile);
         for (my $p = 0; $p < $o->{pagecount}; $p++) {
             my $page = $o->{page}->[$p];
             my @pbox = $o->get_page_bounding_box($page);
             my ($landscape, $pagebb);
             if ($o->{pagelandsc}[$p]) {
                 $landscape = "landscape";
-                $pagebb = $o->bbox_comment(Page => [ @pbox[1,0,3,2] ]);
+                $pagebb = $o->_bbox_comment(Page => [ @pbox[1,0,3,2] ]);
             } else {
                 $landscape = "";
-                $pagebb = $o->bbox_comment(Page => \@pbox);
+                $pagebb = $o->_bbox_comment(Page => \@pbox);
             }
             my $cliptobox = $o->{pageclip}[$p] ? "$pbox[0] $pbox[1] $pbox[2] $pbox[3] cliptobox" : "";
             $postscript .= $o->_here_doc(<<END_PAGE_SETUP);
@@ -1273,8 +1275,8 @@ END_PAGE_SETUP
                     showpage
 END_PAGE_TRAILER
         }
-        $postscript .= $o->post_pages();
-        return $o->print_file( $fh || $psfile, $postscript );
+        $postscript .= $o->_post_pages();
+        return $o->_print_file( $fh || $psfile, $postscript );
     }
 }
 
@@ -1349,7 +1351,7 @@ sub testable_output
 # Create a BoundingBox: comment,
 # and a HiRes version if the box has a fractional part:
 
-sub bbox_comment
+sub _bbox_comment
 {
   my ($o, $type, $bbox) = @_;
 
@@ -1362,9 +1364,9 @@ sub bbox_comment
   } # end if fractional bbox
 
   "%%${type}BoundingBox: $comment\n";
-} # end bbox_comment
+} # end _bbox_comment
 
-sub print_file
+sub _print_file
 {
   my $o        = shift;
   my $filename = shift;
@@ -1387,18 +1389,10 @@ sub print_file
   } else {
     return $_[0];
   } # end else no filename
-} # end print_file
+} # end _print_file
 # Internal method, used by output()
 # Expects file name and contents
 #---------------------------------------------------------------------
-
-# FIXME make these private:
-
-=for Pod::Coverage
-bbox_comment
-post_pages
-pre_pages
-print_file
 
 =attr auto_hyphen
 
