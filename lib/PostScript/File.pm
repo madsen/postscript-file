@@ -1543,8 +1543,8 @@ Envelope-Monarch, Envelope-DL, Envelope-C5, and EuroPostcard.
 You can also give a string in the form 'WIDTHxHEIGHT', where WIDTH and
 HEIGHT are numbers (in points).  This sets the paper size to "Custom".
 
-This also sets L</bounding_box>, L</height>, and L</width> to the full
-height and width of the paper.
+Setting this also sets L</bounding_box>, L</height>, and L</width>
+to the full height and width of the paper.
 
 =cut
 
@@ -2163,7 +2163,7 @@ sub set_page_clipping {
 
 The label for the current page (used in the C<%%Page> comment).  (Default: "1")
 
-Unlike the other page attributes, you can only access C<page_label> of
+Unlike the other page attributes, you can only access the C<page_label> of
 the current page.  (Since pages are specified by label, it makes no
 sense to ask for the label of a different page.)
 
@@ -3459,7 +3459,8 @@ this usage is deprecated.
   $next_label = incpage_label( $label )
 
 This function applies Perl's autoincrement operator to C<$label> and
-returns the result.
+returns the result.  (This means that the magic string autoincrement
+applies to values that match C</^[a-zA-Z]*[0-9]*\z/>.)
 
 This function is the default value of the L</incpage_handler> attribute.
 
@@ -3755,7 +3756,7 @@ others.
 
 The following attributes can have a different value for every page.
 You can't set them directly in the constructor, but they all have a
-document default value that each page inherits when it is created.
+document-wide default value that each page inherits when it is created.
 When accessing or setting them, C<$page> is the page label.  If
 C<$page> is omitted, it defaults to the current page.
 
