@@ -1,6 +1,6 @@
 Revision history for Perl extension PostScript::File.
 
-2.20   NOT
+2.20   February 11, 2012
 	API improvements:
 
 	- Added use_functions method, which selects functions from a
