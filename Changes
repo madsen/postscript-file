@@ -1,6 +1,6 @@
 Revision history for Perl extension PostScript::File.
 
-2.21   NOT
+2.21   2015-05-02 (Trial Release)
 	- Release tests moved to xt/
 
 2.20   2012-02-11
