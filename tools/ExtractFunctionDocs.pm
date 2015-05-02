@@ -21,7 +21,6 @@ our $VERSION = '2.20';
 
 use 5.008;
 use Moose 0.65; # attr fulfills requires
-use Moose::Autobox;
 
 with(qw(Dist::Zilla::Role::FileMunger));
 
@@ -32,9 +31,8 @@ sub munge_files
   my ($self) = @_;
 
   # Find lib/PostScript/File/Functions.pm:
-  my ($file) = $self->zilla->files
-                ->grep(sub{ $_->name eq 'lib/PostScript/File/Functions.pm' })
-                ->flatten;
+  my ($file) = grep { $_->name eq 'lib/PostScript/File/Functions.pm' }
+                    @{ $self->zilla->files };
 
   $self->log_fatal("Can't find PostScript::File::Functions") unless $file;
 
