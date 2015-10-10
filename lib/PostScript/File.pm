@@ -19,7 +19,7 @@ package PostScript::File;
 #---------------------------------------------------------------------
 
 use 5.008;
-our $VERSION = '2.22';          ## no critic
+our $VERSION = '2.23';          ## no critic
 # This file is part of {{$dist}} {{$dist_version}} ({{$date}})
 
 use strict;
@@ -499,7 +499,7 @@ uses a non-standard character set.
 
 Setting this to C<cp1252> or C<iso-8859-1> also causes the document to
 be encoded in that character set.  Any strings you add to the document
-that have the UTF-8 flag set will be reencoded automatically.  Strings
+that have the UTF-8 flag set will be re-encoded automatically.  Strings
 that do not have the UTF-8 flag are expected to be in the correct
 character set already.  This means that you should be able to set this
 to C<cp1252>, use Unicode characters in your code and the "-iso"
@@ -514,7 +514,7 @@ way to access them when using the standard or ISOLatin1 encodings.
 L<http://en.wikipedia.org/wiki/Windows-1252>
 
 For backwards compatibility with versions of PostScript::File older
-than 1.05, setting this to C<ISOLatin1Encoding> reencodes the fonts,
+than 1.05, setting this to C<ISOLatin1Encoding> re-encodes the fonts,
 but does not do any character set translation in the document.
 
 =head3 Initialization keys
@@ -533,7 +533,7 @@ whole page area available for debugging output.  (Default: "clip").
 
 =head4 font_suffix
 
-This string is appended to each font name as it is reencoded.  (Default: "-iso")
+This string is appended to each font name as it is re-encoded.  (Default: "-iso")
 
 The string value is appended to these to make the new names.
 
@@ -3125,7 +3125,7 @@ document-global value, although the code will be repeated on each
 page.
 
 Also note that any settings defined here will be active for each page
-seperately.  Use L</add_setup> if you want to carry settings from one
+separately.  Use L</add_setup> if you want to carry settings from one
 page to another.
 
 =cut

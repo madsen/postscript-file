@@ -1,5 +1,9 @@
 Revision history for Perl extension PostScript::File.
 
+2.23   NOT
+	- Fix typos in documentation (RT#107673)
+	  (patch from Jonathan Yu via Florian Schlichting of Debian)
+
 2.22   2015-05-09
 	- No functional changes
 	- Release tests moved to xt/
